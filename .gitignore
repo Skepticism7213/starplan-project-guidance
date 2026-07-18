@@ -1,0 +1,11 @@
+# Local Codex/workspace metadata
+.agents/
+.codex/
+
+# Local secrets and OS/editor files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
