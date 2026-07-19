@@ -557,7 +557,7 @@ actual_start_time,actual_end_time,targets_observed,targets_missed,equipment_used
 | pandas | ≥ 2.0 | CSV 数据处理（observability.csv、observation_log.csv） | 数据处理标准库 |
 | pydantic | ≥ 2.0 | Schema 定义和输入验证 | 类型安全、自动生成 JSON Schema、清晰错误信息 |
 | dashscope | 最新 | 阿里云百炼 API 调用 | 官方 SDK，直接调用 Qwen 模型 |
-| Qwen 模型 | Qwen3.7-Max / Qwen3.7-Plus | 自然语言解析、工具编排、科普表达 | 已确认；赛题要求使用阿里云 Qwen 系列 |
+| Qwen 模型 | Qwen3.8-Max-Preview / Qwen3.7-Max / Qwen3.7-Plus | 自然语言解析、工具编排、科普表达 | 已确认；赛题要求使用阿里云 Qwen 系列 |
 | Streamlit 或 FastAPI | 待定 | 轻量演示界面 | Streamlit 开发快、适合演示；FastAPI 更灵活（待团队确认偏好） |
 
 **不选择的技术：**
@@ -905,7 +905,7 @@ ls .env.example
 
 **问题 3：百炼账号和可用模型**
 
-已确认（2026-07-19）：使用阿里云百炼平台，模型为 Qwen3.7-Max（高质量推理）和 Qwen3.7-Plus（通用编排）。API 调用额度和账号权限由团队自行确认。
+已确认（2026-07-19）：使用阿里云百炼平台，可用模型为 Qwen3.8-Max-Preview（最新预览，高质量推理）、Qwen3.7-Max（高质量推理）和 Qwen3.7-Plus（通用编排）。API 调用额度和账号权限由团队自行确认。
 
 **问题 4：演示入口技术选择**
 
@@ -934,7 +934,7 @@ ls .env.example
 
 **唯一关键阻塞项：**
 
-百炼账号和 Qwen 模型可用性（问题 3）——已确认使用 Qwen3.7-Max / Qwen3.7-Plus。地点和日期（问题 2）——已完成天文合理性验证。当前无阻塞项，可以立即开始搭建。
+百炼账号和 Qwen 模型可用性（问题 3）——已确认可用 Qwen3.8-Max-Preview / Qwen3.7-Max / Qwen3.7-Plus。地点和日期（问题 2）——已完成天文合理性验证。当前无阻塞项，可以立即开始搭建。
 
 **团队决策：** 先做成果再谈演示。演示入口（问题 4）延后到核心闭环跑通后再确定。
 

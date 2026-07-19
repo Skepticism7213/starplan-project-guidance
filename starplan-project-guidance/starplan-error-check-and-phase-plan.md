@@ -71,7 +71,7 @@
 
 **阶段验收：** 模型只使用事实卡；调用过程可追踪；裸 Qwen 与 Skills 模式的幻觉率有对比数据。
 
-**阻塞项：** 需要团队填入 `DASHSCOPE_API_KEY` 并确认 Qwen3.7-Max/Plus 的调用额度。
+**阻塞项：** 需要团队填入 `DASHSCOPE_API_KEY` 并确认 Qwen3.8-Max-Preview / Qwen3.7-Max / Plus 的调用额度。
 
 ### 第 4 周（08-01 ~ 08-08）：复盘闭环增强
 
@@ -126,7 +126,7 @@
 
 ## 五、立即可做的下一步
 
-1. 团队填入 `DASHSCOPE_API_KEY`，确认 Qwen3.7-Max/Plus 调用额度。
+1. 团队填入 `DASHSCOPE_API_KEY`，确认 Qwen3.8-Max-Preview / Qwen3.7-Max / Plus 调用额度。
 2. 网络恢复后推送本地 commit `03c16b9`。
 3. 确认演示入口技术选择（Streamlit vs FastAPI）。
 4. 开始第 3 周第一项：验证百炼工具调用链路是否稳定。

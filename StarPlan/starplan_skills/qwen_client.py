@@ -20,6 +20,7 @@ load_dotenv()
 
 # Model configuration
 QWEN_MODELS = {
+    "max_preview": "qwen3.8-max-preview",
     "max": "qwen3.7-max",
     "plus": "qwen3.7-plus",
 }
