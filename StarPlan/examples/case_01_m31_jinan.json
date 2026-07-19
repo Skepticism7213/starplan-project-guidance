@@ -1,0 +1,23 @@
+{
+  "target": "M31",
+  "target_type": null,
+  "location": "济南_四门塔",
+  "location_detail": {
+    "name": "四门塔景区观星点",
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300,
+    "timezone": "Asia/Shanghai"
+  },
+  "date_range": ["2026-10-17", "2026-10-17"],
+  "audience": "天文社新成员",
+  "equipment": "binoculars",
+  "goal": "校园科普观测",
+  "constraints": {
+    "min_altitude_deg": 30,
+    "max_airmass": 2.0,
+    "prefer_early_night": false,
+    "max_moon_illumination": null
+  }
+}

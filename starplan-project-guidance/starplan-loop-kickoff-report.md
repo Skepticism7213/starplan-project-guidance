@@ -178,7 +178,7 @@ StarPlan Loop 的目标不是做一个新的天文观测计划软件——Astrop
 
 **可验证的成功标准：**
 
-- M31 在 2026-10-17 北京的推荐窗口峰值高度角与 Astropy 计算一致（误差 < 0.5°）
+- M31 在 2026-10-17 济南四门塔景区的推荐窗口峰值高度角与 Astropy 计算一致（误差 < 0.5°）
 - 日落和天文暮光时间与 USNO 或 Stellarium 参考值一致（误差 < 2 分钟）
 - 相同输入多次运行得到一致结果
 
@@ -296,13 +296,13 @@ StarPlan Loop 的目标不是做一个新的天文观测计划软件——Astrop
 {
   "target": "M31",
   "target_type": null,
-  "location": "北京_某高校",
+  "location": "济南_四门塔景区",
   "location_detail": {
     "name": "某高校",
-    "city": "北京",
-    "latitude": 39.9,
-    "longitude": 116.3,
-    "elevation_m": 50,
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300,
     "timezone": "Asia/Shanghai"
   },
   "date_range": ["2026-10-17", "2026-10-17"],
@@ -360,7 +360,7 @@ runs/case_xxx/
   "run_id": "case_01_m31_beijing",
   "timestamp": "2026-07-20T14:30:00+08:00",
   "input": {
-    "raw_user_input": "我们天文社想在北京组织一次看仙女座星系的活动",
+    "raw_user_input": "我们天文社想在济南四门塔景区组织一次看仙女座星系的活动",
     "parsed_input": { "...见统一输入 Schema..." }
   },
   "target": {
@@ -371,9 +371,9 @@ runs/case_xxx/
     "confidence": 0.95
   },
   "location": {
-    "name": "北京_某高校",
-    "latitude": 39.9,
-    "longitude": 116.3,
+    "name": "济南_四门塔景区",
+    "latitude": 36.49,
+    "longitude": 117.18,
     "timezone": "Asia/Shanghai"
   },
   "tools": {
@@ -435,14 +435,14 @@ runs/case_xxx/
 
 ### 案例 1：正常可观测活动
 
-**场景：** 北京某高校天文社计划于 2026 年 10 月 17 日（周六）晚间组织面向新成员的 M31 仙女座星系观测活动，使用双筒望远镜。
+**场景：** 济南四门塔景区天文社计划于 2026 年 10 月 17 日（周六）晚间组织面向新成员的 M31 仙女座星系观测活动，使用双筒望远镜。
 
 **输入：**
 
 ```json
 {
   "target": "M31",
-  "location": "北京_某高校",
+  "location": "济南_四门塔景区",
   "date_range": ["2026-10-17", "2026-10-17"],
   "audience": "天文社新成员",
   "equipment": "binoculars",
@@ -473,14 +473,14 @@ runs/case_xxx/
 
 ### 案例 2：不适合观测及备选方案
 
-**场景：** 用户想在 2026 年 7 月 25 日（周六）在北京用双筒望远镜观测猎户座大星云 M42。
+**场景：** 用户想在 2026 年 7 月 25 日（周六）在济南四门塔景区用双筒望远镜观测猎户座大星云 M42。
 
 **输入：**
 
 ```json
 {
   "target": "M42",
-  "location": "北京_某高校",
+  "location": "济南_四门塔景区",
   "date_range": ["2026-07-25", "2026-07-25"],
   "audience": "天文社新成员",
   "equipment": "binoculars",
@@ -557,7 +557,7 @@ actual_start_time,actual_end_time,targets_observed,targets_missed,equipment_used
 | pandas | ≥ 2.0 | CSV 数据处理（observability.csv、observation_log.csv） | 数据处理标准库 |
 | pydantic | ≥ 2.0 | Schema 定义和输入验证 | 类型安全、自动生成 JSON Schema、清晰错误信息 |
 | dashscope | 最新 | 阿里云百炼 API 调用 | 官方 SDK，直接调用 Qwen 模型 |
-| Qwen 模型 | 待核实（建议使用 qwen-max 或 qwen-plus） | 自然语言解析、工具编排、科普表达 | 赛题要求使用阿里云 Qwen 系列 |
+| Qwen 模型 | Qwen3.7-Max / Qwen3.7-Plus | 自然语言解析、工具编排、科普表达 | 已确认；赛题要求使用阿里云 Qwen 系列 |
 | Streamlit 或 FastAPI | 待定 | 轻量演示界面 | Streamlit 开发快、适合演示；FastAPI 更灵活（待团队确认偏好） |
 
 **不选择的技术：**
@@ -699,7 +699,7 @@ Qwen 在以下情况下被要求拒绝或标记，而不是编造数值：
 | P0-5 | 建立内置地点表 v1 | C | 常用城市坐标 | data/locations_v1.json（5-10 个城市） |
 | P0-6 | 搭建项目骨架和统一输出目录 | D | 项目结构设计 | 目录结构 + runner.py 骨架 + output_dir 管理 |
 | P0-7 | 完成 target_resolve 最小实现 | C | 内置目录 v1 | 能解析 M31/M42/M13 并处理歧义 |
-| P0-8 | 完成 observability_plan 最小实现 | B | Astropy/astroplan | 对 M31+北京+10-17 输出高度角和推荐窗口 |
+| P0-8 | 完成 observability_plan 最小实现 | B | Astropy/astroplan | 对 M31+济南四门塔+10-17 输出高度角和推荐窗口 |
 | P0-9 | 确认百炼/Qwen 调用方式和模型版本 | D | 阿里云百炼账号 | 能成功调用 Qwen 并保存调用日志 |
 | P0-10 | 建立 Git 仓库和协作规范 | D + E | 分工表 | GitHub/Gitee 仓库 + 分支策略 + README |
 
@@ -792,14 +792,14 @@ print(f'歧义处理: {len(r2[\"candidates\"])} candidates')
 
 ### P0-8：observability_plan 最小实现
 
-**完成定义：** 对 M31 + 北京 + 2026-10-17，输出逐时高度角和推荐窗口；推荐窗口内的峰值高度角与 Astropy 直接计算一致（误差 < 0.5°）。
+**完成定义：** 对 M31 + 济南四门塔 + 2026-10-17，输出逐时高度角和推荐窗口；推荐窗口内的峰值高度角与 Astropy 直接计算一致（误差 < 0.5°）。
 
 **验证命令：**
 
 ```bash
 python -c "
 from starplan_skills.observability_plan import compute_observability
-r = compute_observability(ra_deg=10.6847, dec_deg=41.2692, target_name='M31', location={'latitude': 39.9, 'longitude': 116.3, 'elevation_m': 50, 'timezone': 'Asia/Shanghai'}, date_range=['2026-10-17', '2026-10-17'])
+r = compute_observability(ra_deg=10.6847, dec_deg=41.2692, target_name='M31', location={'latitude': 36.49, 'longitude': 117.18, 'elevation_m': 300, 'timezone': 'Asia/Shanghai'}, date_range=['2026-10-17', '2026-10-17'])
 assert r['is_observable'] == True
 print(f'Recommended: {r[\"recommended_window\"]}')
 print(f'Peak altitude: {r[\"recommended_window\"][\"peak_altitude_deg\"]:.1f} deg')
@@ -894,17 +894,18 @@ ls .env.example
 
 **问题 2：3 个案例的具体日期和地点**
 
-建议：
+建议（已完成天文合理性初核）：
 
-- 案例 1：M31 + 北京（39.9°N, 116.3°E）+ 2026-10-17
-- 案例 2：M42 + 北京 + 2026-07-25（不适合观测）
-- 案例 3：M31 + 北京 + 2026-10-17（使用案例 1 的计划 + 模拟观测日志）
+- 统一地点：山东省济南市南部山区柳埠街道四门塔景区观星点，建议在运行配置中记录为 `latitude=36.49`、`longitude=117.18`、`elevation=约300 m`、`timezone=Asia/Shanghai`。坐标和海拔是场地级近似值，正式观测前应用手机 GNSS 或现场地图点位复核；景区开放时间、夜间进出和照明情况也必须由团队确认。
+- 案例 1：M31（仙女座星系）+ 上述济南地点 + 2026-10-17。合理：M31 赤纬约 +41.3°，在济南中天高度约 85°，秋季夜间处于高空，适合双筒望远镜观测。10 月中旬日落和天文暮光后即可安排窗口；月相和月距仍由 `observability_plan` 在运行时确定并写入证据链。
+- 案例 2：M42（猎户座大星云）+ 上述济南地点 + 2026-07-25（预期失败）。合理：M42 赤经约 5h35m，7 月下旬夜间与太阳赤经接近，目标在日落后仍接近地平线下方，至清晨也受暮光影响，适合作为“规则触发、不给出虚假最佳时间”的不可观测案例。
+- 案例 3：M31 + 上述济南地点 + 2026-10-17（复用案例 1 的计划，并继续使用模拟观测日志）。与案例 1 保持同一输入，便于验证迟到、薄云和支架不稳导致的复盘差异。
 
-需要确认：日期选择是否天文上合理（需交叉验证月相和太阳位置）？地点是否使用虚拟的"北京某高校"还是某个真实校园？
+需要团队确认：四门塔景区是否获准夜间开展活动、最终观测点的实测经纬度和海拔、现场地平线遮挡及照明条件。若无法取得夜间进入许可，应改用已获校方/场地方许可的济南校园地点，并重新记录坐标。
 
 **问题 3：百炼账号和可用模型**
 
-需要确认：团队是否已有阿里云百炼账号？可用的 Qwen 模型版本是什么（qwen-max、qwen-plus、qwen-turbo）？是否有 API 调用额度限制？
+已确认（2026-07-19）：使用阿里云百炼平台，模型为 Qwen3.7-Max（高质量推理）和 Qwen3.7-Plus（通用编排）。API 调用额度和账号权限由团队自行确认。
 
 **问题 4：演示入口技术选择**
 
@@ -933,13 +934,15 @@ ls .env.example
 
 **唯一关键阻塞项：**
 
-百炼账号和 Qwen 模型可用性（问题 3）。如果没有百炼账号或 API 额度不足，Qwen 编排和科普包生成无法实现。但这一阻塞不影响首周的 Schema 冻结、目标目录建立和本地计算验证（P0-1 至 P0-8），建议团队在首周并行解决。
+百炼账号和 Qwen 模型可用性（问题 3）——已确认使用 Qwen3.7-Max / Qwen3.7-Plus。地点和日期（问题 2）——已完成天文合理性验证。当前无阻塞项，可以立即开始搭建。
+
+**团队决策：** 先做成果再谈演示。演示入口（问题 4）延后到核心闭环跑通后再确定。
 
 **建议立即执行：**
 
-1. 团队审阅本启动报告，确认或修改 14 项内容。
-2. 解决阻塞问题（特别是百炼账号）。
-3. 确认后，按 P0-1 至 P0-10 的优先级开始首周任务。
+1. 按 P0-1 至 P0-10 的优先级开始首周任务。
+2. 先跑通 M31 + 济南四门塔 + 10-17 的本地计算最小链路（target_resolve → observability_plan → 输出结构化结果）。
+3. 再接入 Qwen 和科普包，最后做复盘和展示。
 
 ---
 

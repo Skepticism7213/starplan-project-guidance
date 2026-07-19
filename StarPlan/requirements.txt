@@ -1,0 +1,17 @@
+# Core astronomy
+astropy>=6.0
+astroplan>=0.9
+
+# Data handling
+pandas>=2.0
+pydantic>=2.0
+pyyaml>=6.0
+
+# Visualization
+matplotlib>=3.7
+
+# Qwen / Alibaba Cloud
+dashscope>=1.20.0
+
+# Utilities
+python-dotenv>=1.0

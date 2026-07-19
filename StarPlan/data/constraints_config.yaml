@@ -1,0 +1,71 @@
+# StarPlan Loop - Observing Constraints Configuration
+# Version: 0.1.0
+# These thresholds are initial values; calibrate with fixed cases before freezing.
+
+# ── Target altitude constraints ──
+altitude:
+  min_altitude_deg: 30.0          # Minimum altitude above horizon
+  preferred_altitude_deg: 45.0    # Preferred altitude for best viewing
+  critical_altitude_deg: 15.0     # Below this = critical risk
+
+# ── Airmass constraints ──
+airmass:
+  max_airmass: 2.0                # Maximum acceptable airmass
+  preferred_airmass: 1.5          # Preferred airmass for quality viewing
+  critical_airmass: 3.0           # Above this = critical risk
+
+# ── Twilight constraints ──
+twilight:
+  type: astronomical              # civil, nautical, or astronomical
+  sun_altitude_deg: -18.0         # Astronomical twilight threshold
+  buffer_minutes: 15              # Wait this many minutes after twilight ends
+
+# ── Moon constraints ──
+moon:
+  max_illumination_fraction: 0.7  # Moon illumination above which deep-sky targets are affected
+  min_separation_deg: 30.0        # Minimum angular separation from target (degrees)
+  impact_levels:
+    none: { max_illumination: 0.3, min_separation_deg: 45 }
+    low: { max_illumination: 0.5, min_separation_deg: 30 }
+    moderate: { max_illumination: 0.7, min_separation_deg: 20 }
+    high: { max_illumination: 0.9, min_separation_deg: 10 }
+    severe: {}  # Anything worse than 'high'
+
+# ── Equipment-target matching ──
+equipment:
+  naked_eye:
+    max_magnitude: 4.0
+    min_angular_size_arcmin: 60
+  binoculars:
+    max_magnitude: 8.0
+    min_angular_size_arcmin: 10
+  small_telescope:
+    max_magnitude: 12.0
+    min_angular_size_arcmin: 2
+  large_telescope:
+    max_magnitude: 16.0
+    min_angular_size_arcmin: 0.5
+
+# ── Risk severity rules ──
+risk_rules:
+  low_altitude:
+    warning_threshold_deg: 30.0
+    critical_threshold_deg: 15.0
+  high_airmass:
+    warning_threshold: 2.0
+    critical_threshold: 3.0
+  moonlight:
+    warning_illumination: 0.5
+    critical_illumination: 0.8
+  twilight_proximity:
+    warning_minutes: 30
+    critical_minutes: 10
+
+# ── Validation rules ──
+validation:
+  # Cross-check tolerance for altitude computation (degrees)
+  altitude_tolerance_deg: 0.5
+  # Cross-check tolerance for time computation (minutes)
+  time_tolerance_minutes: 2
+  # Require all key numerical values traceable to tool output
+  require_tool_traceability: true

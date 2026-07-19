@@ -1,0 +1,82 @@
+[
+  {
+    "key": "济南_四门塔",
+    "name": "四门塔景区观星点",
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300,
+    "timezone": "Asia/Shanghai",
+    "notes": "济南南部山区，光污染较低，适合深空观测"
+  },
+  {
+    "key": "济南_山东大学",
+    "name": "山东大学中心校区",
+    "city": "济南",
+    "latitude": 36.67,
+    "longitude": 117.06,
+    "elevation_m": 50,
+    "timezone": "Asia/Shanghai",
+    "notes": "校园观测点，光污染中等"
+  },
+  {
+    "key": "北京_清华",
+    "name": "清华大学校园",
+    "city": "北京",
+    "latitude": 39.99,
+    "longitude": 116.33,
+    "elevation_m": 50,
+    "timezone": "Asia/Shanghai",
+    "notes": "校园观测点，光污染较高"
+  },
+  {
+    "key": "南京_紫金山",
+    "name": "紫金山天文台附近",
+    "city": "南京",
+    "latitude": 32.07,
+    "longitude": 118.82,
+    "elevation_m": 267,
+    "timezone": "Asia/Shanghai",
+    "notes": "海拔较高，光污染中等"
+  },
+  {
+    "key": "上海_佘山",
+    "name": "佘山天文台附近",
+    "city": "上海",
+    "latitude": 31.10,
+    "longitude": 121.19,
+    "elevation_m": 100,
+    "timezone": "Asia/Shanghai",
+    "notes": "上海近郊，光污染较高"
+  },
+  {
+    "key": "昆明_云南大学",
+    "name": "云南大学校园",
+    "city": "昆明",
+    "latitude": 25.06,
+    "longitude": 102.70,
+    "elevation_m": 1891,
+    "timezone": "Asia/Shanghai",
+    "notes": "高海拔，透明度好"
+  },
+  {
+    "key": "西安_交大",
+    "name": "西安交通大学校园",
+    "city": "西安",
+    "latitude": 34.24,
+    "longitude": 108.94,
+    "elevation_m": 405,
+    "timezone": "Asia/Shanghai",
+    "notes": "校园观测点，光污染中等"
+  },
+  {
+    "key": "成都_川大",
+    "name": "四川大学校园",
+    "city": "成都",
+    "latitude": 30.57,
+    "longitude": 104.08,
+    "elevation_m": 500,
+    "timezone": "Asia/Shanghai",
+    "notes": "校园观测点，多云天气较多"
+  }
+]
