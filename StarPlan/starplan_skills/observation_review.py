@@ -12,7 +12,7 @@ evidence.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -52,13 +52,17 @@ def review_observation(
         planned_start = original_plan.recommended_window.window.start
         actual_start = log.actual_start_time
 
-        # Make both timezone-aware for comparison
+        # Normalize both to UTC for a correct comparison.
+        # Naive times are assumed to be local (Asia/Shanghai, +08:00).
+        local_tz = timezone(timedelta(hours=8))
         if planned_start.tzinfo is None:
-            planned_start = planned_start.replace(tzinfo=timezone(timedelta(hours=8)))
+            planned_start = planned_start.replace(tzinfo=local_tz)
         if actual_start.tzinfo is None:
-            actual_start = actual_start.replace(tzinfo=timezone(timedelta(hours=8)))
+            actual_start = actual_start.replace(tzinfo=local_tz)
+        planned_start_utc = planned_start.astimezone(timezone.utc)
+        actual_start_utc = actual_start.astimezone(timezone.utc)
 
-        delay_minutes = (actual_start - planned_start).total_seconds() / 60
+        delay_minutes = (actual_start_utc - planned_start_utc).total_seconds() / 60
 
         if delay_minutes > 10:
             deviations.append(Deviation(

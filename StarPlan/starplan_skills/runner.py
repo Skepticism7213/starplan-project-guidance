@@ -98,6 +98,8 @@ def run_starplan(
         equipment=starplan_input.equipment,
         constraints=starplan_input.constraints.model_dump() if starplan_input.constraints else None,
         run_dir=run_dir,
+        target_magnitude=resolved.visual_magnitude,
+        target_angular_size_arcmin=resolved.angular_size_arcmin,
     )
 
     plan_data = obs_result.model_dump(mode="json")

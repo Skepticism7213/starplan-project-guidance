@@ -7,7 +7,6 @@ Uses Pydantic v2 for validation, serialization, and JSON Schema generation.
 from __future__ import annotations
 
 from datetime import date, datetime
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator

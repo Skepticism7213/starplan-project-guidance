@@ -11,7 +11,6 @@ fact cards. Mark unconfirmed items instead.
 
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
 

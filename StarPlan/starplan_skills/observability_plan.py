@@ -20,7 +20,6 @@ a language model. This is the core "工具算" principle.
 from __future__ import annotations
 
 import csv
-import os
 import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -51,7 +50,6 @@ from .schemas import (
     HourlyData,
     MoonInfo,
     ObservabilityResult,
-    ObservingConstraint,
     RecommendedWindow,
     RiskFlag,
     TimeWindow,
@@ -94,6 +92,8 @@ def compute_observability(
     equipment: Optional[str] = None,
     constraints: Optional[dict] = None,
     run_dir: Optional[Path] = None,
+    target_magnitude: Optional[float] = None,
+    target_angular_size_arcmin: Optional[list[float]] = None,
 ) -> ObservabilityResult:
     """
     Compute target observability and generate an observation plan.
@@ -147,6 +147,11 @@ def compute_observability(
 
     # Use the first date for computation (MVP: single-night analysis)
     obs_date = d_start
+    if d_end > d_start:
+        print(
+            f"  [!] date_range spans {(d_end - d_start).days + 1} days; "
+            f"MVP computes single-night analysis for the first date ({date_range[0]}) only."
+        )
 
     # Compute sunset / twilight for the observing night
     # We compute for the afternoon of obs_date → morning of obs_date+1
@@ -328,10 +333,16 @@ def compute_observability(
     # Determine if target is observable
     is_observable = len(visibility_windows) > 0
 
-    # Find recommended window (longest visible window)
+    # Find recommended window
+    prefer_early = bool(constraints.get("prefer_early_night", False)) if constraints else False
     recommended_window: Optional[RecommendedWindow] = None
     if visibility_windows:
-        best = max(visibility_windows, key=lambda w: w.duration_minutes)
+        if prefer_early and len(visibility_windows) > 1:
+            # Prefer the earliest window that lasts at least 30 minutes
+            long_enough = [w for w in visibility_windows if w.duration_minutes >= 30]
+            best = min(long_enough, key=lambda w: w.start) if long_enough else visibility_windows[0]
+        else:
+            best = max(visibility_windows, key=lambda w: w.duration_minutes)
         # Find peak altitude in this window
         peak_alt = 0
         peak_am = 1.0
@@ -339,7 +350,7 @@ def compute_observability(
             if best.start <= h.time <= best.end:
                 if h.altitude_deg > peak_alt:
                     peak_alt = h.altitude_deg
-                    peak_am = h.airmass if h.airmass else 1.0
+                    peak_am = h.airmass if h.airmass is not None else 1.0
 
         recommended_window = RecommendedWindow(
             window=best,
@@ -355,6 +366,32 @@ def compute_observability(
 
     # Generate risk flags
     risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg)
+
+    # Equipment suitability check
+    equip_cfg = cfg.get("equipment", {}).get(equipment, {}) if equipment else {}
+    if equip_cfg and target_magnitude is not None:
+        max_mag = equip_cfg.get("max_magnitude")
+        if max_mag is not None and target_magnitude > max_mag:
+            risk_flags.append(RiskFlag(
+                risk_type="equipment",
+                severity="warning",
+                description=(
+                    f"目标视星等 {target_magnitude:.1f} 暗于 {equipment} 的极限星等 {max_mag:.1f}，"
+                    f"可能难以看清，建议更换更大口径设备"
+                ),
+            ))
+    if equip_cfg and target_angular_size_arcmin:
+        min_size = equip_cfg.get("min_angular_size_arcmin")
+        major_axis = target_angular_size_arcmin[0]
+        if min_size is not None and major_axis < min_size:
+            risk_flags.append(RiskFlag(
+                risk_type="equipment",
+                severity="info",
+                description=(
+                    f"目标角大小 {major_axis:.1f}' 小于 {equipment} 建议的最小角大小 {min_size:.1f}'，"
+                    f"目标可能显得很小"
+                ),
+            ))
 
     # Generate alternative suggestions if not observable
     alternative_suggestions: list[AlternativeSuggestion] = []
@@ -544,16 +581,22 @@ def _to_local(utc_dt: datetime, tz: timezone) -> datetime:
 def _assess_moon_impact(
     phase: float, min_separation: float, moon_cfg: dict
 ) -> str:
-    """Assess moon impact on deep-sky observation."""
+    """Assess moon impact on deep-sky observation using configured thresholds."""
     levels = moon_cfg.get("impact_levels", {})
 
-    if phase < 0.3 and min_separation > 45:
+    # Read thresholds from config, fall back to sensible defaults
+    none_cfg = levels.get("none", {})
+    low_cfg = levels.get("low", {})
+    mod_cfg = levels.get("moderate", {})
+    high_cfg = levels.get("high", {})
+
+    if phase < none_cfg.get("max_illumination", 0.3) and min_separation > none_cfg.get("min_separation_deg", 45):
         return "none"
-    if phase < 0.5 and min_separation > 30:
+    if phase < low_cfg.get("max_illumination", 0.5) and min_separation > low_cfg.get("min_separation_deg", 30):
         return "low"
-    if phase < 0.7 and min_separation > 20:
+    if phase < mod_cfg.get("max_illumination", 0.7) and min_separation > mod_cfg.get("min_separation_deg", 20):
         return "moderate"
-    if phase < 0.9 and min_separation > 10:
+    if phase < high_cfg.get("max_illumination", 0.9) and min_separation > high_cfg.get("min_separation_deg", 10):
         return "high"
     return "severe"
 
@@ -585,17 +628,18 @@ def _compute_risk_flags(
         ))
 
     # Moon risk
+    sep_str = f"{moon_info.min_separation_deg:.1f}°" if moon_info.min_separation_deg is not None else "N/A"
     if moon_info.impact_assessment in ("high", "severe"):
         flags.append(RiskFlag(
             risk_type="moonlight",
             severity="critical",
-            description=f"月光影响等级: {moon_info.impact_assessment}（月相 {moon_info.phase_fraction:.2f}，最近角距 {moon_info.min_separation_deg:.1f}°）",
+            description=f"月光影响等级: {moon_info.impact_assessment}（月相 {moon_info.phase_fraction:.2f}，最近角距 {sep_str}）",
         ))
     elif moon_info.impact_assessment == "moderate":
         flags.append(RiskFlag(
             risk_type="moonlight",
             severity="warning",
-            description=f"月光影响等级: moderate（月相 {moon_info.phase_fraction:.2f}，最近角距 {moon_info.min_separation_deg:.1f}°）",
+            description=f"月光影响等级: moderate（月相 {moon_info.phase_fraction:.2f}，最近角距 {sep_str}）",
         ))
 
     return flags
@@ -663,10 +707,10 @@ def _save_csv(hourly_data: list[HourlyData], path: str) -> None:
                 h.time.isoformat(),
                 h.altitude_deg,
                 h.azimuth_deg,
-                h.airmass if h.airmass else "",
+                h.airmass if h.airmass is not None else "",
                 h.sun_altitude_deg,
-                h.moon_altitude_deg if h.moon_altitude_deg else "",
-                h.moon_separation_deg if h.moon_separation_deg else "",
+                h.moon_altitude_deg if h.moon_altitude_deg is not None else "",
+                h.moon_separation_deg if h.moon_separation_deg is not None else "",
             ])
 
 
