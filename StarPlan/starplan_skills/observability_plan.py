@@ -365,31 +365,36 @@ def compute_observability(
 
 # ── Twilight computation ─────────────────────────────
 
+def _local_hour_to_utc(obs_date: datetime, local_hour: float, tz_hours: float) -> datetime:
+    """Convert a local hour offset (from midnight of obs_date) to a UTC datetime.
+
+    Correctly handles day rollover: local_hour=25 means 01:00 the next day.
+    """
+    local_dt = obs_date + timedelta(hours=local_hour)
+    return (local_dt - timedelta(hours=tz_hours)).replace(tzinfo=timezone.utc)
+
+
 def _compute_twilight(
     obs_loc: EarthLocation, obs_date: datetime, tz_hours: float
 ) -> tuple:
-    """Compute evening sunset and twilight times."""
-    # Search for sunset: scan sun altitude from 16:00 to 23:00 local
-    results = [None, None, None, None]  # sunset, civil, nautical, astronomical
+    """Compute evening sunset and twilight times.
 
-    for hour in range(14, 25):  # 14:00 to next day 01:00 UTC range
-        local_h = hour - tz_hours  # Convert to rough UTC
-        t = _local_to_utc(obs_date.replace(hour=hour % 24, minute=0), tz_hours)
+    Scans sun altitude from 14:00 to 25:00 local time (covers afternoon
+    through ~01:00 the next day) to find sunset and twilight crossings.
+    """
+    results = [None, None, None, None]  # sunset, civil, nautical, astronomical
+    prev_utc = None
+    prev_alt = None
+
+    for hour in range(14, 26):  # 14:00 local to 02:00 next day local
+        t = _local_hour_to_utc(obs_date, hour, tz_hours)
         astropy_t = _astropy_time(t)
         altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
         sun = get_body("sun", astropy_t, obs_loc)
         sun_altaz = sun.transform_to(altaz_frame)
         sun_alt = float(sun_altaz.alt.deg)
 
-        # Detect crossings
-        if hour > 14:
-            prev_t = _local_to_utc(obs_date.replace(hour=(hour - 1) % 24, minute=0), tz_hours)
-            prev_astropy_t = _astropy_time(prev_t)
-            prev_frame = AltAz(obstime=prev_astropy_t, location=obs_loc)
-            prev_sun = get_body("sun", prev_astropy_t, obs_loc)
-            prev_altaz = prev_sun.transform_to(prev_frame)
-            prev_alt = float(prev_altaz.alt.deg)
-
+        if prev_alt is not None:
             if prev_alt > 0 >= sun_alt and results[0] is None:
                 results[0] = t  # sunset
             if prev_alt > -6 >= sun_alt and results[1] is None:
@@ -399,39 +404,42 @@ def _compute_twilight(
             if prev_alt > -18 >= sun_alt and results[3] is None:
                 results[3] = t  # astronomical twilight end
 
+        prev_utc = t
+        prev_alt = sun_alt
+
     return tuple(results)
 
 
 def _compute_morning_twilight(
     obs_loc: EarthLocation, next_date: datetime, tz_hours: float
 ) -> tuple:
-    """Compute morning sunrise and astronomical twilight start."""
+    """Compute morning sunrise and astronomical twilight start.
+
+    Scans sun altitude from 20:00 prev day to 31:00 (07:00 next day) local.
+    Uses obs_date as the base date; local_hour >= 24 rolls into next day.
+    """
     sunrise = None
     astro_start = None
+    # obs_date here is actually obs_date+1 day, so we offset back by using
+    # the previous day as base for local hours < 24.
+    base_date = next_date - timedelta(days=1)
+    prev_alt = None
 
-    for hour in range(20, 31):  # 20:00 prev to 07:00 next day
-        h = hour % 24
-        d = next_date if hour < 24 else next_date
-        t = _local_to_utc(d.replace(hour=h, minute=0), tz_hours)
+    for hour in range(20, 32):  # 20:00 to 08:00 next day (local hours from base_date)
+        t = _local_hour_to_utc(base_date, hour, tz_hours)
         astropy_t = _astropy_time(t)
         altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
         sun = get_body("sun", astropy_t, obs_loc)
         sun_altaz = sun.transform_to(altaz_frame)
         sun_alt = float(sun_altaz.alt.deg)
 
-        if hour > 20:
-            prev_h = (hour - 1) % 24
-            prev_t = _local_to_utc(d.replace(hour=prev_h, minute=0), tz_hours)
-            prev_astropy_t = _astropy_time(prev_t)
-            prev_frame = AltAz(obstime=prev_astropy_t, location=obs_loc)
-            prev_sun = get_body("sun", prev_astropy_t, obs_loc)
-            prev_altaz = prev_sun.transform_to(prev_frame)
-            prev_alt = float(prev_altaz.alt.deg)
-
+        if prev_alt is not None:
             if prev_alt < -18 <= sun_alt and astro_start is None:
                 astro_start = t  # astronomical twilight start (morning)
             if prev_alt < 0 <= sun_alt and sunrise is None:
                 sunrise = t  # sunrise
+
+        prev_alt = sun_alt
 
     return sunrise, astro_start
 
@@ -445,10 +453,16 @@ def _local_to_utc(local_dt: datetime, tz_hours: float) -> datetime:
 
 
 def _to_local(utc_dt: datetime, tz: timezone) -> datetime:
-    """Convert UTC datetime to local timezone."""
+    """Convert UTC datetime to local timezone (returned as naive datetime).
+
+    Returns a naive datetime with local time values so that:
+    - String formatting (strftime) shows local time correctly
+    - Matplotlib plots local time on axes without auto-converting to UTC
+    """
     if utc_dt.tzinfo is None:
         utc_dt = utc_dt.replace(tzinfo=timezone.utc)
-    return utc_dt.astimezone(tz)
+    local_dt = utc_dt.astimezone(tz)
+    return local_dt.replace(tzinfo=None)
 
 
 def _assess_moon_impact(
