@@ -25,6 +25,7 @@ Use the documents in `starplan-project-guidance/` in this order:
 4. `starplan-qoderwork-transfer-log.md` is the implementation handoff context aligned to the current plan.
 5. `starplan-transfer-log-diff.md` records the changes made while aligning the handoff context.
 6. `starplan-loop-kickoff-report.md` is supporting kickoff analysis and should not override the project plan.
+7. `starplan-error-check-and-phase-plan.md` is the template for the mandatory end-of-work error-check and phase-plan report (see Working Rules).
 
 If two documents conflict, follow the project plan and record the difference in the transfer diff log before changing downstream material.
 
@@ -38,6 +39,19 @@ If two documents conflict, follow the project plan and record the difference in 
 - Prefer focused Markdown edits and keep source references, licenses, and unknown competition requirements explicit.
 - Never add API keys, tokens, passwords, or private user data to this repository.
 - When adding or changing a project decision, update the project plan first, then update the transfer log and diff log as needed.
+
+## Mandatory End-Of-Work Report
+
+After completing any meaningful unit of work (a finished feature, a fixed bug batch, a completed project phase, or before handing off to another person/agent), the working agent MUST produce an "error check and phase plan" report — even if the user did not explicitly ask for one. This applies to every agent working on this repository, including other collaborators' agents.
+
+The report must be saved as a UTF-8 Markdown file in `starplan-project-guidance/` and follow the structure of the template `starplan-error-check-and-phase-plan.md`. It must contain at least:
+
+1. **Error check** — a static + runtime scan result for the touched code and data: list every issue found by severity (CRITICAL / WARNING / INFO), state whether each was fixed or confirmed harmless, and confirm the affected cases still compile and run without errors.
+2. **Completion status** — what was done, mapped against the project plan's phase schedule, noting anything ahead of or behind schedule.
+3. **Phase plan** — concrete next steps for the coming week(s) with acceptance criteria, blocking items, and risks.
+4. **Immediate next actions** — the smallest set of things the team or next agent should do first.
+
+Do not claim work is finished until this report exists and the relevant cases pass. Commit and push the report together with the code changes; do not let reports or code accumulate unpushed.
 
 ## Documentation Style
 
