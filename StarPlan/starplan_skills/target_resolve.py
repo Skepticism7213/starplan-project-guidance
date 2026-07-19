@@ -38,15 +38,22 @@ def _match_catalog_entry(query: str, entry: dict) -> float:
     norm_query = _normalize_query(query)
     standard = _normalize_query(entry["standard_name"])
 
-    # Exact match on standard name → confidence 1.0
+    # Exact match on standard name -> confidence 1.0
     if norm_query == standard:
         return 1.0
 
     # Match on aliases
     for alias in entry.get("aliases", []):
         norm_alias = _normalize_query(alias)
+        # Exact alias match
         if norm_query == norm_alias:
             return 0.95
+        # Query is contained in alias (e.g. "三角座" in "三角座星系")
+        if len(norm_query) >= 2 and norm_query in norm_alias:
+            return 0.85
+        # Alias is contained in query (e.g. "triangulum" in "triangulum galaxy xyz")
+        if len(norm_alias) >= 2 and norm_alias in norm_query:
+            return 0.80
 
     # Partial / prefix match on standard name (e.g., "M3" matches "M31")
     if standard.startswith(norm_query) or norm_query.startswith(standard):

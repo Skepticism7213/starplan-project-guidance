@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import csv
 import os
+import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -29,6 +30,19 @@ import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.time import Time
 import astropy.units as u
+
+# Suppress Astropy cross-frame transformation warnings (numerically acceptable
+# for angular separation at the precision needed here).
+warnings.filterwarnings(
+    "ignore",
+    message=".*NonRotationTransformationWarning.*",
+    category=UserWarning,
+)
+try:
+    from astropy.coordinates.baseframe import NonRotationTransformationWarning
+    warnings.filterwarnings("ignore", category=NonRotationTransformationWarning)
+except ImportError:
+    pass
 
 from .config import load_constraints
 from .schemas import (
@@ -108,9 +122,13 @@ def compute_observability(
     # Apply user constraint overrides
     min_alt = alt_cfg.get("min_altitude_deg", 30.0)
     max_am = am_cfg.get("max_airmass", 2.0)
+    max_moon_illum = moon_cfg.get("max_illumination_fraction", 0.7)
+    min_moon_sep = moon_cfg.get("min_separation_deg", 30.0)
     if constraints:
         min_alt = constraints.get("min_altitude_deg", min_alt)
         max_am = constraints.get("max_airmass", max_am)
+        if constraints.get("max_moon_illumination") is not None:
+            max_moon_illum = constraints["max_moon_illumination"]
 
     # Parse location
     lat = location["latitude"]
@@ -244,7 +262,16 @@ def compute_observability(
     window_peak_alt = 0
 
     for i, h in enumerate(hourly_data):
-        is_good = h.altitude_deg >= min_alt and (h.airmass is None or h.airmass <= max_am)
+        # Check moon impact: bright moon close to target eliminates the slot
+        moon_ok = True
+        if h.moon_separation_deg is not None:
+            if moon_phase > max_moon_illum and h.moon_separation_deg < min_moon_sep:
+                moon_ok = False
+        is_good = (
+            h.altitude_deg >= min_alt
+            and (h.airmass is None or h.airmass <= max_am)
+            and moon_ok
+        )
 
         if is_good and not in_window:
             in_window = True
@@ -374,37 +401,62 @@ def _local_hour_to_utc(obs_date: datetime, local_hour: float, tz_hours: float) -
     return (local_dt - timedelta(hours=tz_hours)).replace(tzinfo=timezone.utc)
 
 
+def _sun_altitude(obs_loc: EarthLocation, utc_time: datetime) -> float:
+    """Compute sun altitude at a given UTC time."""
+    astropy_t = _astropy_time(utc_time)
+    altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
+    sun = get_body("sun", astropy_t, obs_loc)
+    sun_altaz = sun.transform_to(altaz_frame)
+    return float(sun_altaz.alt.deg)
+
+
+def _bisect_crossing(
+    obs_loc: EarthLocation, t_before: datetime, t_after: datetime,
+    threshold: float, tz_hours: float,
+) -> datetime:
+    """Bisection to find the time when sun altitude crosses a threshold.
+
+    t_before: time when sun is above threshold
+    t_after: time when sun is below threshold
+    Returns the crossing time with ~1 minute precision.
+    """
+    for _ in range(6):  # 6 iterations: 5min / 2^6 ~ 5 seconds precision
+        t_mid = t_before + (t_after - t_before) / 2
+        alt = _sun_altitude(obs_loc, t_mid)
+        if alt > threshold:
+            t_before = t_mid
+        else:
+            t_after = t_mid
+    return t_after
+
+
 def _compute_twilight(
     obs_loc: EarthLocation, obs_date: datetime, tz_hours: float
 ) -> tuple:
-    """Compute evening sunset and twilight times.
+    """Compute evening sunset and twilight times with ~1 minute precision.
 
-    Scans sun altitude from 14:00 to 25:00 local time (covers afternoon
-    through ~01:00 the next day) to find sunset and twilight crossings.
+    Scans sun altitude from 14:00 to 26:00 local time with 5-minute steps,
+    then uses bisection to refine each crossing.
     """
     results = [None, None, None, None]  # sunset, civil, nautical, astronomical
-    prev_utc = None
+    thresholds = [0, -6, -12, -18]
+    prev_t = None
     prev_alt = None
 
-    for hour in range(14, 26):  # 14:00 local to 02:00 next day local
-        t = _local_hour_to_utc(obs_date, hour, tz_hours)
-        astropy_t = _astropy_time(t)
-        altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
-        sun = get_body("sun", astropy_t, obs_loc)
-        sun_altaz = sun.transform_to(altaz_frame)
-        sun_alt = float(sun_altaz.alt.deg)
+    # Scan with 5-minute steps (local hours from obs_date midnight)
+    step_hours = 5.0 / 60.0  # 5 minutes in hours
+    for local_h_float in _frange(14.0, 26.0, step_hours):
+        t = _local_hour_to_utc(obs_date, local_h_float, tz_hours)
+        sun_alt = _sun_altitude(obs_loc, t)
 
         if prev_alt is not None:
-            if prev_alt > 0 >= sun_alt and results[0] is None:
-                results[0] = t  # sunset
-            if prev_alt > -6 >= sun_alt and results[1] is None:
-                results[1] = t  # civil twilight end
-            if prev_alt > -12 >= sun_alt and results[2] is None:
-                results[2] = t  # nautical twilight end
-            if prev_alt > -18 >= sun_alt and results[3] is None:
-                results[3] = t  # astronomical twilight end
+            for idx, threshold in enumerate(thresholds):
+                if results[idx] is None and prev_alt > threshold >= sun_alt:
+                    results[idx] = _bisect_crossing(
+                        obs_loc, prev_t, t, threshold, tz_hours
+                    )
 
-        prev_utc = t
+        prev_t = t
         prev_alt = sun_alt
 
     return tuple(results)
@@ -413,35 +465,59 @@ def _compute_twilight(
 def _compute_morning_twilight(
     obs_loc: EarthLocation, next_date: datetime, tz_hours: float
 ) -> tuple:
-    """Compute morning sunrise and astronomical twilight start.
+    """Compute morning sunrise and astronomical twilight start with ~1 min precision.
 
-    Scans sun altitude from 20:00 prev day to 31:00 (07:00 next day) local.
-    Uses obs_date as the base date; local_hour >= 24 rolls into next day.
+    Scans from 20:00 prev day to 32:00 (08:00 next day) with 5-minute steps.
     """
     sunrise = None
     astro_start = None
-    # obs_date here is actually obs_date+1 day, so we offset back by using
-    # the previous day as base for local hours < 24.
     base_date = next_date - timedelta(days=1)
+    prev_t = None
     prev_alt = None
 
-    for hour in range(20, 32):  # 20:00 to 08:00 next day (local hours from base_date)
-        t = _local_hour_to_utc(base_date, hour, tz_hours)
-        astropy_t = _astropy_time(t)
-        altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
-        sun = get_body("sun", astropy_t, obs_loc)
-        sun_altaz = sun.transform_to(altaz_frame)
-        sun_alt = float(sun_altaz.alt.deg)
+    step_hours = 5.0 / 60.0
+    for local_h_float in _frange(20.0, 32.0, step_hours):
+        t = _local_hour_to_utc(base_date, local_h_float, tz_hours)
+        sun_alt = _sun_altitude(obs_loc, t)
 
         if prev_alt is not None:
-            if prev_alt < -18 <= sun_alt and astro_start is None:
-                astro_start = t  # astronomical twilight start (morning)
-            if prev_alt < 0 <= sun_alt and sunrise is None:
-                sunrise = t  # sunrise
+            # Morning crossings: sun goes from below to above threshold
+            if astro_start is None and prev_alt < -18 <= sun_alt:
+                astro_start = _bisect_crossing_above(
+                    obs_loc, prev_t, t, -18, tz_hours
+                )
+            if sunrise is None and prev_alt < 0 <= sun_alt:
+                sunrise = _bisect_crossing_above(
+                    obs_loc, prev_t, t, 0, tz_hours
+                )
 
+        prev_t = t
         prev_alt = sun_alt
 
     return sunrise, astro_start
+
+
+def _bisect_crossing_above(
+    obs_loc: EarthLocation, t_before: datetime, t_after: datetime,
+    threshold: float, tz_hours: float,
+) -> datetime:
+    """Bisection for sun altitude crossing upward through a threshold."""
+    for _ in range(6):
+        t_mid = t_before + (t_after - t_before) / 2
+        alt = _sun_altitude(obs_loc, t_mid)
+        if alt < threshold:
+            t_before = t_mid
+        else:
+            t_after = t_mid
+    return t_after
+
+
+def _frange(start: float, stop: float, step: float):
+    """Float range generator."""
+    val = start
+    while val < stop:
+        yield val
+        val += step
 
 
 # ── Utility functions ────────────────────────────────

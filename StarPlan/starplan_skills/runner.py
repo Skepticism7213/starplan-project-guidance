@@ -49,11 +49,14 @@ def run_starplan(
     # Parse and validate input
     starplan_input = StarPlanInput(**input_data)
 
-    # Generate run ID
+    # Generate run ID (with timestamp to avoid collisions between cases)
     if not run_id:
         target_slug = starplan_input.target.lower().replace(" ", "_")
         date_slug = starplan_input.date_range[0].strftime("%Y%m%d")
-        run_id = f"{target_slug}_{starplan_input.location.replace('_', '-')}_{date_slug}"
+        ts_slug = datetime.now().strftime("%H%M%S")
+        has_log = "observation_log" in input_data
+        suffix = "_review" if has_log else ""
+        run_id = f"{target_slug}_{starplan_input.location.replace('_', '-')}_{date_slug}_{ts_slug}{suffix}"
 
     run_dir = get_run_dir(run_id)
 
@@ -137,6 +140,9 @@ def run_starplan(
         print(f"  [OK] Review report: {review.review_report_md_path}")
     else:
         print(f"[4/4] No observation log provided -- skipping review")
+
+    # ── Generate model call log ──
+    _write_model_call_log(run_dir, starplan_input, resolved, obs_result)
 
     # ── Save calculation manifest ──
     manifest = _build_manifest(
@@ -260,11 +266,87 @@ def _write_validation_report(
     lines.append("")
 
     # Overall
-    all_ok = resolved.confidence >= 0.9 and len(obs.hourly_data) > 0
+    target_ok = resolved.confidence >= 0.9
+    data_ok = len(obs.hourly_data) > 0
+    observable = obs.is_observable
+    has_reasons = len(obs.alternative_suggestions) > 0 or len(obs.risk_flags) > 0
+
+    if target_ok and data_ok and observable:
+        status = "[PASS] PASSED"
+    elif target_ok and data_ok and not observable and has_reasons:
+        status = "[PASS] EXPECTED_FAILURE -- not observable with proper reasons and alternatives"
+    elif target_ok and data_ok and not observable and not has_reasons:
+        status = "[REVIEW] NEEDS REVIEW -- not observable but no alternatives provided"
+    else:
+        status = "[FAIL] FAILED -- target resolution or data computation issue"
+
     lines.append("## 总体结论")
     lines.append("")
-    lines.append(f"**状态**: {'✓ PASSED' if all_ok else '⚠️ NEEDS REVIEW'}")
+    lines.append(f"**状态**: {status}")
+    lines.append(f"**可观测**: {'Yes' if observable else 'No'}")
+    if not observable:
+        lines.append(f"**备选建议数**: {len(obs.alternative_suggestions)}")
     lines.append("")
 
     with open(run_dir / "validation_report.md", "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
+
+
+def _write_model_call_log(
+    run_dir: Path,
+    starplan_input: StarPlanInput,
+    resolved: ResolvedTarget,
+    obs_result: ObservabilityResult,
+) -> None:
+    """Write model_call_log.jsonl recording pipeline steps and Qwen usage."""
+    import os
+    tz = timezone(timedelta(hours=8))
+    log_entries: list[dict] = []
+
+    # Record target_resolve step (deterministic, no model call)
+    log_entries.append({
+        "timestamp": datetime.now(tz).isoformat(),
+        "step": "target_resolve",
+        "type": "deterministic_tool",
+        "input": {"target_name": starplan_input.target},
+        "output": {"standard_name": resolved.standard_name, "confidence": resolved.confidence},
+        "model_used": None,
+    })
+
+    # Record observability_plan step (deterministic, no model call)
+    log_entries.append({
+        "timestamp": datetime.now(tz).isoformat(),
+        "step": "observability_plan",
+        "type": "deterministic_tool",
+        "input": {
+            "target": resolved.standard_name,
+            "location": starplan_input.location,
+            "date_range": [str(d) for d in starplan_input.date_range],
+        },
+        "output": {
+            "is_observable": obs_result.is_observable,
+            "recommended_window": str(obs_result.recommended_window.window.start) if obs_result.recommended_window else None,
+        },
+        "model_used": None,
+    })
+
+    # Record outreach_pack step
+    api_key = os.getenv("DASHSCOPE_API_KEY", "")
+    qwen_available = api_key and api_key != "your_api_key_here"
+    log_entries.append({
+        "timestamp": datetime.now(tz).isoformat(),
+        "step": "outreach_pack",
+        "type": "model_assisted",
+        "qwen_available": qwen_available,
+        "model_used": "Qwen3.7-Max" if qwen_available else None,
+        "note": (
+            "Qwen available -- outreach content can be enhanced with model-generated explanations"
+            if qwen_available
+            else "DASHSCOPE_API_KEY not set -- outreach pack generated from template only, no Qwen call"
+        ),
+    })
+
+    log_path = run_dir / "model_call_log.jsonl"
+    with open(log_path, "w", encoding="utf-8") as f:
+        for entry in log_entries:
+            f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")

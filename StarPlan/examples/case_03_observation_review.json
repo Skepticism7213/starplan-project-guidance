@@ -21,7 +21,7 @@
     "max_moon_illumination": null
   },
   "observation_log": {
-    "actual_start_time": "2026-10-17T20:30:00+08:00",
+    "actual_start_time": "2026-10-17T19:30:00+08:00",
     "actual_end_time": "2026-10-17T22:30:00+08:00",
     "targets_observed": ["M31"],
     "targets_missed": [],

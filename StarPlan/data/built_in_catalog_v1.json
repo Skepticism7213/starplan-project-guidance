@@ -321,7 +321,7 @@
   },
   {
     "standard_name": "M33",
-    "aliases": ["Triangulum Galaxy", "三角座星系", "NGC 598", "Pinwheel Galaxy"],
+    "aliases": ["Triangulum Galaxy", "三角座星系", "三角座", "NGC 598"],
     "target_type": "deep_sky",
     "ra_deg": 23.462,
     "dec_deg": 30.660,
