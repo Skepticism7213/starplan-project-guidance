@@ -261,6 +261,8 @@ class OutreachPack(BaseModel):
     manual_check_items: list[str] = Field(default_factory=list)
     unconfirmed_items: list[str] = Field(default_factory=list)
     outreach_pack_md_path: Optional[str] = None
+    qwen_used: bool = False
+    qwen_validation_issues: list[str] = Field(default_factory=list)
 
 
 # ──────────────────────────────────────────────

@@ -1,11 +1,16 @@
 """
-StarPlan Loop - Orchestrator (runner)
+StarPlan Loop - Orchestrator (runner) — Week 3 enhanced.
 
 Entry point for running a complete StarPlan pipeline:
   target_resolve → observability_plan → outreach_pack → observation_review
 
+Three entry modes:
+  1. run_starplan(input_data) — structured dict input (original)
+  2. run_starplan_nl(text) — natural language input, Qwen parses to struct
+  3. run_starplan_chat(text) — Qwen orchestrates tools via function calling
+
 Each run produces a complete output directory with all intermediate
-results, calculation manifest, and validation report.
+results, calculation manifest, model call log, and validation report.
 """
 
 from __future__ import annotations
@@ -117,6 +122,7 @@ def run_starplan(
 
     # ── Step 4: Generate outreach pack ──
     print(f"[3/4] Generating outreach pack for audience: {starplan_input.audience}")
+    log_path = str(run_dir / "model_call_log.jsonl")
     outreach = generate_outreach_pack(
         target=resolved,
         obs_result=obs_result,
@@ -124,8 +130,14 @@ def run_starplan(
         equipment=starplan_input.equipment,
         goal=starplan_input.goal,
         run_dir=run_dir,
+        use_qwen=True,
+        log_path=log_path,
     )
-    print(f"  [OK] Outreach pack: {outreach.outreach_pack_md_path}")
+    qwen_tag = " [Qwen]" if outreach.qwen_used else " [template]"
+    print(f"  [OK] Outreach pack{qwen_tag}: {outreach.outreach_pack_md_path}")
+    if outreach.qwen_validation_issues:
+        for issue in outreach.qwen_validation_issues:
+            print(f"    [!] {issue}")
 
     # ── Step 5: Observation review (if log provided) ──
     review = None
@@ -144,7 +156,7 @@ def run_starplan(
         print(f"[4/4] No observation log provided -- skipping review")
 
     # ── Generate model call log ──
-    _write_model_call_log(run_dir, starplan_input, resolved, obs_result)
+    _write_model_call_log(run_dir, starplan_input, resolved, obs_result, outreach=outreach)
 
     # ── Save calculation manifest ──
     manifest = _build_manifest(
@@ -299,11 +311,23 @@ def _write_model_call_log(
     starplan_input: StarPlanInput,
     resolved: ResolvedTarget,
     obs_result: ObservabilityResult,
+    outreach=None,
+    nl_parsed: bool = False,
 ) -> None:
     """Write model_call_log.jsonl recording pipeline steps and Qwen usage."""
     import os
     tz = timezone(timedelta(hours=8))
     log_entries: list[dict] = []
+
+    # Record NL parse step if applicable
+    if nl_parsed:
+        log_entries.append({
+            "timestamp": datetime.now(tz).isoformat(),
+            "step": "nl_parse",
+            "type": "model_call",
+            "model_used": "Qwen3.7-Max",
+            "note": "Natural language input parsed to structured StarPlanInput via Qwen JSON mode",
+        })
 
     # Record target_resolve step (deterministic, no model call)
     log_entries.append({
@@ -332,23 +356,184 @@ def _write_model_call_log(
         "model_used": None,
     })
 
-    # Record outreach_pack step
-    api_key = os.getenv("DASHSCOPE_API_KEY", "")
-    qwen_available = api_key and api_key != "your_api_key_here"
+    # Record outreach_pack step with actual Qwen usage
+    qwen_used = outreach.qwen_used if outreach else False
+    validation_issues = outreach.qwen_validation_issues if outreach else []
     log_entries.append({
         "timestamp": datetime.now(tz).isoformat(),
         "step": "outreach_pack",
-        "type": "model_assisted",
-        "qwen_available": qwen_available,
-        "model_used": "Qwen3.7-Max" if qwen_available else None,
+        "type": "model_assisted" if qwen_used else "deterministic_tool",
+        "qwen_used": qwen_used,
+        "model_used": "Qwen3.7-Max" if qwen_used else None,
+        "validation_issues": validation_issues,
         "note": (
-            "Qwen available -- outreach content can be enhanced with model-generated explanations"
-            if qwen_available
-            else "DASHSCOPE_API_KEY not set -- outreach pack generated from template only, no Qwen call"
+            f"Qwen generated talking points, {len(validation_issues)} validation issues"
+            if qwen_used
+            else "Template mode -- no Qwen call (API key not set or use_qwen=False)"
         ),
     })
 
     log_path = run_dir / "model_call_log.jsonl"
-    with open(log_path, "w", encoding="utf-8") as f:
+    # Append to existing log (qwen_client may have already written entries)
+    with open(log_path, "a", encoding="utf-8") as f:
         for entry in log_entries:
             f.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
+
+
+# ── Mode 2: Natural Language entry ───────────────────
+
+def run_starplan_nl(
+    user_text: str,
+    run_id: Optional[str] = None,
+) -> dict:
+    """
+    Run StarPlan pipeline from a natural language request.
+
+    Qwen parses the user's free-form text into structured StarPlanInput,
+    then the standard deterministic pipeline runs.
+
+    Args:
+        user_text: Free-form observation request (Chinese or English).
+        run_id: Optional run identifier.
+
+    Returns:
+        Same as run_starplan().
+    """
+    from .nl_parser import parse_natural_language
+
+    print(f"[NL] Parsing natural language input...")
+    print(f"  Input: {user_text[:100]}{'...' if len(user_text) > 100 else ''}")
+
+    starplan_input = parse_natural_language(user_text)
+
+    print(f"  [OK] Parsed: target={starplan_input.target}, "
+          f"location={starplan_input.location}, "
+          f"date={starplan_input.date_range}, "
+          f"equipment={starplan_input.equipment}")
+
+    # Convert to dict and run standard pipeline
+    input_data = starplan_input.model_dump(mode="json")
+    result = run_starplan(input_data, run_id=run_id)
+    result["nl_input"] = user_text
+    result["nl_parsed"] = True
+    return result
+
+
+# ── Mode 3: Qwen tool-calling orchestration ──────────
+
+def run_starplan_chat(
+    user_text: str,
+    run_id: Optional[str] = None,
+) -> dict:
+    """
+    Run StarPlan with Qwen orchestrating tools via function calling.
+
+    Qwen receives the user request and decides which tools to call
+    (target_resolve, observability_plan). Tool results are fed back
+    until Qwen produces a final natural language summary.
+
+    This demonstrates the full "Qwen as orchestrator" pattern where
+    the model plans the workflow but all numerical computation is
+    done by deterministic tools.
+
+    Args:
+        user_text: Free-form observation request.
+        run_id: Optional run identifier.
+
+    Returns:
+        Dict with pipeline results + Qwen conversation log.
+    """
+    from .qwen_client import call_qwen_chat, TOOL_DEFINITIONS, DEFAULT_MODEL
+
+    print(f"[CHAT] Qwen tool-calling orchestration mode")
+    print(f"  Input: {user_text[:100]}{'...' if len(user_text) > 100 else ''}")
+
+    # Define tool executors that bridge Qwen's function calls to our Skills
+    def _exec_target_resolve(target_name: str, target_type: str = None) -> str:
+        """Execute target_resolve and return JSON result."""
+        resolved = resolve_target(target_name, target_type)
+        return json.dumps(resolved.model_dump(), ensure_ascii=False, default=str)
+
+    def _exec_observability_plan(
+        ra_deg: float, dec_deg: float, target_name: str,
+        location_name: str, latitude: float, longitude: float,
+        date_range: list, elevation_m: float = 0,
+        equipment: str = "binoculars",
+    ) -> str:
+        """Execute observability_plan and return JSON result."""
+        location = {
+            "name": location_name,
+            "latitude": latitude,
+            "longitude": longitude,
+            "elevation_m": elevation_m,
+            "timezone": "Asia/Shanghai",
+        }
+        obs = compute_observability(
+            ra_deg=ra_deg,
+            dec_deg=dec_deg,
+            target_name=target_name,
+            location=location,
+            date_range=date_range,
+            equipment=equipment,
+        )
+        return json.dumps(obs.model_dump(mode="json"), ensure_ascii=False, default=str)
+
+    tool_executors = {
+        "target_resolve": _exec_target_resolve,
+        "observability_plan": _exec_observability_plan,
+    }
+
+    # System prompt for the orchestrator
+    system_prompt = (
+        "你是 StarPlan Loop 的 AI 编排器。用户会描述一个天文观测活动需求，\n"
+        "你需要通过调用工具来完成规划：\n"
+        "1. 先调用 target_resolve 解析目标名称\n"
+        "2. 再调用 observability_plan 计算可观测性\n"
+        "3. 最后用自然语言总结结果，给出推荐观测时段和注意事项\n\n"
+        "重要：所有数值计算由工具完成，你只负责理解需求和总结结果。\n"
+        "不要编造任何天文数值。"
+    )
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_text},
+    ]
+
+    # Generate run dir for logging
+    if not run_id:
+        ts_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_id = f"chat_{ts_slug}"
+    run_dir = get_run_dir(run_id)
+    log_path = str(run_dir / "model_call_log.jsonl")
+
+    # Run the chat with tool calling
+    result = call_qwen_chat(
+        messages=messages,
+        tools=TOOL_DEFINITIONS,
+        tool_executors=tool_executors,
+        max_tool_rounds=5,
+        log_path=log_path,
+        step_name="chat_orchestration",
+    )
+
+    # Save conversation log
+    with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:
+        json.dump({
+            "user_input": user_text,
+            "messages": result.get("messages", []),
+            "tool_call_log": result.get("tool_call_log", []),
+            "final_content": result.get("content", ""),
+        }, f, ensure_ascii=False, indent=2, default=str)
+
+    print(f"  [OK] Qwen final response ({len(result.get('content', ''))} chars)")
+    print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
+    print(f"  [OK] Run dir: {run_dir}")
+
+    return {
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "mode": "chat",
+        "final_content": result.get("content", ""),
+        "tool_call_log": result.get("tool_call_log", []),
+        "messages": result.get("messages", []),
+    }
