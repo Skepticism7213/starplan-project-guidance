@@ -448,11 +448,26 @@ def run_starplan_chat(
     print(f"[CHAT] Qwen tool-calling orchestration mode")
     print(f"  Input: {user_text[:100]}{'...' if len(user_text) > 100 else ''}")
 
+    # Capture tool results so the final summary can be hallucination-checked
+    captured: dict = {}
+
     # Define tool executors that bridge Qwen's function calls to our Skills
     def _exec_target_resolve(target_name: str, target_type: str = None) -> str:
         """Execute target_resolve and return JSON result."""
         resolved = resolve_target(target_name, target_type)
+        captured["target_resolve"] = resolved.model_dump()
         return json.dumps(resolved.model_dump(), ensure_ascii=False, default=str)
+
+    def _exec_resolve_location(location_name: str) -> str:
+        """Execute resolve_location (flexible matching) and return JSON result."""
+        loc = _flexible_resolve_location(location_name)
+        if loc:
+            captured["resolve_location"] = loc
+            return json.dumps(loc, ensure_ascii=False, default=str)
+        return json.dumps(
+            {"error": f"未找到地点: {location_name}，请改用内置地点表中的地点"},
+            ensure_ascii=False,
+        )
 
     def _exec_observability_plan(
         ra_deg: float, dec_deg: float, target_name: str,
@@ -476,22 +491,32 @@ def run_starplan_chat(
             date_range=date_range,
             equipment=equipment,
         )
+        captured["observability_plan"] = obs.model_dump(mode="json")
+        captured["_obs_location_used"] = {"latitude": latitude, "longitude": longitude}
         return json.dumps(obs.model_dump(mode="json"), ensure_ascii=False, default=str)
 
     tool_executors = {
         "target_resolve": _exec_target_resolve,
+        "resolve_location": _exec_resolve_location,
         "observability_plan": _exec_observability_plan,
     }
 
-    # System prompt for the orchestrator
+    # System prompt for the orchestrator.
+    # Guardrail 1: inject the current date so Qwen does not fabricate wrong-year dates.
+    today = datetime.now().strftime("%Y-%m-%d")
     system_prompt = (
-        "你是 StarPlan Loop 的 AI 编排器。用户会描述一个天文观测活动需求，\n"
-        "你需要通过调用工具来完成规划：\n"
-        "1. 先调用 target_resolve 解析目标名称\n"
-        "2. 再调用 observability_plan 计算可观测性\n"
-        "3. 最后用自然语言总结结果，给出推荐观测时段和注意事项\n\n"
-        "重要：所有数值计算由工具完成，你只负责理解需求和总结结果。\n"
-        "不要编造任何天文数值。"
+        f"你是 StarPlan Loop 的 AI 编排器。当前日期是 {today}。\n"
+        "用户会描述一个天文观测活动需求，你需要通过调用工具来完成规划：\n"
+        "1. 先调用 target_resolve 解析目标名称，获取目标坐标\n"
+        "2. 再调用 resolve_location 解析地点名称，获取准确的经纬度和海拔\n"
+        "3. 然后调用 observability_plan 计算可观测性（必须使用前两步工具返回的坐标和经纬度）\n"
+        "4. 最后用自然语言总结结果，给出推荐观测时段和注意事项\n\n"
+        "严格规则（违反任何一条都是严重错误）：\n"
+        "- 所有数值（坐标、高度角、方位角、时间、月相、大气质量等）必须来自工具返回结果，绝对不能编造。\n"
+        f"- 如果用户没有指定日期，使用当前日期 {today} 或其后的合理日期，绝对不要使用 2026 年之前的年份。\n"
+        "- 经纬度必须来自 resolve_location 工具的返回，绝对不要凭记忆填写经纬度。\n"
+        "- 不要编造气温、角距离、暗适应时间等工具未提供的具体数值，这类信息只能用定性描述。\n"
+        "- 如果某个工具返回错误或找不到，如实告知用户，不要编造结果。"
     )
 
     messages = [
@@ -516,16 +541,40 @@ def run_starplan_chat(
         step_name="chat_orchestration",
     )
 
-    # Save conversation log
+    final_content = result.get("content", "")
+
+    # Guardrail 3a: verify every number in the final summary traces to a tool output
+    untraceable = _check_chat_hallucination(final_content, captured)
+    # Guardrail 3b: detect if Qwen guessed coordinates instead of using resolve_location
+    coord_warning = _check_coordinate_source(captured)
+
+    verification = {
+        "untraceable_numbers": untraceable,
+        "coordinate_warning": coord_warning,
+        "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
+        "passed": (not untraceable) and (not coord_warning),
+    }
+
+    if untraceable:
+        print(f"  [!] 幻觉核查：发现 {len(untraceable)} 个无法溯源到工具输出的数值: {untraceable[:10]}")
+    else:
+        print(f"  [OK] 幻觉核查：最终总结中的数值均可溯源到工具输出")
+    if coord_warning:
+        print(f"  [!] {coord_warning}")
+    else:
+        print(f"  [OK] 坐标来源核查：经纬度来自 resolve_location 工具")
+
+    # Save conversation log + verification
     with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:
         json.dump({
             "user_input": user_text,
             "messages": result.get("messages", []),
             "tool_call_log": result.get("tool_call_log", []),
-            "final_content": result.get("content", ""),
+            "final_content": final_content,
+            "hallucination_verification": verification,
         }, f, ensure_ascii=False, indent=2, default=str)
 
-    print(f"  [OK] Qwen final response ({len(result.get('content', ''))} chars)")
+    print(f"  [OK] Qwen final response ({len(final_content)} chars)")
     print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
     print(f"  [OK] Run dir: {run_dir}")
 
@@ -533,7 +582,123 @@ def run_starplan_chat(
         "run_id": run_id,
         "run_dir": str(run_dir),
         "mode": "chat",
-        "final_content": result.get("content", ""),
+        "final_content": final_content,
         "tool_call_log": result.get("tool_call_log", []),
         "messages": result.get("messages", []),
+        "hallucination_verification": verification,
     }
+
+
+# ── Chat-mode guardrail helpers ──────────────────────
+
+def _flexible_resolve_location(location_name: str) -> Optional[dict]:
+    """Resolve a location with flexible matching (exact key, then fuzzy)."""
+    from .config import load_locations
+
+    locations = load_locations()
+    name = (location_name or "").strip()
+    norm = name.replace(" ", "").replace("_", "")
+
+    # 1. Exact key match
+    for loc in locations:
+        if loc.get("key") == name:
+            return loc
+    # 2. Normalized key match (ignore underscore/space)
+    for loc in locations:
+        if loc.get("key", "").replace("_", "") == norm:
+            return loc
+    # 3. Fuzzy: query vs city/name substring (both directions)
+    for loc in locations:
+        key_norm = loc.get("key", "").replace("_", "")
+        city = loc.get("city", "")
+        loc_name_norm = loc.get("name", "").replace(" ", "")
+        if norm and (norm in key_norm or norm in loc_name_norm
+                     or (city and city in norm) or (loc_name_norm and loc_name_norm in norm)):
+            return loc
+    return None
+
+
+def _extract_numbers_from_obj(obj, pattern) -> set:
+    """Recursively extract all number strings from a JSON-like object."""
+    nums: set = set()
+    if isinstance(obj, dict):
+        for v in obj.values():
+            nums |= _extract_numbers_from_obj(v, pattern)
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            nums |= _extract_numbers_from_obj(v, pattern)
+    elif obj is not None:
+        for n in pattern.findall(str(obj)):
+            nums.add(n)
+            try:
+                nums.add(str(int(float(n))))
+            except (ValueError, OverflowError):
+                pass
+    return nums
+
+
+def _check_chat_hallucination(final_content: str, captured: dict) -> list:
+    """
+    Check that numbers in Qwen's final summary trace to tool outputs.
+
+    Builds an allowed-number set from all captured tool results, then flags
+    any number in the summary that is not traceable. Returns the list of
+    untraceable number strings (empty if everything traces).
+    """
+    import re
+
+    if not final_content:
+        return []
+
+    pattern = re.compile(r"\d+\.?\d*")
+    allowed: set = set()
+    for key, res in captured.items():
+        if key.startswith("_"):
+            continue
+        allowed |= _extract_numbers_from_obj(res, pattern)
+    # Safe small numbers (0-10) that don't need tool backing
+    allowed |= {str(i) for i in range(11)}
+
+    untraceable: list = []
+    seen: set = set()
+    for num in pattern.findall(final_content):
+        normalized = num
+        try:
+            f = float(num)
+            normalized = str(int(f)) if f == int(f) else str(f)
+        except (ValueError, OverflowError):
+            pass
+        if normalized not in allowed and num not in allowed and normalized not in seen:
+            untraceable.append(normalized)
+            seen.add(normalized)
+    return untraceable
+
+
+def _check_coordinate_source(captured: dict) -> Optional[str]:
+    """
+    Detect if Qwen passed coordinates to observability_plan that did not
+    come from resolve_location (i.e. likely guessed).
+
+    Returns a warning string if suspicious, else None.
+    """
+    obs_loc = captured.get("_obs_location_used")
+    if not obs_loc:
+        return None  # observability_plan was never called
+
+    resolved_loc = captured.get("resolve_location")
+    if not resolved_loc:
+        return ("坐标来源核查：Qwen 调用了 observability_plan 但未先调用 resolve_location，"
+                "经纬度可能为模型推测值，不可信。")
+
+    try:
+        used_lat = float(obs_loc["latitude"])
+        used_lon = float(obs_loc["longitude"])
+        real_lat = float(resolved_loc["latitude"])
+        real_lon = float(resolved_loc["longitude"])
+    except (KeyError, TypeError, ValueError):
+        return None
+
+    if abs(used_lat - real_lat) > 0.01 or abs(used_lon - real_lon) > 0.01:
+        return (f"坐标来源核查：Qwen 使用的经纬度 ({used_lat}, {used_lon}) 与 resolve_location "
+                f"返回的 ({real_lat}, {real_lon}) 不一致，疑似未采用工具结果。")
+    return None

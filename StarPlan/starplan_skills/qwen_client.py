@@ -64,6 +64,28 @@ TOOL_DEFINITIONS = [
     {
         "type": "function",
         "function": {
+            "name": "resolve_location",
+            "description": (
+                "将地点名称（如'济南四门塔'、'北京清华'）解析为标准观测地点，"
+                "返回地点的经纬度、海拔和时区。"
+                "调用 observability_plan 之前必须先调用本工具获取准确经纬度，"
+                "绝对不要凭记忆猜测经纬度。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location_name": {
+                        "type": "string",
+                        "description": "地点名称，如'济南四门塔'、'北京清华'、'南京紫金山'",
+                    },
+                },
+                "required": ["location_name"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "observability_plan",
             "description": (
                 "根据目标坐标、观测地点、日期和设备约束，计算目标的可观测性。"
