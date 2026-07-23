@@ -1,1129 +1,1928 @@
 [
   {
     "standard_name": "M1",
-    "aliases": ["Crab Nebula", "蟹状星云", "NGC 1952"],
+    "aliases": [
+      "Crab Nebula",
+      "蟹状星云",
+      "NGC 1952"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 83.633,
-    "dec_deg": 22.015,
+    "ra_deg": 83.6324,
+    "dec_deg": 22.0174,
     "visual_magnitude": 8.4,
-    "angular_size_arcmin": [6.0, 4.0],
+    "angular_size_arcmin": [
+      6.0,
+      4.0
+    ],
     "constellation": "Taurus"
   },
   {
     "standard_name": "M2",
-    "aliases": ["NGC 7089", "宝瓶座球状星团", "Hercules Cluster II"],
+    "aliases": [
+      "NGC 7089",
+      "宝瓶座球状星团",
+      "Hercules Cluster II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 323.363,
-    "dec_deg": -0.823,
+    "ra_deg": 323.3626,
+    "dec_deg": -0.8232,
     "visual_magnitude": 6.5,
-    "angular_size_arcmin": [12.9, 12.9],
+    "angular_size_arcmin": [
+      12.9,
+      12.9
+    ],
     "constellation": "Aquarius"
   },
   {
     "standard_name": "M3",
-    "aliases": ["NGC 5272", "猎犬座球状星团", "Canes Venatici Cluster"],
+    "aliases": [
+      "NGC 5272",
+      "猎犬座球状星团",
+      "Canes Venatici Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 205.548,
-    "dec_deg": 28.377,
+    "ra_deg": 205.5484,
+    "dec_deg": 28.3773,
     "visual_magnitude": 6.3,
-    "angular_size_arcmin": [16.2, 16.2],
+    "angular_size_arcmin": [
+      16.2,
+      16.2
+    ],
     "constellation": "Canes Venatici"
   },
   {
     "standard_name": "M4",
-    "aliases": ["NGC 6121", "天蝎座球状星团", "Antares Cluster"],
+    "aliases": [
+      "NGC 6121",
+      "天蝎座球状星团",
+      "Antares Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 245.897,
-    "dec_deg": -26.526,
+    "ra_deg": 245.8968,
+    "dec_deg": -26.5258,
     "visual_magnitude": 5.6,
-    "angular_size_arcmin": [26.3, 26.3],
+    "angular_size_arcmin": [
+      26.3,
+      26.3
+    ],
     "constellation": "Scorpius"
   },
   {
     "standard_name": "M5",
-    "aliases": ["NGC 5904", "巨蛇座球状星团", "Serpens Globular"],
+    "aliases": [
+      "NGC 5904",
+      "巨蛇座球状星团",
+      "Serpens Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 229.638,
+    "ra_deg": 229.6384,
     "dec_deg": 2.081,
     "visual_magnitude": 5.7,
-    "angular_size_arcmin": [17.4, 17.4],
+    "angular_size_arcmin": [
+      17.4,
+      17.4
+    ],
     "constellation": "Serpens"
   },
   {
     "standard_name": "M6",
-    "aliases": ["Butterfly Cluster", "蝴蝶星团", "NGC 6405"],
+    "aliases": [
+      "Butterfly Cluster",
+      "蝴蝶星团",
+      "NGC 6405"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 265.068,
-    "dec_deg": -32.221,
+    "ra_deg": 265.0692,
+    "dec_deg": -32.2419,
     "visual_magnitude": 4.2,
-    "angular_size_arcmin": [25.0, 25.0],
+    "angular_size_arcmin": [
+      25.0,
+      25.0
+    ],
     "constellation": "Scorpius"
   },
   {
     "standard_name": "M7",
-    "aliases": ["Ptolemy Cluster", "托勒密星团", "NGC 6475"],
+    "aliases": [
+      "Ptolemy Cluster",
+      "托勒密星团",
+      "NGC 6475"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 268.464,
-    "dec_deg": -34.816,
+    "ra_deg": 268.4471,
+    "dec_deg": -34.8411,
     "visual_magnitude": 3.3,
-    "angular_size_arcmin": [80.0, 80.0],
+    "angular_size_arcmin": [
+      80.0,
+      80.0
+    ],
     "constellation": "Scorpius"
   },
   {
     "standard_name": "M8",
-    "aliases": ["Lagoon Nebula", "礁湖星云", "NGC 6523"],
+    "aliases": [
+      "Lagoon Nebula",
+      "礁湖星云",
+      "NGC 6523"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 270.922,
-    "dec_deg": -24.380,
+    "ra_deg": 270.8,
+    "dec_deg": -24.3833,
     "visual_magnitude": 6.0,
-    "angular_size_arcmin": [90.0, 40.0],
+    "angular_size_arcmin": [
+      90.0,
+      40.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M9",
-    "aliases": ["NGC 6333", "蛇夫座球状星团", "Ophiuchus Globular"],
+    "aliases": [
+      "NGC 6333",
+      "蛇夫座球状星团",
+      "Ophiuchus Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 259.799,
-    "dec_deg": -18.514,
+    "ra_deg": 259.7991,
+    "dec_deg": -18.5162,
     "visual_magnitude": 7.7,
-    "angular_size_arcmin": [9.3, 9.3],
+    "angular_size_arcmin": [
+      9.3,
+      9.3
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M10",
-    "aliases": ["NGC 6254", "蛇夫座球状星团II", "Ophiuchus Cluster"],
+    "aliases": [
+      "NGC 6254",
+      "蛇夫座球状星团II",
+      "Ophiuchus Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 254.287,
-    "dec_deg": -4.100,
+    "ra_deg": 254.2877,
+    "dec_deg": -4.1003,
     "visual_magnitude": 6.6,
-    "angular_size_arcmin": [15.1, 15.1],
+    "angular_size_arcmin": [
+      15.1,
+      15.1
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M11",
-    "aliases": ["Wild Duck Cluster", "野鸭星团", "NGC 6705"],
+    "aliases": [
+      "Wild Duck Cluster",
+      "野鸭星团",
+      "NGC 6705"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 282.775,
-    "dec_deg": -6.267,
+    "ra_deg": 282.7658,
+    "dec_deg": -6.2719,
     "visual_magnitude": 5.8,
-    "angular_size_arcmin": [14.1, 14.1],
+    "angular_size_arcmin": [
+      14.1,
+      14.1
+    ],
     "constellation": "Scutum"
   },
   {
     "standard_name": "M12",
-    "aliases": ["NGC 6218", "蛇夫座球状星团III", "Gorgon Cluster"],
+    "aliases": [
+      "NGC 6218",
+      "蛇夫座球状星团III",
+      "Gorgon Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 251.811,
-    "dec_deg": -1.949,
+    "ra_deg": 251.8091,
+    "dec_deg": -1.9485,
     "visual_magnitude": 6.1,
-    "angular_size_arcmin": [14.5, 14.5],
+    "angular_size_arcmin": [
+      14.5,
+      14.5
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M13",
-    "aliases": ["Hercules Globular Cluster", "武仙座球状星团", "NGC 6205", "Great Hercules Cluster"],
+    "aliases": [
+      "Hercules Globular Cluster",
+      "武仙座球状星团",
+      "NGC 6205",
+      "Great Hercules Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 250.421,
-    "dec_deg": 36.461,
+    "ra_deg": 250.4235,
+    "dec_deg": 36.4613,
     "visual_magnitude": 5.8,
-    "angular_size_arcmin": [16.6, 16.6],
+    "angular_size_arcmin": [
+      16.6,
+      16.6
+    ],
     "constellation": "Hercules"
   },
   {
     "standard_name": "M14",
-    "aliases": ["NGC 6402", "蛇夫座球状星团IV", "Ophiuchus Globular IV"],
+    "aliases": [
+      "NGC 6402",
+      "蛇夫座球状星团IV",
+      "Ophiuchus Globular IV"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 264.400,
-    "dec_deg": -3.246,
+    "ra_deg": 264.4006,
+    "dec_deg": -3.2459,
     "visual_magnitude": 7.6,
-    "angular_size_arcmin": [11.7, 11.7],
+    "angular_size_arcmin": [
+      11.7,
+      11.7
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M15",
-    "aliases": ["NGC 7078", "飞马座球状星团", "Great Pegasus Cluster"],
+    "aliases": [
+      "NGC 7078",
+      "飞马座球状星团",
+      "Great Pegasus Cluster"
+    ],
     "target_type": "deep_sky",
     "ra_deg": 322.493,
-    "dec_deg": 12.160,
+    "dec_deg": 12.167,
     "visual_magnitude": 6.3,
-    "angular_size_arcmin": [12.3, 12.3],
+    "angular_size_arcmin": [
+      12.3,
+      12.3
+    ],
     "constellation": "Pegasus"
   },
   {
     "standard_name": "M16",
-    "aliases": ["Eagle Nebula", "鹰状星云", "NGC 6611", "Star Queen Nebula"],
+    "aliases": [
+      "Eagle Nebula",
+      "鹰状星云",
+      "NGC 6611",
+      "Star Queen Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 274.700,
-    "dec_deg": -13.789,
+    "ra_deg": 274.688,
+    "dec_deg": -13.792,
     "visual_magnitude": 6.0,
-    "angular_size_arcmin": [7.0, 7.0],
+    "angular_size_arcmin": [
+      7.0,
+      7.0
+    ],
     "constellation": "Serpens"
   },
   {
     "standard_name": "M17",
-    "aliases": ["Omega Nebula", "奥米伽星云", "NGC 6618", "Swan Nebula", "马蹄星云"],
+    "aliases": [
+      "Omega Nebula",
+      "奥米伽星云",
+      "NGC 6618",
+      "Swan Nebula",
+      "马蹄星云"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 275.183,
-    "dec_deg": -16.172,
+    "ra_deg": 275.1958,
+    "dec_deg": -16.1717,
     "visual_magnitude": 7.0,
-    "angular_size_arcmin": [11.0, 11.0],
+    "angular_size_arcmin": [
+      11.0,
+      11.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M18",
-    "aliases": ["NGC 6613", "人马座疏散星团", "Black Swan Cluster"],
+    "aliases": [
+      "NGC 6613",
+      "人马座疏散星团",
+      "Black Swan Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 274.942,
-    "dec_deg": -17.139,
+    "ra_deg": 274.9875,
+    "dec_deg": -17.0883,
     "visual_magnitude": 6.9,
-    "angular_size_arcmin": [9.0, 9.0],
+    "angular_size_arcmin": [
+      9.0,
+      9.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M19",
-    "aliases": ["NGC 6273", "蛇夫座球状星团V", "Ophiuchus Globular V"],
+    "aliases": [
+      "NGC 6273",
+      "蛇夫座球状星团V",
+      "Ophiuchus Globular V"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 255.300,
-    "dec_deg": -26.268,
+    "ra_deg": 255.657,
+    "dec_deg": -26.2679,
     "visual_magnitude": 6.8,
-    "angular_size_arcmin": [13.5, 13.5],
+    "angular_size_arcmin": [
+      13.5,
+      13.5
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M20",
-    "aliases": ["Trifid Nebula", "三裂星云", "NGC 6514"],
+    "aliases": [
+      "Trifid Nebula",
+      "三裂星云",
+      "NGC 6514"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 270.617,
-    "dec_deg": -23.025,
+    "ra_deg": 270.675,
+    "dec_deg": -22.9717,
     "visual_magnitude": 9.0,
-    "angular_size_arcmin": [28.0, 28.0],
+    "angular_size_arcmin": [
+      28.0,
+      28.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M21",
-    "aliases": ["NGC 6531", "人马座疏散星团II", "Webb's Cross"],
+    "aliases": [
+      "NGC 6531",
+      "人马座疏散星团II",
+      "Webb's Cross"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 271.517,
-    "dec_deg": -22.494,
+    "ra_deg": 271.0358,
+    "dec_deg": -22.505,
     "visual_magnitude": 5.9,
-    "angular_size_arcmin": [14.6, 14.6],
+    "angular_size_arcmin": [
+      14.6,
+      14.6
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M22",
-    "aliases": ["NGC 6656", "人马座球状星团", "Great Sagittarius Cluster"],
+    "aliases": [
+      "NGC 6656",
+      "人马座球状星团",
+      "Great Sagittarius Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 279.098,
-    "dec_deg": -23.905,
+    "ra_deg": 279.0998,
+    "dec_deg": -23.9047,
     "visual_magnitude": 5.1,
-    "angular_size_arcmin": [24.0, 24.0],
+    "angular_size_arcmin": [
+      24.0,
+      24.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M23",
-    "aliases": ["NGC 6494", "人马座疏散星团III", "Kite Cluster"],
+    "aliases": [
+      "NGC 6494",
+      "人马座疏散星团III",
+      "Kite Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 273.859,
-    "dec_deg": -19.018,
+    "ra_deg": 269.2371,
+    "dec_deg": -18.9869,
     "visual_magnitude": 5.5,
-    "angular_size_arcmin": [27.0, 27.0],
+    "angular_size_arcmin": [
+      27.0,
+      27.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M24",
-    "aliases": ["Sagittarius Star Cloud", "人马座恒星云", "Small Sagittarius Star Cloud", "IC 4715"],
+    "aliases": [
+      "Sagittarius Star Cloud",
+      "人马座恒星云",
+      "Small Sagittarius Star Cloud",
+      "IC 4715"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 274.033,
-    "dec_deg": -18.417,
+    "ra_deg": 274.2,
+    "dec_deg": -18.55,
     "visual_magnitude": 4.6,
-    "angular_size_arcmin": [95.0, 95.0],
+    "angular_size_arcmin": [
+      95.0,
+      95.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M25",
-    "aliases": ["IC 4725", "人马座疏散星团IV", "Southern Sagittarius Cluster"],
+    "aliases": [
+      "IC 4725",
+      "人马座疏散星团IV",
+      "Southern Sagittarius Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 277.967,
-    "dec_deg": -19.253,
+    "ra_deg": 277.9371,
+    "dec_deg": -19.1139,
     "visual_magnitude": 4.6,
-    "angular_size_arcmin": [32.0, 32.0],
+    "angular_size_arcmin": [
+      32.0,
+      32.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M26",
-    "aliases": ["NGC 6694", "盾牌座疏散星团", "Shield Cluster"],
+    "aliases": [
+      "NGC 6694",
+      "盾牌座疏散星团",
+      "Shield Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 281.125,
-    "dec_deg": -9.383,
+    "ra_deg": 281.3171,
+    "dec_deg": -9.3861,
     "visual_magnitude": 8.0,
-    "angular_size_arcmin": [15.2, 15.2],
+    "angular_size_arcmin": [
+      15.2,
+      15.2
+    ],
     "constellation": "Scutum"
   },
   {
     "standard_name": "M27",
-    "aliases": ["Dumbbell Nebula", "哑铃星云", "NGC 6853", "Diabolo Nebula"],
+    "aliases": [
+      "Dumbbell Nebula",
+      "哑铃星云",
+      "NGC 6853",
+      "Diabolo Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 299.901,
-    "dec_deg": 22.721,
+    "ra_deg": 299.9015,
+    "dec_deg": 22.7212,
     "visual_magnitude": 7.5,
-    "angular_size_arcmin": [8.0, 5.7],
+    "angular_size_arcmin": [
+      8.0,
+      5.7
+    ],
     "constellation": "Vulpecula"
   },
   {
     "standard_name": "M28",
-    "aliases": ["NGC 6626", "人马座球状星团II", "Sagittarius Globular II"],
+    "aliases": [
+      "NGC 6626",
+      "人马座球状星团II",
+      "Sagittarius Globular II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 276.133,
-    "dec_deg": -24.863,
+    "ra_deg": 276.137,
+    "dec_deg": -24.8698,
     "visual_magnitude": 6.8,
-    "angular_size_arcmin": [11.2, 11.2],
+    "angular_size_arcmin": [
+      11.2,
+      11.2
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M29",
-    "aliases": ["NGC 6913", "天鹅座疏散星团", "Cooling Tower Cluster"],
+    "aliases": [
+      "NGC 6913",
+      "天鹅座疏散星团",
+      "Cooling Tower Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 305.325,
-    "dec_deg": 38.526,
+    "ra_deg": 305.9417,
+    "dec_deg": 38.4867,
     "visual_magnitude": 6.6,
-    "angular_size_arcmin": [7.0, 7.0],
+    "angular_size_arcmin": [
+      7.0,
+      7.0
+    ],
     "constellation": "Cygnus"
   },
   {
     "standard_name": "M30",
-    "aliases": ["NGC 7099", "摩羯座球状星团", "Capricornus Globular"],
+    "aliases": [
+      "NGC 7099",
+      "摩羯座球状星团",
+      "Capricornus Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 325.098,
-    "dec_deg": -23.179,
+    "ra_deg": 325.0922,
+    "dec_deg": -23.1799,
     "visual_magnitude": 7.2,
-    "angular_size_arcmin": [8.8, 8.8],
+    "angular_size_arcmin": [
+      8.8,
+      8.8
+    ],
     "constellation": "Capricornus"
   },
   {
     "standard_name": "M31",
-    "aliases": ["Andromeda Galaxy", "仙女座星系", "NGC 224", "仙女座大星云"],
+    "aliases": [
+      "Andromeda Galaxy",
+      "仙女座星系",
+      "NGC 224",
+      "仙女座大星云"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 10.685,
-    "dec_deg": 41.269,
+    "ra_deg": 10.6847,
+    "dec_deg": 41.2688,
     "visual_magnitude": 3.4,
-    "angular_size_arcmin": [178.0, 63.0],
+    "angular_size_arcmin": [
+      178.0,
+      63.0
+    ],
     "constellation": "Andromeda"
   },
   {
     "standard_name": "M32",
-    "aliases": ["NGC 221", "仙女座伴星系", "Le Gentil's Nebula"],
+    "aliases": [
+      "NGC 221",
+      "仙女座伴星系",
+      "Le Gentil's Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 10.674,
-    "dec_deg": 40.865,
+    "ra_deg": 10.6743,
+    "dec_deg": 40.8652,
     "visual_magnitude": 8.1,
-    "angular_size_arcmin": [8.7, 6.5],
+    "angular_size_arcmin": [
+      8.7,
+      6.5
+    ],
     "constellation": "Andromeda"
   },
   {
     "standard_name": "M33",
-    "aliases": ["Triangulum Galaxy", "三角座星系", "三角座", "NGC 598"],
+    "aliases": [
+      "Triangulum Galaxy",
+      "三角座星系",
+      "三角座",
+      "NGC 598"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 23.462,
-    "dec_deg": 30.660,
+    "ra_deg": 23.4621,
+    "dec_deg": 30.6602,
     "visual_magnitude": 5.7,
-    "angular_size_arcmin": [68.7, 41.6],
+    "angular_size_arcmin": [
+      68.7,
+      41.6
+    ],
     "constellation": "Triangulum"
   },
   {
     "standard_name": "M34",
-    "aliases": ["NGC 1039", "英仙座疏散星团", "Spiral Cluster"],
+    "aliases": [
+      "NGC 1039",
+      "英仙座疏散星团",
+      "Spiral Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 40.500,
-    "dec_deg": 42.774,
+    "ra_deg": 40.5308,
+    "dec_deg": 42.7219,
     "visual_magnitude": 5.2,
-    "angular_size_arcmin": [35.0, 35.0],
+    "angular_size_arcmin": [
+      35.0,
+      35.0
+    ],
     "constellation": "Perseus"
   },
   {
     "standard_name": "M35",
-    "aliases": ["NGC 2168", "双子座疏散星团", "Shoe-Buckle Cluster"],
+    "aliases": [
+      "NGC 2168",
+      "双子座疏散星团",
+      "Shoe-Buckle Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 92.241,
-    "dec_deg": 24.339,
+    "ra_deg": 92.2721,
+    "dec_deg": 24.3361,
     "visual_magnitude": 5.1,
-    "angular_size_arcmin": [28.0, 28.0],
+    "angular_size_arcmin": [
+      28.0,
+      28.0
+    ],
     "constellation": "Gemini"
   },
   {
     "standard_name": "M36",
-    "aliases": ["NGC 1960", "御夫座疏散星团", "Pinwheel Cluster"],
+    "aliases": [
+      "NGC 1960",
+      "御夫座疏散星团",
+      "Pinwheel Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 84.053,
-    "dec_deg": 34.136,
+    "ra_deg": 84.0842,
+    "dec_deg": 34.135,
     "visual_magnitude": 6.0,
-    "angular_size_arcmin": [12.2, 12.2],
+    "angular_size_arcmin": [
+      12.2,
+      12.2
+    ],
     "constellation": "Auriga"
   },
   {
     "standard_name": "M37",
-    "aliases": ["NGC 2099", "御夫座疏散星团II", "Salt and Pepper Cluster"],
+    "aliases": [
+      "NGC 2099",
+      "御夫座疏散星团II",
+      "Salt and Pepper Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 88.075,
-    "dec_deg": 32.553,
+    "ra_deg": 88.0742,
+    "dec_deg": 32.545,
     "visual_magnitude": 5.6,
-    "angular_size_arcmin": [23.2, 23.2],
+    "angular_size_arcmin": [
+      23.2,
+      23.2
+    ],
     "constellation": "Auriga"
   },
   {
     "standard_name": "M38",
-    "aliases": ["NGC 1912", "御夫座疏散星团III", "Starfish Cluster"],
+    "aliases": [
+      "NGC 1912",
+      "御夫座疏散星团III",
+      "Starfish Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 82.833,
-    "dec_deg": 35.841,
+    "ra_deg": 82.1671,
+    "dec_deg": 35.8239,
     "visual_magnitude": 6.4,
-    "angular_size_arcmin": [21.0, 21.0],
+    "angular_size_arcmin": [
+      21.0,
+      21.0
+    ],
     "constellation": "Auriga"
   },
   {
     "standard_name": "M39",
-    "aliases": ["NGC 7092", "天鹅座疏散星团II", "Cygnus Open Cluster"],
+    "aliases": [
+      "NGC 7092",
+      "天鹅座疏散星团II",
+      "Cygnus Open Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 323.525,
-    "dec_deg": 48.431,
+    "ra_deg": 322.8892,
+    "dec_deg": 48.2469,
     "visual_magnitude": 4.6,
-    "angular_size_arcmin": [32.0, 32.0],
+    "angular_size_arcmin": [
+      32.0,
+      32.0
+    ],
     "constellation": "Cygnus"
   },
   {
     "standard_name": "M40",
-    "aliases": ["Winnecke 4", "WNC 4", "双星"],
+    "aliases": [
+      "Winnecke 4",
+      "WNC 4",
+      "双星"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 185.583,
-    "dec_deg": 58.083,
+    "ra_deg": 185.55,
+    "dec_deg": 58.0833,
     "visual_magnitude": 9.0,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M41",
-    "aliases": ["NGC 2287", "大犬座疏散星团", "Little Beehive Cluster"],
+    "aliases": [
+      "NGC 2287",
+      "大犬座疏散星团",
+      "Little Beehive Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 100.700,
-    "dec_deg": -20.759,
+    "ra_deg": 101.4992,
+    "dec_deg": -20.7161,
     "visual_magnitude": 4.5,
-    "angular_size_arcmin": [38.0, 38.0],
+    "angular_size_arcmin": [
+      38.0,
+      38.0
+    ],
     "constellation": "Canis Major"
   },
   {
     "standard_name": "M42",
-    "aliases": ["Orion Nebula", "猎户座大星云", "NGC 1976", "Great Orion Nebula"],
+    "aliases": [
+      "Orion Nebula",
+      "猎户座大星云",
+      "NGC 1976",
+      "Great Orion Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 83.822,
-    "dec_deg": -5.391,
+    "ra_deg": 83.8201,
+    "dec_deg": -5.3876,
     "visual_magnitude": 4.0,
-    "angular_size_arcmin": [85.0, 60.0],
+    "angular_size_arcmin": [
+      85.0,
+      60.0
+    ],
     "constellation": "Orion"
   },
   {
     "standard_name": "M43",
-    "aliases": ["De Mairan's Nebula", "德梅兰星云", "NGC 1982"],
+    "aliases": [
+      "De Mairan's Nebula",
+      "德梅兰星云",
+      "NGC 1982"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 83.867,
-    "dec_deg": -5.271,
+    "ra_deg": 83.8792,
+    "dec_deg": -5.27,
     "visual_magnitude": 9.0,
-    "angular_size_arcmin": [20.0, 15.0],
+    "angular_size_arcmin": [
+      20.0,
+      15.0
+    ],
     "constellation": "Orion"
   },
   {
     "standard_name": "M44",
-    "aliases": ["Beehive Cluster", "蜂巢星团", "NGC 2632", "Praesepe", "鬼星团"],
+    "aliases": [
+      "Beehive Cluster",
+      "蜂巢星团",
+      "NGC 2632",
+      "Praesepe",
+      "鬼星团"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 130.025,
-    "dec_deg": 19.671,
+    "ra_deg": 130.0542,
+    "dec_deg": 19.6211,
     "visual_magnitude": 3.1,
-    "angular_size_arcmin": [95.0, 95.0],
+    "angular_size_arcmin": [
+      95.0,
+      95.0
+    ],
     "constellation": "Cancer"
   },
   {
     "standard_name": "M45",
-    "aliases": ["Pleiades", "昴星团", "七姊妹星团", "Seven Sisters"],
+    "aliases": [
+      "Pleiades",
+      "昴星团",
+      "七姊妹星团",
+      "Seven Sisters"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 56.867,
-    "dec_deg": 24.118,
+    "ra_deg": 56.6008,
+    "dec_deg": 24.1139,
     "visual_magnitude": 1.6,
-    "angular_size_arcmin": [110.0, 110.0],
+    "angular_size_arcmin": [
+      110.0,
+      110.0
+    ],
     "constellation": "Taurus"
   },
   {
     "standard_name": "M46",
-    "aliases": ["NGC 2437", "船尾座疏散星团", "Crescent Cluster"],
+    "aliases": [
+      "NGC 2437",
+      "船尾座疏散星团",
+      "Crescent Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 115.150,
-    "dec_deg": -14.815,
+    "ra_deg": 115.445,
+    "dec_deg": -14.8439,
     "visual_magnitude": 6.1,
-    "angular_size_arcmin": [27.0, 27.0],
+    "angular_size_arcmin": [
+      27.0,
+      27.0
+    ],
     "constellation": "Puppis"
   },
   {
     "standard_name": "M47",
-    "aliases": ["NGC 2422", "船尾座疏散星团II", "Puppis Cluster"],
+    "aliases": [
+      "NGC 2422",
+      "船尾座疏散星团II",
+      "Puppis Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 112.575,
-    "dec_deg": -14.498,
+    "ra_deg": 114.1471,
+    "dec_deg": -14.4889,
     "visual_magnitude": 4.4,
-    "angular_size_arcmin": [30.0, 30.0],
+    "angular_size_arcmin": [
+      30.0,
+      30.0
+    ],
     "constellation": "Puppis"
   },
   {
     "standard_name": "M48",
-    "aliases": ["NGC 2548", "长蛇座疏散星团", "Hydra Cluster"],
+    "aliases": [
+      "NGC 2548",
+      "长蛇座疏散星团",
+      "Hydra Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 123.700,
-    "dec_deg": -5.806,
+    "ra_deg": 123.4121,
+    "dec_deg": -5.7261,
     "visual_magnitude": 5.8,
-    "angular_size_arcmin": [54.0, 54.0],
+    "angular_size_arcmin": [
+      54.0,
+      54.0
+    ],
     "constellation": "Hydra"
   },
   {
     "standard_name": "M49",
-    "aliases": ["NGC 4472", "室女座椭圆星系", "Virgo Elliptical Galaxy"],
+    "aliases": [
+      "NGC 4472",
+      "室女座椭圆星系",
+      "Virgo Elliptical Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 187.444,
-    "dec_deg": 8.001,
+    "ra_deg": 187.4449,
+    "dec_deg": 8.0004,
     "visual_magnitude": 8.4,
-    "angular_size_arcmin": [8.9, 7.4],
+    "angular_size_arcmin": [
+      8.9,
+      7.4
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M50",
-    "aliases": ["NGC 2323", "麒麟座疏散星团", "Heart-Shaped Cluster"],
+    "aliases": [
+      "NGC 2323",
+      "麒麟座疏散星团",
+      "Heart-Shaped Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 105.000,
-    "dec_deg": -8.339,
+    "ra_deg": 105.6842,
+    "dec_deg": -8.365,
     "visual_magnitude": 5.9,
-    "angular_size_arcmin": [17.8, 17.8],
+    "angular_size_arcmin": [
+      17.8,
+      17.8
+    ],
     "constellation": "Monoceros"
   },
   {
     "standard_name": "M51",
-    "aliases": ["Whirlpool Galaxy", "涡状星系", "NGC 5194", "Question Mark Nebula"],
+    "aliases": [
+      "Whirlpool Galaxy",
+      "涡状星系",
+      "NGC 5194",
+      "Question Mark Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 202.470,
-    "dec_deg": 47.195,
+    "ra_deg": 202.4696,
+    "dec_deg": 47.1953,
     "visual_magnitude": 8.4,
-    "angular_size_arcmin": [11.2, 6.9],
+    "angular_size_arcmin": [
+      11.2,
+      6.9
+    ],
     "constellation": "Canes Venatici"
   },
   {
     "standard_name": "M52",
-    "aliases": ["NGC 7654", "仙后座疏散星团", "Scorpion Cluster"],
+    "aliases": [
+      "NGC 7654",
+      "仙后座疏散星团",
+      "Scorpion Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 351.400,
-    "dec_deg": 61.584,
+    "ra_deg": 351.195,
+    "dec_deg": 61.59,
     "visual_magnitude": 6.9,
-    "angular_size_arcmin": [13.8, 13.8],
+    "angular_size_arcmin": [
+      13.8,
+      13.8
+    ],
     "constellation": "Cassiopeia"
   },
   {
     "standard_name": "M53",
-    "aliases": ["NGC 5024", "后发座球状星团", "Coma Berenices Globular"],
+    "aliases": [
+      "NGC 5024",
+      "后发座球状星团",
+      "Coma Berenices Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 198.229,
-    "dec_deg": 18.168,
+    "ra_deg": 198.2302,
+    "dec_deg": 18.1682,
     "visual_magnitude": 7.6,
-    "angular_size_arcmin": [12.9, 12.9],
+    "angular_size_arcmin": [
+      12.9,
+      12.9
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M54",
-    "aliases": ["NGC 6715", "人马座球状星团III", "Sagittarius Dwarf Globular"],
+    "aliases": [
+      "NGC 6715",
+      "人马座球状星团III",
+      "Sagittarius Dwarf Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 283.766,
-    "dec_deg": -30.480,
+    "ra_deg": 283.7639,
+    "dec_deg": -30.4799,
     "visual_magnitude": 7.6,
-    "angular_size_arcmin": [9.1, 9.1],
+    "angular_size_arcmin": [
+      9.1,
+      9.1
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M55",
-    "aliases": ["NGC 6809", "人马座球状星团IV", "Summer Rose Cluster"],
+    "aliases": [
+      "NGC 6809",
+      "人马座球状星团IV",
+      "Summer Rose Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 294.998,
-    "dec_deg": -30.965,
+    "ra_deg": 294.9988,
+    "dec_deg": -30.9647,
     "visual_magnitude": 6.3,
-    "angular_size_arcmin": [19.0, 19.0],
+    "angular_size_arcmin": [
+      19.0,
+      19.0
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M56",
-    "aliases": ["NGC 6779", "天琴座球状星团", "Lyra Globular"],
+    "aliases": [
+      "NGC 6779",
+      "天琴座球状星团",
+      "Lyra Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 289.150,
-    "dec_deg": 30.187,
+    "ra_deg": 289.1482,
+    "dec_deg": 30.1835,
     "visual_magnitude": 8.3,
-    "angular_size_arcmin": [8.8, 8.8],
+    "angular_size_arcmin": [
+      8.8,
+      8.8
+    ],
     "constellation": "Lyra"
   },
   {
     "standard_name": "M57",
-    "aliases": ["Ring Nebula", "环状星云", "NGC 6720"],
+    "aliases": [
+      "Ring Nebula",
+      "环状星云",
+      "NGC 6720"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 283.396,
-    "dec_deg": 33.029,
+    "ra_deg": 283.3962,
+    "dec_deg": 33.0291,
     "visual_magnitude": 8.8,
-    "angular_size_arcmin": [1.4, 1.0],
+    "angular_size_arcmin": [
+      1.4,
+      1.0
+    ],
     "constellation": "Lyra"
   },
   {
     "standard_name": "M58",
-    "aliases": ["NGC 4579", "室女座棒旋星系", "Virgo Barred Spiral"],
+    "aliases": [
+      "NGC 4579",
+      "室女座棒旋星系",
+      "Virgo Barred Spiral"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 189.539,
-    "dec_deg": 14.419,
+    "ra_deg": 189.4317,
+    "dec_deg": 11.8181,
     "visual_magnitude": 9.7,
-    "angular_size_arcmin": [5.9, 4.7],
+    "angular_size_arcmin": [
+      5.9,
+      4.7
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M59",
-    "aliases": ["NGC 4621", "室女座椭圆星系II", "Virgo Elliptical II"],
+    "aliases": [
+      "NGC 4621",
+      "室女座椭圆星系II",
+      "Virgo Elliptical II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 190.502,
-    "dec_deg": 11.644,
+    "ra_deg": 190.5094,
+    "dec_deg": 11.6469,
     "visual_magnitude": 9.6,
-    "angular_size_arcmin": [5.2, 3.6],
+    "angular_size_arcmin": [
+      5.2,
+      3.6
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M60",
-    "aliases": ["NGC 4649", "室女座椭圆星系III", "Virgo Elliptical III"],
+    "aliases": [
+      "NGC 4649",
+      "室女座椭圆星系III",
+      "Virgo Elliptical III"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 190.918,
-    "dec_deg": 11.553,
+    "ra_deg": 190.9165,
+    "dec_deg": 11.5527,
     "visual_magnitude": 8.8,
-    "angular_size_arcmin": [7.4, 6.2],
+    "angular_size_arcmin": [
+      7.4,
+      6.2
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M61",
-    "aliases": ["NGC 4303", "室女座旋涡星系", "Virgo Spiral Galaxy"],
+    "aliases": [
+      "NGC 4303",
+      "室女座旋涡星系",
+      "Virgo Spiral Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 185.480,
-    "dec_deg": 4.476,
+    "ra_deg": 185.4789,
+    "dec_deg": 4.4738,
     "visual_magnitude": 9.7,
-    "angular_size_arcmin": [6.5, 6.1],
+    "angular_size_arcmin": [
+      6.5,
+      6.1
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M62",
-    "aliases": ["NGC 6266", "蛇夫座球状星团VI", "Flickering Globular"],
+    "aliases": [
+      "NGC 6266",
+      "蛇夫座球状星团VI",
+      "Flickering Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 255.308,
-    "dec_deg": -30.110,
+    "ra_deg": 255.3025,
+    "dec_deg": -30.1124,
     "visual_magnitude": 6.5,
-    "angular_size_arcmin": [14.1, 14.1],
+    "angular_size_arcmin": [
+      14.1,
+      14.1
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M63",
-    "aliases": ["Sunflower Galaxy", "向日葵星系", "NGC 5055"],
+    "aliases": [
+      "Sunflower Galaxy",
+      "向日葵星系",
+      "NGC 5055"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 198.955,
-    "dec_deg": 42.030,
+    "ra_deg": 198.9553,
+    "dec_deg": 42.0294,
     "visual_magnitude": 8.6,
-    "angular_size_arcmin": [12.6, 7.5],
+    "angular_size_arcmin": [
+      12.6,
+      7.5
+    ],
     "constellation": "Canes Venatici"
   },
   {
     "standard_name": "M64",
-    "aliases": ["Black Eye Galaxy", "黑眼星系", "NGC 4826", "Evil Eye Galaxy", "睡美人星系"],
+    "aliases": [
+      "Black Eye Galaxy",
+      "黑眼星系",
+      "NGC 4826",
+      "Evil Eye Galaxy",
+      "睡美人星系"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 194.182,
-    "dec_deg": 21.683,
+    "ra_deg": 194.1821,
+    "dec_deg": 21.6827,
     "visual_magnitude": 8.5,
-    "angular_size_arcmin": [10.2, 5.4],
+    "angular_size_arcmin": [
+      10.2,
+      5.4
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M65",
-    "aliases": ["NGC 3623", "狮子座棒旋星系", "Leo Triplet I"],
+    "aliases": [
+      "NGC 3623",
+      "狮子座棒旋星系",
+      "Leo Triplet I"
+    ],
     "target_type": "deep_sky",
     "ra_deg": 169.733,
-    "dec_deg": 13.092,
+    "dec_deg": 13.0923,
     "visual_magnitude": 9.3,
-    "angular_size_arcmin": [10.5, 3.4],
+    "angular_size_arcmin": [
+      10.5,
+      3.4
+    ],
     "constellation": "Leo"
   },
   {
     "standard_name": "M66",
-    "aliases": ["NGC 3627", "狮子座旋涡星系", "Leo Triplet II"],
+    "aliases": [
+      "NGC 3627",
+      "狮子座旋涡星系",
+      "Leo Triplet II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 169.909,
-    "dec_deg": 12.993,
+    "ra_deg": 170.0626,
+    "dec_deg": 12.9915,
     "visual_magnitude": 8.9,
-    "angular_size_arcmin": [9.1, 4.2],
+    "angular_size_arcmin": [
+      9.1,
+      4.2
+    ],
     "constellation": "Leo"
   },
   {
     "standard_name": "M67",
-    "aliases": ["NGC 2682", "巨蟹座疏散星团", "King Cobra Cluster"],
+    "aliases": [
+      "NGC 2682",
+      "巨蟹座疏散星团",
+      "King Cobra Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 132.825,
-    "dec_deg": 11.818,
+    "ra_deg": 132.8458,
+    "dec_deg": 11.8139,
     "visual_magnitude": 6.9,
-    "angular_size_arcmin": [30.0, 30.0],
+    "angular_size_arcmin": [
+      30.0,
+      30.0
+    ],
     "constellation": "Cancer"
   },
   {
     "standard_name": "M68",
-    "aliases": ["NGC 4590", "长蛇座球状星团", "Hydra Globular"],
+    "aliases": [
+      "NGC 4590",
+      "长蛇座球状星团",
+      "Hydra Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 189.867,
-    "dec_deg": -26.746,
+    "ra_deg": 189.8666,
+    "dec_deg": -26.7441,
     "visual_magnitude": 7.8,
-    "angular_size_arcmin": [11.5, 11.5],
+    "angular_size_arcmin": [
+      11.5,
+      11.5
+    ],
     "constellation": "Hydra"
   },
   {
     "standard_name": "M69",
-    "aliases": ["NGC 6637", "人马座球状星团V", "Sagittarius Globular V"],
+    "aliases": [
+      "NGC 6637",
+      "人马座球状星团V",
+      "Sagittarius Globular V"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 279.175,
-    "dec_deg": -32.347,
+    "ra_deg": 277.8462,
+    "dec_deg": -32.3481,
     "visual_magnitude": 7.6,
-    "angular_size_arcmin": [9.8, 9.8],
+    "angular_size_arcmin": [
+      9.8,
+      9.8
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M70",
-    "aliases": ["NGC 6681", "人马座球状星团VI", "Sagittarius Globular VI"],
+    "aliases": [
+      "NGC 6681",
+      "人马座球状星团VI",
+      "Sagittarius Globular VI"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 279.937,
-    "dec_deg": -32.305,
+    "ra_deg": 280.8032,
+    "dec_deg": -32.2921,
     "visual_magnitude": 7.9,
-    "angular_size_arcmin": [9.6, 9.6],
+    "angular_size_arcmin": [
+      9.6,
+      9.6
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M71",
-    "aliases": ["NGC 6838", "天箭座球状星团", "Arrow Cluster"],
+    "aliases": [
+      "NGC 6838",
+      "天箭座球状星团",
+      "Arrow Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 299.001,
-    "dec_deg": 18.778,
+    "ra_deg": 298.4437,
+    "dec_deg": 18.7792,
     "visual_magnitude": 8.2,
-    "angular_size_arcmin": [7.2, 7.2],
+    "angular_size_arcmin": [
+      7.2,
+      7.2
+    ],
     "constellation": "Sagitta"
   },
   {
     "standard_name": "M72",
-    "aliases": ["NGC 6981", "宝瓶座球状星团II", "Aquarius Globular"],
+    "aliases": [
+      "NGC 6981",
+      "宝瓶座球状星团II",
+      "Aquarius Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 313.365,
-    "dec_deg": -12.536,
+    "ra_deg": 313.3654,
+    "dec_deg": -12.5373,
     "visual_magnitude": 9.3,
-    "angular_size_arcmin": [6.6, 6.6],
+    "angular_size_arcmin": [
+      6.6,
+      6.6
+    ],
     "constellation": "Aquarius"
   },
   {
     "standard_name": "M73",
-    "aliases": ["NGC 6994", "宝瓶座星群", "Asterism in Aquarius"],
+    "aliases": [
+      "NGC 6994",
+      "宝瓶座星群",
+      "Asterism in Aquarius"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 314.725,
-    "dec_deg": -12.637,
+    "ra_deg": 314.75,
+    "dec_deg": -12.6333,
     "visual_magnitude": 9.0,
-    "angular_size_arcmin": [2.8, 2.8],
+    "angular_size_arcmin": [
+      2.8,
+      2.8
+    ],
     "constellation": "Aquarius"
   },
   {
     "standard_name": "M74",
-    "aliases": ["NGC 628", "双鱼座星系", "Phantom Galaxy"],
+    "aliases": [
+      "NGC 628",
+      "双鱼座星系",
+      "Phantom Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 24.174,
-    "dec_deg": 15.783,
+    "ra_deg": 24.1739,
+    "dec_deg": 15.7836,
     "visual_magnitude": 9.4,
-    "angular_size_arcmin": [10.5, 9.5],
+    "angular_size_arcmin": [
+      10.5,
+      9.5
+    ],
     "constellation": "Pisces"
   },
   {
     "standard_name": "M75",
-    "aliases": ["NGC 6864", "人马座球状星团VII", "Sagittarius Globular VII"],
+    "aliases": [
+      "NGC 6864",
+      "人马座球状星团VII",
+      "Sagittarius Globular VII"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 301.519,
-    "dec_deg": -21.922,
+    "ra_deg": 301.5202,
+    "dec_deg": -21.9223,
     "visual_magnitude": 8.5,
-    "angular_size_arcmin": [6.8, 6.8],
+    "angular_size_arcmin": [
+      6.8,
+      6.8
+    ],
     "constellation": "Sagittarius"
   },
   {
     "standard_name": "M76",
-    "aliases": ["Little Dumbbell Nebula", "小哑铃星云", "NGC 650", "NGC 651", "Cork Nebula"],
+    "aliases": [
+      "Little Dumbbell Nebula",
+      "小哑铃星云",
+      "NGC 650",
+      "NGC 651",
+      "Cork Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 25.583,
-    "dec_deg": 51.567,
+    "ra_deg": 25.5819,
+    "dec_deg": 51.5754,
     "visual_magnitude": 10.1,
-    "angular_size_arcmin": [2.7, 1.8],
+    "angular_size_arcmin": [
+      2.7,
+      1.8
+    ],
     "constellation": "Perseus"
   },
   {
     "standard_name": "M77",
-    "aliases": ["Cetus A", "鲸鱼座A星系", "NGC 1068"],
+    "aliases": [
+      "Cetus A",
+      "鲸鱼座A星系",
+      "NGC 1068"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 40.669,
-    "dec_deg": -0.014,
+    "ra_deg": 40.6696,
+    "dec_deg": -0.0133,
     "visual_magnitude": 8.9,
-    "angular_size_arcmin": [7.1, 5.9],
+    "angular_size_arcmin": [
+      7.1,
+      5.9
+    ],
     "constellation": "Cetus"
   },
   {
     "standard_name": "M78",
-    "aliases": ["NGC 2068", "猎户座反射星云", "Casper the Friendly Ghost Nebula"],
+    "aliases": [
+      "NGC 2068",
+      "猎户座反射星云",
+      "Casper the Friendly Ghost Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 86.685,
-    "dec_deg": -0.050,
+    "ra_deg": 86.6908,
+    "dec_deg": 0.0792,
     "visual_magnitude": 8.3,
-    "angular_size_arcmin": [8.0, 6.0],
+    "angular_size_arcmin": [
+      8.0,
+      6.0
+    ],
     "constellation": "Orion"
   },
   {
     "standard_name": "M79",
-    "aliases": ["NGC 1904", "天兔座球状星团", "Lepus Globular"],
+    "aliases": [
+      "NGC 1904",
+      "天兔座球状星团",
+      "Lepus Globular"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 81.094,
-    "dec_deg": -24.524,
+    "ra_deg": 81.0441,
+    "dec_deg": -24.5242,
     "visual_magnitude": 7.7,
-    "angular_size_arcmin": [9.6, 9.6],
+    "angular_size_arcmin": [
+      9.6,
+      9.6
+    ],
     "constellation": "Lepus"
   },
   {
     "standard_name": "M80",
-    "aliases": ["NGC 6093", "天蝎座球状星团II", "Black Spider Cluster"],
+    "aliases": [
+      "NGC 6093",
+      "天蝎座球状星团II",
+      "Black Spider Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 244.259,
-    "dec_deg": -22.974,
+    "ra_deg": 244.26,
+    "dec_deg": -22.9761,
     "visual_magnitude": 7.3,
-    "angular_size_arcmin": [10.0, 10.0],
+    "angular_size_arcmin": [
+      10.0,
+      10.0
+    ],
     "constellation": "Scorpius"
   },
   {
     "standard_name": "M81",
-    "aliases": ["Bode's Galaxy", "波德星系", "NGC 3031"],
+    "aliases": [
+      "Bode's Galaxy",
+      "波德星系",
+      "NGC 3031"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 148.888,
-    "dec_deg": 69.065,
+    "ra_deg": 148.8882,
+    "dec_deg": 69.0653,
     "visual_magnitude": 6.9,
-    "angular_size_arcmin": [24.9, 11.5],
+    "angular_size_arcmin": [
+      24.9,
+      11.5
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M82",
-    "aliases": ["Cigar Galaxy", "雪茄星系", "NGC 3034"],
+    "aliases": [
+      "Cigar Galaxy",
+      "雪茄星系",
+      "NGC 3034"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 149.803,
-    "dec_deg": 69.680,
+    "ra_deg": 148.9685,
+    "dec_deg": 69.6797,
     "visual_magnitude": 8.4,
-    "angular_size_arcmin": [11.2, 4.3],
+    "angular_size_arcmin": [
+      11.2,
+      4.3
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M83",
-    "aliases": ["Southern Pinwheel Galaxy", "南风车星系", "NGC 5236"],
+    "aliases": [
+      "Southern Pinwheel Galaxy",
+      "南风车星系",
+      "NGC 5236"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 204.254,
-    "dec_deg": -29.865,
+    "ra_deg": 204.2538,
+    "dec_deg": -29.8658,
     "visual_magnitude": 7.5,
-    "angular_size_arcmin": [12.9, 11.5],
+    "angular_size_arcmin": [
+      12.9,
+      11.5
+    ],
     "constellation": "Hydra"
   },
   {
     "standard_name": "M84",
-    "aliases": ["NGC 4374", "室女座椭圆星系IV", "Markarian's Chain I"],
+    "aliases": [
+      "NGC 4374",
+      "室女座椭圆星系IV",
+      "Markarian's Chain I"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 185.753,
-    "dec_deg": 12.888,
+    "ra_deg": 186.2656,
+    "dec_deg": 12.887,
     "visual_magnitude": 9.1,
-    "angular_size_arcmin": [6.5, 5.6],
+    "angular_size_arcmin": [
+      6.5,
+      5.6
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M85",
-    "aliases": ["NGC 4382", "后发座透镜状星系", "Coma Lenticular Galaxy"],
+    "aliases": [
+      "NGC 4382",
+      "后发座透镜状星系",
+      "Coma Lenticular Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 186.269,
-    "dec_deg": 18.192,
+    "ra_deg": 186.3502,
+    "dec_deg": 18.1911,
     "visual_magnitude": 9.1,
-    "angular_size_arcmin": [7.1, 5.5],
+    "angular_size_arcmin": [
+      7.1,
+      5.5
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M86",
-    "aliases": ["NGC 4406", "室女座椭圆星系V", "Markarian's Chain II"],
+    "aliases": [
+      "NGC 4406",
+      "室女座椭圆星系V",
+      "Markarian's Chain II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 186.547,
-    "dec_deg": 12.951,
+    "ra_deg": 186.5492,
+    "dec_deg": 12.946,
     "visual_magnitude": 8.9,
-    "angular_size_arcmin": [8.9, 5.8],
+    "angular_size_arcmin": [
+      8.9,
+      5.8
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M87",
-    "aliases": ["Virgo A", "室女座A", "NGC 4486", "室女座巨椭圆星系"],
+    "aliases": [
+      "Virgo A",
+      "室女座A",
+      "NGC 4486",
+      "室女座巨椭圆星系"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 187.706,
-    "dec_deg": 12.391,
+    "ra_deg": 187.7059,
+    "dec_deg": 12.3911,
     "visual_magnitude": 8.6,
-    "angular_size_arcmin": [8.3, 6.6],
+    "angular_size_arcmin": [
+      8.3,
+      6.6
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M88",
-    "aliases": ["NGC 4501", "后发座旋涡星系", "Coma Spiral Galaxy"],
+    "aliases": [
+      "NGC 4501",
+      "后发座旋涡星系",
+      "Coma Spiral Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 187.899,
-    "dec_deg": 14.422,
+    "ra_deg": 187.9965,
+    "dec_deg": 14.4203,
     "visual_magnitude": 9.6,
-    "angular_size_arcmin": [6.9, 3.7],
+    "angular_size_arcmin": [
+      6.9,
+      3.7
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M89",
-    "aliases": ["NGC 4552", "室女座椭圆星系VI", "Firefly Galaxy"],
+    "aliases": [
+      "NGC 4552",
+      "室女座椭圆星系VI",
+      "Firefly Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 188.916,
-    "dec_deg": 12.558,
+    "ra_deg": 188.9159,
+    "dec_deg": 12.5563,
     "visual_magnitude": 9.8,
-    "angular_size_arcmin": [5.0, 4.7],
+    "angular_size_arcmin": [
+      5.0,
+      4.7
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M90",
-    "aliases": ["NGC 4569", "室女座旋涡星系II", "Virgo Spiral II"],
+    "aliases": [
+      "NGC 4569",
+      "室女座旋涡星系II",
+      "Virgo Spiral II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 189.208,
-    "dec_deg": 13.161,
+    "ra_deg": 189.2075,
+    "dec_deg": 13.1629,
     "visual_magnitude": 9.5,
-    "angular_size_arcmin": [9.5, 4.5],
+    "angular_size_arcmin": [
+      9.5,
+      4.5
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M91",
-    "aliases": ["NGC 4548", "后发座棒旋星系", "Coma Barred Spiral"],
+    "aliases": [
+      "NGC 4548",
+      "后发座棒旋星系",
+      "Coma Barred Spiral"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 188.856,
-    "dec_deg": 14.497,
+    "ra_deg": 188.8602,
+    "dec_deg": 14.4963,
     "visual_magnitude": 10.2,
-    "angular_size_arcmin": [5.4, 4.3],
+    "angular_size_arcmin": [
+      5.4,
+      4.3
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M92",
-    "aliases": ["NGC 6341", "武仙座球状星团II", "Hercules Globular II"],
+    "aliases": [
+      "NGC 6341",
+      "武仙座球状星团II",
+      "Hercules Globular II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 257.869,
-    "dec_deg": 43.136,
+    "ra_deg": 259.2808,
+    "dec_deg": 43.1359,
     "visual_magnitude": 6.4,
-    "angular_size_arcmin": [11.2, 11.2],
+    "angular_size_arcmin": [
+      11.2,
+      11.2
+    ],
     "constellation": "Hercules"
   },
   {
     "standard_name": "M93",
-    "aliases": ["NGC 2447", "船尾座疏散星团III", "Butterfly Cluster II"],
+    "aliases": [
+      "NGC 2447",
+      "船尾座疏散星团III",
+      "Butterfly Cluster II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 116.150,
-    "dec_deg": -23.863,
+    "ra_deg": 116.1408,
+    "dec_deg": -23.8531,
     "visual_magnitude": 6.2,
-    "angular_size_arcmin": [22.0, 22.0],
+    "angular_size_arcmin": [
+      22.0,
+      22.0
+    ],
     "constellation": "Puppis"
   },
   {
     "standard_name": "M94",
-    "aliases": ["NGC 4736", "猎犬座旋涡星系", "Croc's Eye Galaxy"],
+    "aliases": [
+      "NGC 4736",
+      "猎犬座旋涡星系",
+      "Croc's Eye Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 192.719,
-    "dec_deg": 41.120,
+    "ra_deg": 192.7211,
+    "dec_deg": 41.1203,
     "visual_magnitude": 8.2,
-    "angular_size_arcmin": [11.2, 9.1],
+    "angular_size_arcmin": [
+      11.2,
+      9.1
+    ],
     "constellation": "Canes Venatici"
   },
   {
     "standard_name": "M95",
-    "aliases": ["NGC 3351", "狮子座棒旋星系II", "Leo Barred Spiral II"],
+    "aliases": [
+      "NGC 3351",
+      "狮子座棒旋星系II",
+      "Leo Barred Spiral II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 160.992,
-    "dec_deg": 11.705,
+    "ra_deg": 160.9905,
+    "dec_deg": 11.7037,
     "visual_magnitude": 9.7,
-    "angular_size_arcmin": [7.4, 5.0],
+    "angular_size_arcmin": [
+      7.4,
+      5.0
+    ],
     "constellation": "Leo"
   },
   {
     "standard_name": "M96",
-    "aliases": ["NGC 3368", "狮子座旋涡星系II", "Leo Spiral II"],
+    "aliases": [
+      "NGC 3368",
+      "狮子座旋涡星系II",
+      "Leo Spiral II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 161.693,
-    "dec_deg": 11.822,
+    "ra_deg": 161.6906,
+    "dec_deg": 11.8199,
     "visual_magnitude": 9.2,
-    "angular_size_arcmin": [7.6, 5.2],
+    "angular_size_arcmin": [
+      7.6,
+      5.2
+    ],
     "constellation": "Leo"
   },
   {
     "standard_name": "M97",
-    "aliases": ["Owl Nebula", "猫头鹰星云", "NGC 3587"],
+    "aliases": [
+      "Owl Nebula",
+      "猫头鹰星云",
+      "NGC 3587"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 168.698,
+    "ra_deg": 168.6988,
     "dec_deg": 55.019,
     "visual_magnitude": 9.9,
-    "angular_size_arcmin": [3.4, 3.3],
+    "angular_size_arcmin": [
+      3.4,
+      3.3
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M98",
-    "aliases": ["NGC 4192", "后发座旋涡星系II", "Coma Spiral II"],
+    "aliases": [
+      "NGC 4192",
+      "后发座旋涡星系II",
+      "Coma Spiral II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 183.455,
-    "dec_deg": 14.900,
+    "ra_deg": 183.4512,
+    "dec_deg": 14.9005,
     "visual_magnitude": 10.1,
-    "angular_size_arcmin": [9.5, 2.7],
+    "angular_size_arcmin": [
+      9.5,
+      2.7
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M99",
-    "aliases": ["NGC 4254", "后发座旋涡星系III", "Coma Spiral III"],
+    "aliases": [
+      "NGC 4254",
+      "后发座旋涡星系III",
+      "Coma Spiral III"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 184.685,
-    "dec_deg": 14.418,
+    "ra_deg": 184.7068,
+    "dec_deg": 14.4165,
     "visual_magnitude": 9.9,
-    "angular_size_arcmin": [5.4, 5.3],
+    "angular_size_arcmin": [
+      5.4,
+      5.3
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M100",
-    "aliases": ["NGC 4321", "后发座旋涡星系IV", "Mirror Image Galaxy"],
+    "aliases": [
+      "NGC 4321",
+      "后发座旋涡星系IV",
+      "Mirror Image Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 185.728,
-    "dec_deg": 15.824,
+    "ra_deg": 185.7289,
+    "dec_deg": 15.8223,
     "visual_magnitude": 9.4,
-    "angular_size_arcmin": [7.4, 6.3],
+    "angular_size_arcmin": [
+      7.4,
+      6.3
+    ],
     "constellation": "Coma Berenices"
   },
   {
     "standard_name": "M101",
-    "aliases": ["Pinwheel Galaxy", "风车星系", "NGC 5457"],
+    "aliases": [
+      "Pinwheel Galaxy",
+      "风车星系",
+      "NGC 5457"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 210.802,
-    "dec_deg": 54.349,
+    "ra_deg": 210.8024,
+    "dec_deg": 54.3488,
     "visual_magnitude": 7.9,
-    "angular_size_arcmin": [28.8, 26.9],
+    "angular_size_arcmin": [
+      28.8,
+      26.9
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M102",
-    "aliases": ["Spindle Galaxy", "纺锤星系", "NGC 5866"],
+    "aliases": [
+      "Spindle Galaxy",
+      "纺锤星系",
+      "NGC 5866"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 226.633,
-    "dec_deg": 55.763,
+    "ra_deg": 226.6232,
+    "dec_deg": 55.7633,
     "visual_magnitude": 9.9,
-    "angular_size_arcmin": [6.6, 3.1],
+    "angular_size_arcmin": [
+      6.6,
+      3.1
+    ],
     "constellation": "Draco"
   },
   {
     "standard_name": "M103",
-    "aliases": ["NGC 581", "仙后座疏散星团II", "Cassiopeia Cluster"],
+    "aliases": [
+      "NGC 581",
+      "仙后座疏散星团II",
+      "Cassiopeia Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 23.337,
-    "dec_deg": 60.709,
+    "ra_deg": 23.3392,
+    "dec_deg": 60.6589,
     "visual_magnitude": 7.4,
-    "angular_size_arcmin": [6.0, 6.0],
+    "angular_size_arcmin": [
+      6.0,
+      6.0
+    ],
     "constellation": "Cassiopeia"
   },
   {
     "standard_name": "M104",
-    "aliases": ["Sombrero Galaxy", "草帽星系", "NGC 4594"],
+    "aliases": [
+      "Sombrero Galaxy",
+      "草帽星系",
+      "NGC 4594"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 190.096,
-    "dec_deg": -11.623,
+    "ra_deg": 189.9976,
+    "dec_deg": -11.6231,
     "visual_magnitude": 8.0,
-    "angular_size_arcmin": [8.7, 3.5],
+    "angular_size_arcmin": [
+      8.7,
+      3.5
+    ],
     "constellation": "Virgo"
   },
   {
     "standard_name": "M105",
-    "aliases": ["NGC 3379", "狮子座椭圆星系", "Leo Elliptical Galaxy"],
+    "aliases": [
+      "NGC 3379",
+      "狮子座椭圆星系",
+      "Leo Elliptical Galaxy"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 161.199,
-    "dec_deg": 12.584,
+    "ra_deg": 161.9567,
+    "dec_deg": 12.5816,
     "visual_magnitude": 9.3,
-    "angular_size_arcmin": [5.4, 4.6],
+    "angular_size_arcmin": [
+      5.4,
+      4.6
+    ],
     "constellation": "Leo"
   },
   {
     "standard_name": "M106",
-    "aliases": ["NGC 4258", "猎犬座旋涡星系II", "Canes Venatici Spiral II"],
+    "aliases": [
+      "NGC 4258",
+      "猎犬座旋涡星系II",
+      "Canes Venatici Spiral II"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 184.740,
-    "dec_deg": 47.304,
+    "ra_deg": 184.7401,
+    "dec_deg": 47.3037,
     "visual_magnitude": 8.4,
-    "angular_size_arcmin": [18.6, 7.8],
+    "angular_size_arcmin": [
+      18.6,
+      7.8
+    ],
     "constellation": "Canes Venatici"
   },
   {
     "standard_name": "M107",
-    "aliases": ["NGC 6171", "蛇夫座球状星团VII", "Crossed Swords Cluster"],
+    "aliases": [
+      "NGC 6171",
+      "蛇夫座球状星团VII",
+      "Crossed Swords Cluster"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 247.955,
-    "dec_deg": -13.053,
+    "ra_deg": 248.1327,
+    "dec_deg": -13.0538,
     "visual_magnitude": 7.9,
-    "angular_size_arcmin": [12.8, 12.8],
+    "angular_size_arcmin": [
+      12.8,
+      12.8
+    ],
     "constellation": "Ophiuchus"
   },
   {
     "standard_name": "M108",
-    "aliases": ["Surfboard Galaxy", "冲浪板星系", "NGC 3556"],
+    "aliases": [
+      "Surfboard Galaxy",
+      "冲浪板星系",
+      "NGC 3556"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 168.826,
-    "dec_deg": 55.673,
+    "ra_deg": 167.879,
+    "dec_deg": 55.6741,
     "visual_magnitude": 10.0,
-    "angular_size_arcmin": [8.7, 2.2],
+    "angular_size_arcmin": [
+      8.7,
+      2.2
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M109",
-    "aliases": ["NGC 3992", "大熊座棒旋星系", "Great Bear Barred Spiral"],
+    "aliases": [
+      "NGC 3992",
+      "大熊座棒旋星系",
+      "Great Bear Barred Spiral"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 179.400,
-    "dec_deg": 53.376,
+    "ra_deg": 179.3998,
+    "dec_deg": 53.3747,
     "visual_magnitude": 9.8,
-    "angular_size_arcmin": [7.6, 4.7],
+    "angular_size_arcmin": [
+      7.6,
+      4.7
+    ],
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "M110",
-    "aliases": ["NGC 205", "仙女座伴星系II", "Edward Young's Nebula"],
+    "aliases": [
+      "NGC 205",
+      "仙女座伴星系II",
+      "Edward Young's Nebula"
+    ],
     "target_type": "deep_sky",
-    "ra_deg": 10.092,
-    "dec_deg": 41.685,
+    "ra_deg": 10.0919,
+    "dec_deg": 41.6854,
     "visual_magnitude": 8.5,
-    "angular_size_arcmin": [21.9, 10.9],
+    "angular_size_arcmin": [
+      21.9,
+      10.9
+    ],
     "constellation": "Andromeda"
   },
   {
     "standard_name": "Sirius",
-    "aliases": ["天狼星", "Alpha Canis Majoris", "α CMa", "Dog Star"],
+    "aliases": [
+      "天狼星",
+      "Alpha Canis Majoris",
+      "α CMa",
+      "Dog Star"
+    ],
     "target_type": "star",
-    "ra_deg": 101.287,
-    "dec_deg": -16.716,
+    "ra_deg": 101.2872,
+    "dec_deg": -16.7161,
     "visual_magnitude": -1.46,
     "angular_size_arcmin": null,
     "constellation": "Canis Major"
   },
   {
     "standard_name": "Canopus",
-    "aliases": ["老人星", "Alpha Carinae", "α Car"],
+    "aliases": [
+      "老人星",
+      "Alpha Carinae",
+      "α Car"
+    ],
     "target_type": "star",
     "ra_deg": 95.988,
-    "dec_deg": -52.696,
+    "dec_deg": -52.6957,
     "visual_magnitude": -0.74,
     "angular_size_arcmin": null,
     "constellation": "Carina"
   },
   {
     "standard_name": "Alpha Centauri",
-    "aliases": ["南门二", "Rigil Kentaurus", "Alpha Centauri A", "α Cen"],
+    "aliases": [
+      "南门二",
+      "Rigil Kentaurus",
+      "Alpha Centauri A",
+      "α Cen"
+    ],
     "target_type": "star",
-    "ra_deg": 219.902,
+    "ra_deg": 219.9021,
     "dec_deg": -60.834,
     "visual_magnitude": -0.27,
     "angular_size_arcmin": null,
@@ -1131,29 +1930,42 @@
   },
   {
     "standard_name": "Arcturus",
-    "aliases": ["大角星", "Alpha Bootis", "α Boo"],
+    "aliases": [
+      "大角星",
+      "Alpha Bootis",
+      "α Boo"
+    ],
     "target_type": "star",
-    "ra_deg": 213.915,
-    "dec_deg": 19.182,
+    "ra_deg": 213.9153,
+    "dec_deg": 19.1824,
     "visual_magnitude": -0.05,
     "angular_size_arcmin": null,
     "constellation": "Bootes"
   },
   {
     "standard_name": "Vega",
-    "aliases": ["织女星", "Alpha Lyrae", "α Lyr"],
+    "aliases": [
+      "织女星",
+      "Alpha Lyrae",
+      "α Lyr"
+    ],
     "target_type": "star",
-    "ra_deg": 279.235,
-    "dec_deg": 38.783,
+    "ra_deg": 279.2347,
+    "dec_deg": 38.7837,
     "visual_magnitude": 0.03,
     "angular_size_arcmin": null,
     "constellation": "Lyra"
   },
   {
     "standard_name": "Capella",
-    "aliases": ["五车二", "Alpha Aurigae", "α Aur", "Goat Star"],
+    "aliases": [
+      "五车二",
+      "Alpha Aurigae",
+      "α Aur",
+      "Goat Star"
+    ],
     "target_type": "star",
-    "ra_deg": 79.172,
+    "ra_deg": 79.1723,
     "dec_deg": 45.998,
     "visual_magnitude": 0.08,
     "angular_size_arcmin": null,
@@ -1161,19 +1973,27 @@
   },
   {
     "standard_name": "Rigel",
-    "aliases": ["参宿七", "Beta Orionis", "β Ori"],
+    "aliases": [
+      "参宿七",
+      "Beta Orionis",
+      "β Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 78.634,
-    "dec_deg": -8.202,
+    "ra_deg": 78.6345,
+    "dec_deg": -8.2016,
     "visual_magnitude": 0.13,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Procyon",
-    "aliases": ["南河三", "Alpha Canis Minoris", "α CMi"],
+    "aliases": [
+      "南河三",
+      "Alpha Canis Minoris",
+      "α CMi"
+    ],
     "target_type": "star",
-    "ra_deg": 114.825,
+    "ra_deg": 114.8255,
     "dec_deg": 5.225,
     "visual_magnitude": 0.34,
     "angular_size_arcmin": null,
@@ -1181,59 +2001,86 @@
   },
   {
     "standard_name": "Achernar",
-    "aliases": ["水委一", "Alpha Eridani", "α Eri"],
+    "aliases": [
+      "水委一",
+      "Alpha Eridani",
+      "α Eri"
+    ],
     "target_type": "star",
-    "ra_deg": 24.429,
-    "dec_deg": -57.237,
+    "ra_deg": 24.4285,
+    "dec_deg": -57.2368,
     "visual_magnitude": 0.46,
     "angular_size_arcmin": null,
     "constellation": "Eridanus"
   },
   {
     "standard_name": "Betelgeuse",
-    "aliases": ["参宿四", "Alpha Orionis", "α Ori"],
+    "aliases": [
+      "参宿四",
+      "Alpha Orionis",
+      "α Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 88.793,
-    "dec_deg": 7.407,
-    "visual_magnitude": 0.50,
+    "ra_deg": 88.7929,
+    "dec_deg": 7.4071,
+    "visual_magnitude": 0.5,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Altair",
-    "aliases": ["牛郎星", "河鼓二", "Alpha Aquilae", "α Aql"],
+    "aliases": [
+      "牛郎星",
+      "河鼓二",
+      "Alpha Aquilae",
+      "α Aql"
+    ],
     "target_type": "star",
-    "ra_deg": 297.696,
-    "dec_deg": 8.868,
+    "ra_deg": 297.6958,
+    "dec_deg": 8.8683,
     "visual_magnitude": 0.77,
     "angular_size_arcmin": null,
     "constellation": "Aquila"
   },
   {
     "standard_name": "Aldebaran",
-    "aliases": ["毕宿五", "Alpha Tauri", "α Tau", "Bull's Eye"],
+    "aliases": [
+      "毕宿五",
+      "Alpha Tauri",
+      "α Tau",
+      "Bull's Eye"
+    ],
     "target_type": "star",
-    "ra_deg": 68.980,
-    "dec_deg": 16.509,
+    "ra_deg": 68.9802,
+    "dec_deg": 16.5093,
     "visual_magnitude": 0.85,
     "angular_size_arcmin": null,
     "constellation": "Taurus"
   },
   {
     "standard_name": "Spica",
-    "aliases": ["角宿一", "Alpha Virginis", "α Vir"],
+    "aliases": [
+      "角宿一",
+      "Alpha Virginis",
+      "α Vir"
+    ],
     "target_type": "star",
-    "ra_deg": 201.298,
-    "dec_deg": -11.161,
+    "ra_deg": 201.2982,
+    "dec_deg": -11.1613,
     "visual_magnitude": 0.97,
     "angular_size_arcmin": null,
     "constellation": "Virgo"
   },
   {
     "standard_name": "Antares",
-    "aliases": ["心宿二", "大火", "Alpha Scorpii", "α Sco"],
+    "aliases": [
+      "心宿二",
+      "大火",
+      "Alpha Scorpii",
+      "α Sco"
+    ],
     "target_type": "star",
-    "ra_deg": 247.352,
+    "ra_deg": 247.3519,
     "dec_deg": -26.432,
     "visual_magnitude": 1.06,
     "angular_size_arcmin": null,
@@ -1241,97 +2088,139 @@
   },
   {
     "standard_name": "Pollux",
-    "aliases": ["北河三", "Beta Geminorum", "β Gem"],
+    "aliases": [
+      "北河三",
+      "Beta Geminorum",
+      "β Gem"
+    ],
     "target_type": "star",
     "ra_deg": 116.329,
-    "dec_deg": 28.026,
+    "dec_deg": 28.0262,
     "visual_magnitude": 1.14,
     "angular_size_arcmin": null,
     "constellation": "Gemini"
   },
   {
     "standard_name": "Fomalhaut",
-    "aliases": ["北落师门", "Alpha Piscis Austrini", "α PsA"],
+    "aliases": [
+      "北落师门",
+      "Alpha Piscis Austrini",
+      "α PsA"
+    ],
     "target_type": "star",
-    "ra_deg": 344.413,
-    "dec_deg": -29.622,
+    "ra_deg": 344.4127,
+    "dec_deg": -29.6222,
     "visual_magnitude": 1.16,
     "angular_size_arcmin": null,
     "constellation": "Piscis Austrinus"
   },
   {
     "standard_name": "Deneb",
-    "aliases": ["天津四", "Alpha Cygni", "α Cyg"],
+    "aliases": [
+      "天津四",
+      "Alpha Cygni",
+      "α Cyg"
+    ],
     "target_type": "star",
     "ra_deg": 310.358,
-    "dec_deg": 45.280,
+    "dec_deg": 45.2803,
     "visual_magnitude": 1.25,
     "angular_size_arcmin": null,
     "constellation": "Cygnus"
   },
   {
     "standard_name": "Regulus",
-    "aliases": ["轩辕十四", "Alpha Leonis", "α Leo", "Cor Leonis"],
+    "aliases": [
+      "轩辕十四",
+      "Alpha Leonis",
+      "α Leo",
+      "Cor Leonis"
+    ],
     "target_type": "star",
     "ra_deg": 152.093,
-    "dec_deg": 11.967,
+    "dec_deg": 11.9672,
     "visual_magnitude": 1.35,
     "angular_size_arcmin": null,
     "constellation": "Leo"
   },
   {
     "standard_name": "Castor",
-    "aliases": ["北河二", "Alpha Geminorum", "α Gem"],
+    "aliases": [
+      "北河二",
+      "Alpha Geminorum",
+      "α Gem"
+    ],
     "target_type": "star",
-    "ra_deg": 113.650,
-    "dec_deg": 31.888,
+    "ra_deg": 113.6495,
+    "dec_deg": 31.8883,
     "visual_magnitude": 1.58,
     "angular_size_arcmin": null,
     "constellation": "Gemini"
   },
   {
     "standard_name": "Bellatrix",
-    "aliases": ["参宿五", "Gamma Orionis", "γ Ori", "Amazon Star"],
+    "aliases": [
+      "参宿五",
+      "Gamma Orionis",
+      "γ Ori",
+      "Amazon Star"
+    ],
     "target_type": "star",
-    "ra_deg": 81.283,
-    "dec_deg": 6.350,
+    "ra_deg": 81.2828,
+    "dec_deg": 6.3497,
     "visual_magnitude": 1.64,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Alnilam",
-    "aliases": ["参宿二", "Epsilon Orionis", "ε Ori"],
+    "aliases": [
+      "参宿二",
+      "Epsilon Orionis",
+      "ε Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 84.053,
-    "dec_deg": -1.202,
+    "ra_deg": 84.0534,
+    "dec_deg": -1.2019,
     "visual_magnitude": 1.69,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Alnitak",
-    "aliases": ["参宿一", "Zeta Orionis", "ζ Ori"],
+    "aliases": [
+      "参宿一",
+      "Zeta Orionis",
+      "ζ Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 85.190,
-    "dec_deg": -1.943,
+    "ra_deg": 85.1897,
+    "dec_deg": -1.9426,
     "visual_magnitude": 1.77,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Alioth",
-    "aliases": ["玉衡", "Epsilon Ursae Majoris", "ε UMa"],
+    "aliases": [
+      "玉衡",
+      "Epsilon Ursae Majoris",
+      "ε UMa"
+    ],
     "target_type": "star",
-    "ra_deg": 193.507,
-    "dec_deg": 55.960,
+    "ra_deg": 193.5073,
+    "dec_deg": 55.9598,
     "visual_magnitude": 1.76,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Dubhe",
-    "aliases": ["天枢", "Alpha Ursae Majoris", "α UMa"],
+    "aliases": [
+      "天枢",
+      "Alpha Ursae Majoris",
+      "α UMa"
+    ],
     "target_type": "star",
     "ra_deg": 165.932,
     "dec_deg": 61.751,
@@ -1341,160 +2230,229 @@
   },
   {
     "standard_name": "Alkaid",
-    "aliases": ["摇光", "Eta Ursae Majoris", "η UMa", "Benetnasch"],
+    "aliases": [
+      "摇光",
+      "Eta Ursae Majoris",
+      "η UMa",
+      "Benetnasch"
+    ],
     "target_type": "star",
-    "ra_deg": 206.885,
-    "dec_deg": 49.313,
+    "ra_deg": 206.8852,
+    "dec_deg": 49.3133,
     "visual_magnitude": 1.85,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Polaris",
-    "aliases": ["北极星", "勾陈一", "Alpha Ursae Minoris", "α UMi", "North Star"],
+    "aliases": [
+      "北极星",
+      "勾陈一",
+      "Alpha Ursae Minoris",
+      "α UMi",
+      "North Star"
+    ],
     "target_type": "star",
-    "ra_deg": 37.954,
-    "dec_deg": 89.264,
+    "ra_deg": 37.9546,
+    "dec_deg": 89.2641,
     "visual_magnitude": 1.97,
     "angular_size_arcmin": null,
     "constellation": "Ursa Minor"
   },
   {
     "standard_name": "Hamal",
-    "aliases": ["娄宿三", "Alpha Arietis", "α Ari"],
+    "aliases": [
+      "娄宿三",
+      "Alpha Arietis",
+      "α Ari"
+    ],
     "target_type": "star",
-    "ra_deg": 31.793,
-    "dec_deg": 23.462,
-    "visual_magnitude": 2.00,
+    "ra_deg": 31.7934,
+    "dec_deg": 23.4624,
+    "visual_magnitude": 2.0,
     "angular_size_arcmin": null,
     "constellation": "Aries"
   },
   {
     "standard_name": "Saiph",
-    "aliases": ["参宿六", "Kappa Orionis", "κ Ori"],
+    "aliases": [
+      "参宿六",
+      "Kappa Orionis",
+      "κ Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 86.939,
-    "dec_deg": -9.670,
+    "ra_deg": 86.9391,
+    "dec_deg": -9.6696,
     "visual_magnitude": 2.09,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Mizar",
-    "aliases": ["开阳", "Zeta Ursae Majoris", "ζ UMa"],
+    "aliases": [
+      "开阳",
+      "Zeta Ursae Majoris",
+      "ζ UMa"
+    ],
     "target_type": "star",
-    "ra_deg": 200.981,
-    "dec_deg": 54.925,
+    "ra_deg": 200.9814,
+    "dec_deg": 54.9254,
     "visual_magnitude": 2.06,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Mirach",
-    "aliases": ["奎宿九", "Beta Andromedae", "β And"],
+    "aliases": [
+      "奎宿九",
+      "Beta Andromedae",
+      "β And"
+    ],
     "target_type": "star",
     "ra_deg": 17.433,
-    "dec_deg": 35.621,
+    "dec_deg": 35.6206,
     "visual_magnitude": 2.06,
     "angular_size_arcmin": null,
     "constellation": "Andromeda"
   },
   {
     "standard_name": "Alpheratz",
-    "aliases": ["壁宿二", "Alpha Andromedae", "α And", "Sirrah"],
+    "aliases": [
+      "壁宿二",
+      "Alpha Andromedae",
+      "α And",
+      "Sirrah"
+    ],
     "target_type": "star",
-    "ra_deg": 2.295,
-    "dec_deg": 29.091,
+    "ra_deg": 2.0969,
+    "dec_deg": 29.0904,
     "visual_magnitude": 2.06,
     "angular_size_arcmin": null,
     "constellation": "Andromeda"
   },
   {
     "standard_name": "Algol",
-    "aliases": ["大陵五", "Beta Persei", "β Per", "Demon Star"],
+    "aliases": [
+      "大陵五",
+      "Beta Persei",
+      "β Per",
+      "Demon Star"
+    ],
     "target_type": "star",
-    "ra_deg": 47.042,
-    "dec_deg": 40.957,
+    "ra_deg": 47.0422,
+    "dec_deg": 40.9556,
     "visual_magnitude": 2.12,
     "angular_size_arcmin": null,
     "constellation": "Perseus"
   },
   {
     "standard_name": "Mintaka",
-    "aliases": ["参宿三", "Delta Orionis", "δ Ori"],
+    "aliases": [
+      "参宿三",
+      "Delta Orionis",
+      "δ Ori"
+    ],
     "target_type": "star",
-    "ra_deg": 83.002,
-    "dec_deg": -0.299,
+    "ra_deg": 83.0017,
+    "dec_deg": -0.2991,
     "visual_magnitude": 2.23,
     "angular_size_arcmin": null,
     "constellation": "Orion"
   },
   {
     "standard_name": "Denebola",
-    "aliases": ["五帝座一", "Beta Leonis", "β Leo"],
+    "aliases": [
+      "五帝座一",
+      "Beta Leonis",
+      "β Leo"
+    ],
     "target_type": "star",
-    "ra_deg": 177.265,
-    "dec_deg": 14.572,
+    "ra_deg": 177.2649,
+    "dec_deg": 14.5721,
     "visual_magnitude": 2.14,
     "angular_size_arcmin": null,
     "constellation": "Leo"
   },
   {
     "standard_name": "Merak",
-    "aliases": ["天璇", "Beta Ursae Majoris", "β UMa"],
+    "aliases": [
+      "天璇",
+      "Beta Ursae Majoris",
+      "β UMa"
+    ],
     "target_type": "star",
-    "ra_deg": 165.460,
-    "dec_deg": 56.382,
+    "ra_deg": 165.4603,
+    "dec_deg": 56.3824,
     "visual_magnitude": 2.37,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Scheat",
-    "aliases": ["室宿二", "Beta Pegasi", "β Peg"],
+    "aliases": [
+      "室宿二",
+      "Beta Pegasi",
+      "β Peg"
+    ],
     "target_type": "star",
-    "ra_deg": 345.944,
-    "dec_deg": 28.083,
+    "ra_deg": 345.9436,
+    "dec_deg": 28.0828,
     "visual_magnitude": 2.42,
     "angular_size_arcmin": null,
     "constellation": "Pegasus"
   },
   {
     "standard_name": "Phecda",
-    "aliases": ["天玑", "Gamma Ursae Majoris", "γ UMa"],
+    "aliases": [
+      "天玑",
+      "Gamma Ursae Majoris",
+      "γ UMa"
+    ],
     "target_type": "star",
-    "ra_deg": 178.458,
-    "dec_deg": 53.695,
+    "ra_deg": 178.4577,
+    "dec_deg": 53.6948,
     "visual_magnitude": 2.44,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Markab",
-    "aliases": ["室宿一", "Alpha Pegasi", "α Peg"],
+    "aliases": [
+      "室宿一",
+      "Alpha Pegasi",
+      "α Peg"
+    ],
     "target_type": "star",
-    "ra_deg": 346.192,
-    "dec_deg": 15.206,
+    "ra_deg": 346.1902,
+    "dec_deg": 15.2053,
     "visual_magnitude": 2.49,
     "angular_size_arcmin": null,
     "constellation": "Pegasus"
   },
   {
     "standard_name": "Megrez",
-    "aliases": ["天权", "Delta Ursae Majoris", "δ UMa"],
+    "aliases": [
+      "天权",
+      "Delta Ursae Majoris",
+      "δ UMa"
+    ],
     "target_type": "star",
-    "ra_deg": 183.856,
-    "dec_deg": 57.033,
+    "ra_deg": 183.8565,
+    "dec_deg": 57.0326,
     "visual_magnitude": 3.31,
     "angular_size_arcmin": null,
     "constellation": "Ursa Major"
   },
   {
     "standard_name": "Albireo",
-    "aliases": ["辇道增七", "Beta Cygni", "β Cyg"],
+    "aliases": [
+      "辇道增七",
+      "Beta Cygni",
+      "β Cyg"
+    ],
     "target_type": "star",
-    "ra_deg": 292.680,
-    "dec_deg": 27.960,
+    "ra_deg": 292.6803,
+    "dec_deg": 27.9597,
     "visual_magnitude": 3.08,
     "angular_size_arcmin": null,
     "constellation": "Cygnus"
