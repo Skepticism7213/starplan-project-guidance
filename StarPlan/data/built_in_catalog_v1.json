@@ -20,8 +20,7 @@
     "standard_name": "M2",
     "aliases": [
       "NGC 7089",
-      "宝瓶座球状星团",
-      "Hercules Cluster II"
+      "宝瓶座球状星团"
     ],
     "target_type": "deep_sky",
     "ra_deg": 323.3626,
@@ -150,7 +149,7 @@
       9.3,
       9.3
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M10",
@@ -167,7 +166,7 @@
       15.1,
       15.1
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M11",
@@ -201,7 +200,7 @@
       14.5,
       14.5
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M13",
@@ -236,7 +235,7 @@
       11.7,
       11.7
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M15",
@@ -280,12 +279,14 @@
       "奥米伽星云",
       "NGC 6618",
       "Swan Nebula",
-      "马蹄星云"
+      "马蹄星云",
+      "欧米伽星云",
+      "天鹅星云"
     ],
     "target_type": "deep_sky",
     "ra_deg": 275.1958,
     "dec_deg": -16.1717,
-    "visual_magnitude": 7.0,
+    "visual_magnitude": 6.0,
     "angular_size_arcmin": [
       11.0,
       11.0
@@ -324,14 +325,15 @@
       13.5,
       13.5
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M20",
     "aliases": [
       "Trifid Nebula",
       "三裂星云",
-      "NGC 6514"
+      "NGC 6514",
+      "三叶星云"
     ],
     "target_type": "deep_sky",
     "ra_deg": 270.675,
@@ -606,8 +608,7 @@
     "standard_name": "M36",
     "aliases": [
       "NGC 1960",
-      "御夫座疏散星团",
-      "Pinwheel Cluster"
+      "御夫座疏散星团"
     ],
     "target_type": "deep_sky",
     "ra_deg": 84.0842,
@@ -681,7 +682,10 @@
     "ra_deg": 185.55,
     "dec_deg": 58.0833,
     "visual_magnitude": 9.0,
-    "angular_size_arcmin": null,
+    "angular_size_arcmin": [
+      0.9,
+      0.9
+    ],
     "constellation": "Ursa Major"
   },
   {
@@ -880,8 +884,7 @@
     "standard_name": "M52",
     "aliases": [
       "NGC 7654",
-      "仙后座疏散星团",
-      "Scorpion Cluster"
+      "仙后座疏散星团"
     ],
     "target_type": "deep_sky",
     "ra_deg": 351.195,
@@ -1061,7 +1064,7 @@
       14.1,
       14.1
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M63",
@@ -1327,7 +1330,8 @@
     "aliases": [
       "NGC 2068",
       "猎户座反射星云",
-      "Casper the Friendly Ghost Nebula"
+      "Casper the Friendly Ghost Nebula",
+      "奥特曼星云"
     ],
     "target_type": "deep_sky",
     "ra_deg": 86.6908,
@@ -1582,8 +1586,7 @@
     "standard_name": "M93",
     "aliases": [
       "NGC 2447",
-      "船尾座疏散星团III",
-      "Butterfly Cluster II"
+      "船尾座疏散星团III"
     ],
     "target_type": "deep_sky",
     "ra_deg": 116.1408,
@@ -1831,7 +1834,7 @@
       12.8,
       12.8
     ],
-    "constellation": "Ophiuchus"
+    "constellation": "Ophiucus"
   },
   {
     "standard_name": "M108",
@@ -1940,7 +1943,7 @@
     "dec_deg": 19.1824,
     "visual_magnitude": -0.05,
     "angular_size_arcmin": null,
-    "constellation": "Bootes"
+    "constellation": "Boötes"
   },
   {
     "standard_name": "Vega",
@@ -2112,7 +2115,7 @@
     "dec_deg": -29.6222,
     "visual_magnitude": 1.16,
     "angular_size_arcmin": null,
-    "constellation": "Piscis Austrinus"
+    "constellation": "Pisces Austrinus"
   },
   {
     "standard_name": "Deneb",
