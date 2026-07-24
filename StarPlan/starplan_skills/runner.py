@@ -32,6 +32,7 @@ from .schemas import (
     ToolVersions,
 )
 from .target_resolve import resolve_target, resolve_location
+from .exceptions import TargetConfirmationRequired
 from .observability_plan import compute_observability
 from .outreach_pack import generate_outreach_pack
 from .observation_review import review_observation
@@ -70,13 +71,33 @@ def run_starplan(
         json.dump(input_data, f, ensure_ascii=False, indent=2)
 
     # ── Step 1: Resolve target ──
-    print(f"[1/4] Resolving target: {starplan_input.target}")
-    resolved = resolve_target(starplan_input.target, starplan_input.target_type)
+    # C-2 fix: If confirmed_target is provided, the human has already selected
+    # from a previous candidates list — bypass ambiguity check.
+    if starplan_input.confirmed_target:
+        print(f"[1/4] Resolving confirmed target: {starplan_input.confirmed_target}")
+        resolved = resolve_target(starplan_input.confirmed_target, starplan_input.target_type)
+        if resolved.requires_confirmation:
+            raise ValueError(
+                f"confirmed_target '{starplan_input.confirmed_target}' is still ambiguous. "
+                f"Provide an exact standard name (e.g. 'M33', 'M31')."
+            )
+    else:
+        print(f"[1/4] Resolving target: {starplan_input.target}")
+        resolved = resolve_target(starplan_input.target, starplan_input.target_type)
 
-    if resolved.requires_confirmation:
-        print(f"  [!] Target requires confirmation. Candidates: {len(resolved.candidates or [])}")
-        if resolved.confidence == 0:
-            raise ValueError(f"Target '{starplan_input.target}' not found in catalog")
+        if resolved.requires_confirmation:
+            if resolved.confidence == 0:
+                raise ValueError(f"Target '{starplan_input.target}' not found in catalog")
+            # C-2 fix: ambiguous target MUST NOT proceed without human confirmation.
+            # Raise exception carrying the candidates list so the caller can present
+            # choices to the user and re-invoke with confirmed_target.
+            raise TargetConfirmationRequired(
+                f"Target '{starplan_input.target}' is ambiguous "
+                f"(best match: {resolved.standard_name}, confidence={resolved.confidence:.2f}). "
+                f"{len(resolved.candidates or [])} candidates require human selection. "
+                f"Re-invoke with confirmed_target='<chosen standard name>'.",
+                resolved=resolved,
+            )
 
     with open(run_dir / "resolved_target.json", "w", encoding="utf-8") as f:
         json.dump(resolved.model_dump(), f, ensure_ascii=False, indent=2, default=str)
@@ -134,7 +155,13 @@ def run_starplan(
         log_path=log_path,
     )
     qwen_tag = " [Qwen]" if outreach.qwen_used else " [template]"
-    print(f"  [OK] Outreach pack{qwen_tag}: {outreach.outreach_pack_md_path}")
+    if outreach.pack_type == "not_observable":
+        print(f"  [OK] Cancellation/alternative pack{qwen_tag}: {outreach.outreach_pack_md_path}")
+        if outreach.alternative_suggestions:
+            for s in outreach.alternative_suggestions[:3]:
+                print(f"    Alt: {s}")
+    else:
+        print(f"  [OK] Outreach pack{qwen_tag}: {outreach.outreach_pack_md_path}")
     if outreach.qwen_validation_issues:
         for issue in outreach.qwen_validation_issues:
             print(f"    [!] {issue}")
@@ -158,7 +185,11 @@ def run_starplan(
     # ── Generate model call log ──
     _write_model_call_log(run_dir, starplan_input, resolved, obs_result, outreach=outreach)
 
-    # ── Save calculation manifest ──
+    # ── Generate validation report (before manifest so files list is complete) ──
+    # C-5 fix: write validation report first, then manifest captures all files
+    _write_validation_report(run_dir, resolved, obs_result, None)
+
+    # ── Save calculation manifest (C-5 fix: evidence-accurate) ──
     manifest = _build_manifest(
         run_id=run_id,
         input_data=input_data,
@@ -166,12 +197,11 @@ def run_starplan(
         location=location,
         obs_result=obs_result,
         run_dir=run_dir,
+        outreach=outreach,
+        starplan_input=starplan_input,
     )
     with open(run_dir / "calculation_manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest.model_dump(), f, ensure_ascii=False, indent=2, default=str)
-
-    # ── Generate validation report ──
-    _write_validation_report(run_dir, resolved, obs_result, manifest)
 
     print(f"\n[OK] Run complete: {run_dir}")
     print(f"  Files: {len(list(run_dir.iterdir()))} in {run_dir}")
@@ -194,12 +224,87 @@ def _build_manifest(
     location: dict,
     obs_result: ObservabilityResult,
     run_dir: Path,
+    outreach=None,
+    starplan_input=None,
 ) -> CalculationManifest:
-    """Build the calculation manifest for this run."""
+    """Build the calculation manifest for this run (C-5 fix: evidence-accurate)."""
     import astropy
-    import astroplan
+
+    try:
+        import astroplan
+        astroplan_ver = astroplan.__version__
+    except ImportError:
+        astroplan_ver = "not_installed"
+
+    from .qwen_client import DEFAULT_MODEL
 
     tz = timezone(timedelta(hours=8))
+
+    # C-5 fix: model info reflects ACTUAL usage, not hardcoded
+    qwen_used = outreach.qwen_used if outreach else False
+    if qwen_used:
+        model_info = ModelInfo(
+            provider="阿里云百炼",
+            model_name=DEFAULT_MODEL,
+            called=True,
+        )
+    else:
+        model_info = ModelInfo(
+            provider="阿里云百炼",
+            model_name=None,
+            called=False,
+        )
+
+    # C-5 fix: record user constraint overrides
+    manual_overrides: list[str] = []
+    if starplan_input and starplan_input.constraints:
+        cfg = load_constraints()
+        user_c = starplan_input.constraints
+        default_alt = cfg.get("altitude", {}).get("min_altitude_deg", 30.0)
+        default_am = cfg.get("airmass", {}).get("max_airmass", 2.0)
+        if user_c.min_altitude_deg != default_alt:
+            manual_overrides.append(
+                f"min_altitude_deg: {default_alt} → {user_c.min_altitude_deg} (用户覆盖)"
+            )
+        if user_c.max_airmass != default_am:
+            manual_overrides.append(
+                f"max_airmass: {default_am} → {user_c.max_airmass} (用户覆盖)"
+            )
+        if user_c.max_moon_illumination is not None:
+            manual_overrides.append(
+                f"max_moon_illumination: {user_c.max_moon_illumination} (用户指定)"
+            )
+    if starplan_input and starplan_input.confirmed_target:
+        manual_overrides.append(
+            f"confirmed_target: {starplan_input.confirmed_target} (人工确认选择)"
+        )
+
+    # C-5 fix: collect validation issues from outreach pack
+    validation_issues: list[str] = []
+    if outreach:
+        validation_issues.extend(outreach.qwen_validation_issues or [])
+        if outreach.unconfirmed_items:
+            validation_issues.extend(outreach.unconfirmed_items)
+
+    # C-5 fix: compute validation_status dynamically
+    if validation_issues:
+        validation_status = "passed_with_warnings"
+    elif not obs_result.is_observable:
+        validation_status = "target_not_observable"
+    else:
+        validation_status = "passed"
+
+    # C-5 fix: constraints_applied records BOTH defaults and user values
+    cfg = load_constraints()
+    constraints_applied = {
+        "min_altitude_deg": cfg.get("altitude", {}).get("min_altitude_deg", 30),
+        "max_airmass": cfg.get("airmass", {}).get("max_airmass", 2.0),
+    }
+    if starplan_input and starplan_input.constraints:
+        constraints_applied["user_min_altitude_deg"] = starplan_input.constraints.min_altitude_deg
+        constraints_applied["user_max_airmass"] = starplan_input.constraints.max_airmass
+        if starplan_input.constraints.max_moon_illumination is not None:
+            constraints_applied["user_max_moon_illumination"] = starplan_input.constraints.max_moon_illumination
 
     return CalculationManifest(
         run_id=run_id,
@@ -215,16 +320,16 @@ def _build_manifest(
         location=location,
         tools=ToolVersions(
             astropy_version=astropy.__version__,
-            astroplan_version=astroplan.__version__,
+            astroplan_version=astroplan_ver,
             python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         ),
-        model=ModelInfo(),
-        constraints_applied={
-            "min_altitude_deg": load_constraints().get("altitude", {}).get("min_altitude_deg", 30),
-            "max_airmass": load_constraints().get("airmass", {}).get("max_airmass", 2.0),
-        },
+        model=model_info,
+        constraints_applied=constraints_applied,
         intermediate_files=[f.name for f in run_dir.iterdir() if f.is_file()],
-        validation_status="passed",
+        manual_overrides=manual_overrides,
+        validation_status=validation_status,
+        validation_issues=validation_issues,
+        qwen_used=qwen_used,
     )
 
 
@@ -232,22 +337,24 @@ def _write_validation_report(
     run_dir: Path,
     resolved: ResolvedTarget,
     obs: ObservabilityResult,
-    manifest: CalculationManifest,
+    manifest: Optional[CalculationManifest] = None,
 ) -> None:
     """Write a validation report for this run."""
     lines: list[str] = []
     lines.append("# Validation Report")
     lines.append("")
-    lines.append(f"**Run ID**: {manifest.run_id}")
-    lines.append(f"**Timestamp**: {manifest.timestamp.isoformat()}")
+    lines.append(f"**Run ID**: {manifest.run_id if manifest else run_dir.name}")
+    lines.append(f"**Timestamp**: {manifest.timestamp.isoformat() if manifest else datetime.now().isoformat()}")
     lines.append("")
 
     # Input check
     lines.append("## 输入检查")
     lines.append("")
     lines.append(f"- 目标名称: ✓ 已提供")
-    lines.append(f"- 地点: ✓ {manifest.location.get('name', 'unknown')}")
-    lines.append(f"- 日期: ✓ {manifest.input.get('date_range')}")
+    loc_name = manifest.location.get('name', 'unknown') if manifest else (obs.location_name if obs else 'unknown')
+    date_info = manifest.input.get('date_range') if manifest else str(obs.date_range)
+    lines.append(f"- 地点: ✓ {loc_name}")
+    lines.append(f"- 日期: ✓ {date_info}")
     lines.append("")
 
     # Target check
@@ -272,11 +379,17 @@ def _write_validation_report(
     lines.append("")
 
     # Tool versions
+    import astropy
+    try:
+        import astroplan
+        _ap_ver = astroplan.__version__
+    except ImportError:
+        _ap_ver = "not_installed"
     lines.append("## 工具版本")
     lines.append("")
-    lines.append(f"- Astropy: {manifest.tools.astropy_version}")
-    lines.append(f"- astroplan: {manifest.tools.astroplan_version}")
-    lines.append(f"- Python: {manifest.tools.python_version}")
+    lines.append(f"- Astropy: {astropy.__version__}")
+    lines.append(f"- astroplan: {_ap_ver}")
+    lines.append(f"- Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     lines.append("")
 
     # Overall
@@ -564,6 +677,17 @@ def run_starplan_chat(
     else:
         print(f"  [OK] 坐标来源核查：经纬度来自 resolve_location 工具")
 
+    # C-4 fix: FAIL CLOSED — if hallucination check fails, do NOT return
+    # Qwen's free-text summary. Replace with deterministic rendering from
+    # tool results. The blocked content is preserved for audit only.
+    hallucination_blocked = not verification["passed"]
+    blocked_content = None
+    if hallucination_blocked:
+        blocked_content = final_content
+        final_content = _build_deterministic_summary(captured)
+        print(f"  [BLOCKED] Qwen 自由文本含不可溯源数值，已替换为确定性渲染摘要")
+        print(f"  [BLOCKED] 原始 Qwen 回答 ({len(blocked_content)} chars) 保存在 blocked_content 字段供审计")
+
     # Save conversation log + verification
     with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:
         json.dump({
@@ -571,10 +695,12 @@ def run_starplan_chat(
             "messages": result.get("messages", []),
             "tool_call_log": result.get("tool_call_log", []),
             "final_content": final_content,
+            "blocked_content": blocked_content,
             "hallucination_verification": verification,
+            "hallucination_blocked": hallucination_blocked,
         }, f, ensure_ascii=False, indent=2, default=str)
 
-    print(f"  [OK] Qwen final response ({len(final_content)} chars)")
+    print(f"  [OK] Final response ({len(final_content)} chars, blocked={hallucination_blocked})")
     print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
     print(f"  [OK] Run dir: {run_dir}")
 
@@ -583,6 +709,8 @@ def run_starplan_chat(
         "run_dir": str(run_dir),
         "mode": "chat",
         "final_content": final_content,
+        "hallucination_blocked": hallucination_blocked,
+        "blocked_content": blocked_content,
         "tool_call_log": result.get("tool_call_log", []),
         "messages": result.get("messages", []),
         "hallucination_verification": verification,
@@ -702,3 +830,67 @@ def _check_coordinate_source(captured: dict) -> Optional[str]:
         return (f"坐标来源核查：Qwen 使用的经纬度 ({used_lat}, {used_lon}) 与 resolve_location "
                 f"返回的 ({real_lat}, {real_lon}) 不一致，疑似未采用工具结果。")
     return None
+
+
+def _build_deterministic_summary(captured: dict) -> str:
+    """
+    C-4 fix: Build a deterministic summary purely from tool results.
+
+    This is the fail-closed fallback when Qwen's free-text summary contains
+    untraceable numbers. Every value in this summary comes directly from
+    captured tool outputs — no model-generated text is included.
+    """
+    lines: list[str] = []
+    lines.append("【StarPlan 确定性结果摘要】")
+    lines.append("（本摘要由结构化工具结果直接渲染，不含模型自由文本）")
+    lines.append("")
+
+    # Target info
+    target = captured.get("target_resolve")
+    if target:
+        lines.append(f"目标: {target.get('standard_name', '未知')}")
+        lines.append(f"  坐标: RA={target.get('ra_deg', '?')}°, Dec={target.get('dec_deg', '?')}°")
+        lines.append(f"  类型: {target.get('target_type', '未知')}")
+        if target.get("constellation"):
+            lines.append(f"  星座: {target['constellation']}")
+        if target.get("visual_magnitude") is not None:
+            lines.append(f"  视星等: {target['visual_magnitude']}")
+        lines.append("")
+
+    # Location info
+    loc = captured.get("resolve_location")
+    if loc:
+        lines.append(f"地点: {loc.get('name', loc.get('key', '未知'))}")
+        lines.append(f"  经纬度: {loc.get('latitude', '?')}°N, {loc.get('longitude', '?')}°E")
+        lines.append(f"  海拔: {loc.get('elevation_m', 0)}m")
+        lines.append("")
+
+    # Observability info
+    obs = captured.get("observability_plan")
+    if obs:
+        observable = obs.get("is_observable", False)
+        lines.append(f"可观测: {'是' if observable else '否'}")
+        if observable and obs.get("recommended_window"):
+            rw = obs["recommended_window"]
+            w = rw.get("window", {})
+            lines.append(f"  推荐时段: {w.get('start', '?')} ~ {w.get('end', '?')}")
+            lines.append(f"  峰值高度角: {rw.get('peak_altitude_deg', '?')}°")
+            lines.append(f"  峰值大气质量: {rw.get('peak_airmass', '?')}")
+        if not observable:
+            lines.append("  该目标在指定日期不满足观测条件")
+        # Moon info
+        moon = obs.get("moon_info")
+        if moon:
+            lines.append(f"  月相: {moon.get('phase_fraction', '?')}")
+            lines.append(f"  月球最小角距: {moon.get('min_separation_deg', '?')}°")
+            lines.append(f"  月光影响: {moon.get('impact_assessment', '?')}")
+        # Alternatives
+        alts = obs.get("alternative_suggestions", [])
+        if alts:
+            lines.append("  替代建议:")
+            for a in alts[:3]:
+                lines.append(f"    - {a.get('description', '')}")
+        lines.append("")
+
+    lines.append("（以上所有数值均来自 Astropy 确定性计算，非模型生成）")
+    return "\n".join(lines)

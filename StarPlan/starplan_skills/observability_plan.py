@@ -20,7 +20,6 @@ a language model. This is the core "工具算" principle.
 from __future__ import annotations
 
 import csv
-import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -30,18 +29,6 @@ from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.time import Time
 import astropy.units as u
 
-# Suppress Astropy cross-frame transformation warnings (numerically acceptable
-# for angular separation at the precision needed here).
-warnings.filterwarnings(
-    "ignore",
-    message=".*NonRotationTransformationWarning.*",
-    category=UserWarning,
-)
-try:
-    from astropy.coordinates.baseframe import NonRotationTransformationWarning
-    warnings.filterwarnings("ignore", category=NonRotationTransformationWarning)
-except ImportError:
-    pass
 
 from .config import load_constraints
 from .schemas import (
@@ -215,7 +202,10 @@ def compute_observability(
         moon_coord = get_body("moon", astropy_t, obs_loc)
         moon_altaz = moon_coord.transform_to(altaz_frame)
         moon_alt = float(moon_altaz.alt.deg)
-        moon_sep = float(target.separation(moon_coord).deg)
+        # C-1 fix: use same-frame AltAz separation (both target_altaz and
+        # moon_altaz share the same obstime & location) instead of cross-frame
+        # ICRS-vs-GCRS separation which gave physically meaningless results.
+        moon_sep = float(target_altaz.separation(moon_altaz).deg)
 
         hourly_data.append(
             HourlyData(
@@ -241,6 +231,8 @@ def compute_observability(
     moon_seps = [h.moon_separation_deg for h in hourly_data if h.moon_separation_deg is not None]
 
     # Moon phase (approximate from elongation)
+    # NOTE: sun_coord and moon_coord are both GCRS (same frame, same obstime/location
+    # from get_body), so this separation is same-frame and physically valid.
     mid_time = _astropy_time(night_start + (night_end - night_start) / 2)
     sun_coord = get_body("sun", mid_time, obs_loc)
     moon_coord = get_body("moon", mid_time, obs_loc)

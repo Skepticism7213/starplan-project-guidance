@@ -16,5 +16,6 @@ Week 3 additions:
 __version__ = "0.3.0"
 
 from .runner import run_starplan, run_starplan_nl, run_starplan_chat
+from .exceptions import TargetConfirmationRequired
 from .nl_parser import parse_natural_language
 from .qwen_client import call_qwen, call_qwen_json, call_qwen_chat

@@ -48,6 +48,12 @@ class StarPlanInput(BaseModel):
         default=None,
         description="Optional target type hint: deep_sky, star, planet, asterism",
     )
+    confirmed_target: Optional[str] = Field(
+        default=None,
+        description="Explicitly confirmed standard target name (e.g. 'M33'). "
+        "When provided, indicates a human has already selected from candidates; "
+        "the pipeline bypasses the ambiguity check and uses this name directly.",
+    )
     location: str = Field(description="Location identifier, e.g. '济南_四门塔'")
     location_detail: Optional[LocationDetail] = Field(
         default=None,
@@ -254,12 +260,21 @@ class OutreachPack(BaseModel):
 
     target_name: str
     audience: str
+    pack_type: str = Field(
+        default="observation",
+        description="Pack type: 'observation' (normal) or 'not_observable' "
+        "(cancellation/reschedule/alternative pack)",
+    )
     activity_schedule: list[ActivityScheduleItem] = Field(default_factory=list)
     talking_points: list[str] = Field(default_factory=list)
     equipment_checklist: list[EquipmentItem] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     manual_check_items: list[str] = Field(default_factory=list)
     unconfirmed_items: list[str] = Field(default_factory=list)
+    alternative_suggestions: list[str] = Field(
+        default_factory=list,
+        description="Alternative target/date suggestions when target is not observable",
+    )
     outreach_pack_md_path: Optional[str] = None
     qwen_used: bool = False
     qwen_validation_issues: list[str] = Field(default_factory=list)
@@ -339,8 +354,12 @@ class ModelInfo(BaseModel):
     """Qwen model information."""
 
     provider: str = "阿里云百炼"
-    model_name: str = "Qwen3.7-Max"
+    model_name: Optional[str] = None
     model_version: Optional[str] = None
+    called: bool = Field(
+        default=False,
+        description="Whether the model was actually invoked during this run",
+    )
 
 
 class CalculationManifest(BaseModel):
@@ -357,3 +376,11 @@ class CalculationManifest(BaseModel):
     intermediate_files: list[str] = Field(default_factory=list)
     manual_overrides: list[str] = Field(default_factory=list)
     validation_status: str = "pending"
+    validation_issues: list[str] = Field(
+        default_factory=list,
+        description="Issues found during validation (empty if all passed)",
+    )
+    qwen_used: bool = Field(
+        default=False,
+        description="Whether Qwen was actually used for outreach pack generation",
+    )

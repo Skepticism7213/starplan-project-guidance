@@ -58,6 +58,18 @@ def generate_outreach_pack(
     Returns:
         OutreachPack with schedule, talking points, checklist, etc.
     """
+    # C-3 fix: If target is NOT observable, generate a cancellation/alternative
+    # pack instead of an observation activity pack.
+    if not obs_result.is_observable:
+        return _generate_not_observable_pack(
+            target=target,
+            obs_result=obs_result,
+            audience=audience,
+            equipment=equipment,
+            goal=goal,
+            run_dir=run_dir,
+        )
+
     # Build fact cards from target + obs_result
     fact_cards = _build_fact_cards(target, obs_result)
 
@@ -133,6 +145,189 @@ def generate_outreach_pack(
         qwen_used=qwen_used,
         qwen_validation_issues=qwen_validation_issues,
     )
+
+
+def _generate_not_observable_pack(
+    target: ResolvedTarget,
+    obs_result: ObservabilityResult,
+    audience: str,
+    equipment: str,
+    goal: str,
+    run_dir: Optional[Path] = None,
+) -> OutreachPack:
+    """
+    C-3 fix: Generate a cancellation/reschedule/alternative pack when the
+    target is NOT observable on the requested date.
+
+    This pack explains why the target cannot be observed, provides educational
+    context about the target, and suggests alternatives — instead of generating
+    an observation activity pack that contradicts the observability result.
+    """
+    # Build talking points explaining the situation
+    talking_points = _build_not_observable_talking_points(target, obs_result, audience)
+
+    # Build alternative suggestions list
+    alt_suggestions = [s.description for s in obs_result.alternative_suggestions]
+
+    # Build a "what to do instead" schedule
+    schedule = _build_not_observable_schedule(obs_result, alt_suggestions)
+
+    # Manual check items for rescheduling
+    manual_check_items = [
+        f"确认 {target.standard_name} 在改期日期是否可观测（重新运行 StarPlan）",
+        "确认替代目标的设备匹配度",
+        "通知参与成员活动调整安排",
+    ]
+
+    # Generate markdown
+    md_path = None
+    if run_dir:
+        md_path = str(run_dir / "outreach_pack.md")
+        _write_not_observable_markdown(
+            target, obs_result, schedule, talking_points,
+            alt_suggestions, manual_check_items, audience, md_path,
+        )
+
+    return OutreachPack(
+        target_name=target.standard_name,
+        audience=audience,
+        pack_type="not_observable",
+        activity_schedule=schedule,
+        talking_points=talking_points,
+        equipment_checklist=[],
+        safety_notes=[],
+        manual_check_items=manual_check_items,
+        unconfirmed_items=[],
+        alternative_suggestions=alt_suggestions,
+        outreach_pack_md_path=md_path,
+        qwen_used=False,
+        qwen_validation_issues=[],
+    )
+
+
+def _build_not_observable_talking_points(
+    target: ResolvedTarget,
+    obs: ObservabilityResult,
+    audience: str,
+) -> list[str]:
+    """Build talking points for a not-observable target (educational, not observational)."""
+    points: list[str] = []
+
+    # Explain why not observable
+    points.append(
+        f"{target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测条件"
+        f"（最高高度角过低），本次观测活动取消或改期"
+    )
+
+    # Educational content about the target (still useful for the audience)
+    if target.target_type == "deep_sky":
+        if target.constellation:
+            points.append(f"{target.standard_name} 位于 {target.constellation} 星座方向")
+        if target.visual_magnitude is not None:
+            points.append(f"它的视星等约为 {target.visual_magnitude:.1f}，属于深空天体")
+        points.append("该目标在当前季节处于太阳方向附近/地平线以下，无法在夜间观测")
+    elif target.target_type == "star":
+        if target.constellation:
+            points.append(f"{target.standard_name} 是 {target.constellation} 座的恒星")
+        points.append("该恒星在当前季节的夜间不可见")
+
+    # Alternative suggestions
+    if obs.alternative_suggestions:
+        alt_names = [
+            s.target_name for s in obs.alternative_suggestions
+            if s.target_name and s.target_name != target.standard_name
+        ]
+        if alt_names:
+            points.append(f"当季更适合观测的替代目标：{'、'.join(alt_names)}")
+        points.append("建议将活动改期到目标进入最佳观测季节时再举行")
+
+    # Audience-specific note
+    if "新成员" in audience or "新手" in audience:
+        points.append("可以利用本次集会时间进行室内天文知识讲座或星图认读练习")
+
+    return points
+
+
+def _build_not_observable_schedule(
+    obs: ObservabilityResult,
+    alt_suggestions: list[str],
+) -> list[ActivityScheduleItem]:
+    """Build a 'what to do instead' schedule for a not-observable night."""
+    schedule: list[ActivityScheduleItem] = []
+
+    schedule.append(ActivityScheduleItem(
+        time_label="活动调整",
+        activity=f"原定观测活动取消/改期",
+        notes="目标不满足观测条件",
+    ))
+
+    if alt_suggestions:
+        schedule.append(ActivityScheduleItem(
+            time_label="替代方案",
+            activity="考虑替代目标或改期",
+            notes="；".join(alt_suggestions[:3]),
+        ))
+
+    schedule.append(ActivityScheduleItem(
+        time_label="建议",
+        activity="室内替代活动：天文讲座 / 星图认读 / 观测计划讨论",
+        notes="保持成员参与热情",
+    ))
+
+    return schedule
+
+
+def _write_not_observable_markdown(
+    target, obs, schedule, talking_points,
+    alt_suggestions, manual_check_items, audience, path: str,
+) -> None:
+    """Write a not-observable pack as markdown (cancellation/alternative notice)."""
+    lines: list[str] = []
+    lines.append(f"# {target.standard_name} 观测取消/改期通知")
+    lines.append("")
+    lines.append(f"**受众**: {audience}  ")
+    lines.append(f"**原定日期**: {obs.date_range[0]}  ")
+    lines.append(f"**地点**: {obs.location_name}  ")
+    lines.append(f"**状态**: 目标不可观测，活动取消/改期  ")
+    lines.append(f"**生成方式**: 模板（不可观测场景不调用 Qwen）")
+    lines.append("")
+
+    lines.append("## 不可观测原因")
+    lines.append("")
+    lines.append(f"- {target.standard_name} 在 {obs.date_range[0]} 当晚最高高度角过低，不满足最低观测条件")
+    if obs.risk_flags:
+        for rf in obs.risk_flags:
+            lines.append(f"- 风险: {rf.description}")
+    lines.append("")
+
+    if alt_suggestions:
+        lines.append("## 替代建议")
+        lines.append("")
+        for s in alt_suggestions:
+            lines.append(f"- {s}")
+        lines.append("")
+
+    lines.append("## 说明要点")
+    lines.append("")
+    for tp in talking_points:
+        lines.append(f"- {tp}")
+    lines.append("")
+
+    lines.append("## 建议安排")
+    lines.append("")
+    for item in schedule:
+        notes_str = f"（{item.notes}）" if item.notes else ""
+        lines.append(f"- **{item.time_label}**: {item.activity}{notes_str}")
+    lines.append("")
+
+    lines.append("## 人工核对项")
+    lines.append("")
+    for mc in manual_check_items:
+        lines.append(f"- [ ] {mc}")
+    lines.append("")
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 def _build_fact_cards(target: ResolvedTarget, obs: ObservabilityResult) -> list[FactCard]:
