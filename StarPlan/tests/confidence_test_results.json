@@ -1,0 +1,2798 @@
+{
+  "timestamp": "2026-07-24T14:25:47.721489",
+  "total": 150,
+  "passed": 150,
+  "failed": 0,
+  "batch_stats": [
+    {
+      "batch": 1,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 2,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 3,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 4,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 5,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 6,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 7,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 8,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 9,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 10,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 11,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 12,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 13,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 14,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "batch": 15,
+      "passed": 10,
+      "failed": 0
+    }
+  ],
+  "results": [
+    {
+      "id": "B01-01",
+      "batch": 1,
+      "query": "M31",
+      "type_hint": null,
+      "desc": "精确匹配标准名M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-02",
+      "batch": 1,
+      "query": "M42",
+      "type_hint": null,
+      "desc": "精确匹配标准名M42",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-03",
+      "batch": 1,
+      "query": "Sirius",
+      "type_hint": null,
+      "desc": "精确匹配标准名Sirius",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-04",
+      "batch": 1,
+      "query": "Vega",
+      "type_hint": null,
+      "desc": "精确匹配标准名Vega",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Vega",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 279.2347,
+        "dec_deg": 38.7837,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-05",
+      "batch": 1,
+      "query": "m31",
+      "type_hint": null,
+      "desc": "大小写不敏感匹配m31→M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-06",
+      "batch": 1,
+      "query": "M1",
+      "type_hint": null,
+      "desc": "精确匹配M1（同时是M10-M19,M100-M110的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-07",
+      "batch": 1,
+      "query": "Polaris",
+      "type_hint": null,
+      "desc": "精确匹配标准名Polaris",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Polaris",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 37.9546,
+        "dec_deg": 89.2641,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-08",
+      "batch": 1,
+      "query": "M100",
+      "type_hint": null,
+      "desc": "精确匹配M100（三位数编号）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M100",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 185.7289,
+        "dec_deg": 15.8223,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-09",
+      "batch": 1,
+      "query": "Betelgeuse",
+      "type_hint": null,
+      "desc": "精确匹配标准名Betelgeuse",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Betelgeuse",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 88.7929,
+        "dec_deg": 7.4071,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B01-10",
+      "batch": 1,
+      "query": "M110",
+      "type_hint": null,
+      "desc": "精确匹配M110（最大编号）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M110",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.0919,
+        "dec_deg": 41.6854,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-01",
+      "batch": 2,
+      "query": "仙女座星系",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-02",
+      "batch": 2,
+      "query": "猎户座大星云",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→M42",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-03",
+      "batch": 2,
+      "query": "天狼星",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→Sirius",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-04",
+      "batch": 2,
+      "query": "织女星",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→Vega",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Vega",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 279.2347,
+        "dec_deg": 38.7837,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-05",
+      "batch": 2,
+      "query": "Andromeda Galaxy",
+      "type_hint": null,
+      "desc": "精确匹配英文别名→M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-06",
+      "batch": 2,
+      "query": "Ring Nebula",
+      "type_hint": null,
+      "desc": "精确匹配英文别名→M57",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M57",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 283.3962,
+        "dec_deg": 33.0291,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-07",
+      "batch": 2,
+      "query": "北极星",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→Polaris",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Polaris",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 37.9546,
+        "dec_deg": 89.2641,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-08",
+      "batch": 2,
+      "query": "昴星团",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→M45",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M45",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 56.6008,
+        "dec_deg": 24.1139,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-09",
+      "batch": 2,
+      "query": "参宿四",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→Betelgeuse",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Betelgeuse",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 88.7929,
+        "dec_deg": 7.4071,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B02-10",
+      "batch": 2,
+      "query": "牛郎星",
+      "type_hint": null,
+      "desc": "精确匹配中文别名→Altair",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Altair",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 297.6958,
+        "dec_deg": 8.8683,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-01",
+      "batch": 3,
+      "query": "NGC 224",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-02",
+      "batch": 3,
+      "query": "NGC 1976",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M42",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-03",
+      "batch": 3,
+      "query": "NGC 6720",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M57",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M57",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 283.3962,
+        "dec_deg": 33.0291,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-04",
+      "batch": 3,
+      "query": "NGC 5194",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M51",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M51",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 202.4696,
+        "dec_deg": 47.1953,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-05",
+      "batch": 3,
+      "query": "NGC 4486",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M87",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M87",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 187.7059,
+        "dec_deg": 12.3911,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-06",
+      "batch": 3,
+      "query": "ngc 224",
+      "type_hint": null,
+      "desc": "NGC编号小写+空格→M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-07",
+      "batch": 3,
+      "query": "NGC 1952",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M1",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-08",
+      "batch": 3,
+      "query": "NGC 3031",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M81",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M81",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 148.8882,
+        "dec_deg": 69.0653,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-09",
+      "batch": 3,
+      "query": "NGC 7078",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M15",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M15",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 322.493,
+        "dec_deg": 12.167,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B03-10",
+      "batch": 3,
+      "query": "NGC 2632",
+      "type_hint": null,
+      "desc": "NGC编号匹配→M44",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M44",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 130.0542,
+        "dec_deg": 19.6211,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-01",
+      "batch": 4,
+      "query": "仙女座",
+      "type_hint": null,
+      "desc": "部分名'仙女座'应匹配M31/M32/M110等多个目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 3,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-02",
+      "batch": 4,
+      "query": "球状星团",
+      "type_hint": null,
+      "desc": "泛称'球状星团'应命中大量目标（检测候选列表是否过长）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M2",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 323.3626,
+        "dec_deg": -0.8232,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-03",
+      "batch": 4,
+      "query": "猎户座",
+      "type_hint": null,
+      "desc": "部分名'猎户座'应匹配M42/M43/M78及猎户座恒星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-04",
+      "batch": 4,
+      "query": "三角座星系",
+      "type_hint": null,
+      "desc": "精确匹配M33别名'三角座星系'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M33",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 23.4621,
+        "dec_deg": 30.6602,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-05",
+      "batch": 4,
+      "query": "三角座",
+      "type_hint": null,
+      "desc": "精确匹配M33别名'三角座'（M33的aliases里包含'三角座'）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M33",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 23.4621,
+        "dec_deg": 30.6602,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-06",
+      "batch": 4,
+      "query": "星云",
+      "type_hint": null,
+      "desc": "极泛称'星云'应命中大量目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-07",
+      "batch": 4,
+      "query": "人马座",
+      "type_hint": null,
+      "desc": "部分名'人马座'应命中多个人马座目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M18",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 274.9875,
+        "dec_deg": -17.0883,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-08",
+      "batch": 4,
+      "query": "室女座",
+      "type_hint": null,
+      "desc": "部分名'室女座'应命中多个室女座目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M49",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 187.4449,
+        "dec_deg": 8.0004,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-09",
+      "batch": 4,
+      "query": "蛇夫座",
+      "type_hint": null,
+      "desc": "部分名'蛇夫座'应命中多个蛇夫座目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M9",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 7,
+        "ra_deg": 259.7991,
+        "dec_deg": -18.5162,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B04-10",
+      "batch": 4,
+      "query": "后发座",
+      "type_hint": null,
+      "desc": "部分名'后发座'应命中多个后发座目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M53",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 7,
+        "ra_deg": 198.2302,
+        "dec_deg": 18.1682,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-01",
+      "batch": 5,
+      "query": "M3",
+      "type_hint": null,
+      "desc": "M3精确匹配（但也是M31-M39的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M3",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 205.5484,
+        "dec_deg": 28.3773,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-02",
+      "batch": 5,
+      "query": "M1",
+      "type_hint": null,
+      "desc": "M1精确匹配（但也是M10-M19,M100-M110的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-03",
+      "batch": 5,
+      "query": "M",
+      "type_hint": null,
+      "desc": "单字母'M'应前缀匹配所有M天体",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-04",
+      "batch": 5,
+      "query": "M10",
+      "type_hint": null,
+      "desc": "M10精确匹配（也是M100-M109的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M10",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 254.2877,
+        "dec_deg": -4.1003,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-05",
+      "batch": 5,
+      "query": "Si",
+      "type_hint": null,
+      "desc": "前缀'Si'应匹配Sirius等",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Alpheratz",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 2.0969,
+        "dec_deg": 29.0904,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-06",
+      "batch": 5,
+      "query": "Al",
+      "type_hint": null,
+      "desc": "前缀'Al'应匹配Altair/Aldebaran/Alioth等多个恒星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Alpha Centauri",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 219.9021,
+        "dec_deg": -60.834,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-07",
+      "batch": 5,
+      "query": "M5",
+      "type_hint": null,
+      "desc": "M5精确匹配（也是M50-M59的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M5",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 229.6384,
+        "dec_deg": 2.081,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-08",
+      "batch": 5,
+      "query": "M8",
+      "type_hint": null,
+      "desc": "M8精确匹配（也是M80-M89的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M8",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 270.8,
+        "dec_deg": -24.3833,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-09",
+      "batch": 5,
+      "query": "M9",
+      "type_hint": null,
+      "desc": "M9精确匹配（也是M90-M99的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M9",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 259.7991,
+        "dec_deg": -18.5162,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B05-10",
+      "batch": 5,
+      "query": "M2",
+      "type_hint": null,
+      "desc": "M2精确匹配（也是M20-M29的前缀）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M2",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 323.3626,
+        "dec_deg": -0.8232,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-01",
+      "batch": 6,
+      "query": "Galaxy",
+      "type_hint": null,
+      "desc": "泛称'Galaxy'应命中多个星系目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-02",
+      "batch": 6,
+      "query": "Nebula",
+      "type_hint": null,
+      "desc": "泛称'Nebula'应命中多个星云目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-03",
+      "batch": 6,
+      "query": "Cluster",
+      "type_hint": null,
+      "desc": "泛称'Cluster'应命中多个星团目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M3",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 205.5484,
+        "dec_deg": 28.3773,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-04",
+      "batch": 6,
+      "query": "Orion",
+      "type_hint": null,
+      "desc": "'Orion'应匹配猎户座相关目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 8,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-05",
+      "batch": 6,
+      "query": "triangulum",
+      "type_hint": null,
+      "desc": "'triangulum'包含于M33别名'Triangulum Galaxy'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M33",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 23.4621,
+        "dec_deg": 30.6602,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-06",
+      "batch": 6,
+      "query": "andromeda",
+      "type_hint": null,
+      "desc": "'andromeda'应匹配M31及仙女座恒星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 3,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-07",
+      "batch": 6,
+      "query": "Globular",
+      "type_hint": null,
+      "desc": "'Globular'应命中多个球状星团",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M5",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 229.6384,
+        "dec_deg": 2.081,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-08",
+      "batch": 6,
+      "query": "Spiral",
+      "type_hint": null,
+      "desc": "'Spiral'应命中多个旋涡星系",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M34",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 40.5308,
+        "dec_deg": 42.7219,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-09",
+      "batch": 6,
+      "query": "Star",
+      "type_hint": null,
+      "desc": "'Star'应匹配含Star的别名",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 5,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B06-10",
+      "batch": 6,
+      "query": "Crab",
+      "type_hint": null,
+      "desc": "'Crab'包含于M1别名'Crab Nebula'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B07-01",
+      "batch": 7,
+      "query": "M31",
+      "type_hint": "deep_sky",
+      "desc": "正确类型提示不影响结果",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B07-02",
+      "batch": 7,
+      "query": "M31",
+      "type_hint": "star",
+      "desc": "错误类型提示：M31是deep_sky但指定star",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.5,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "类型惩罚后1.0*0.5=0.5，可能触发歧义"
+    },
+    {
+      "id": "B07-03",
+      "batch": 7,
+      "query": "Sirius",
+      "type_hint": "star",
+      "desc": "正确类型提示不影响结果",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B07-04",
+      "batch": 7,
+      "query": "Sirius",
+      "type_hint": "deep_sky",
+      "desc": "错误类型提示：Sirius是star但指定deep_sky",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 0.5,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "类型惩罚后1.0*0.5=0.5"
+    },
+    {
+      "id": "B07-05",
+      "batch": 7,
+      "query": "织女星",
+      "type_hint": "star",
+      "desc": "别名匹配+正确类型=0.95*1.0",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Vega",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 279.2347,
+        "dec_deg": 38.7837,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B07-06",
+      "batch": 7,
+      "query": "织女星",
+      "type_hint": "deep_sky",
+      "desc": "别名匹配+错误类型=0.95*0.5=0.475",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Vega",
+        "confidence": 0.475,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 279.2347,
+        "dec_deg": 38.7837,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "0.95*0.5=0.475，低于0.5阈值"
+    },
+    {
+      "id": "B07-07",
+      "batch": 7,
+      "query": "M42",
+      "type_hint": "planet",
+      "desc": "不存在的类型提示planet",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.5,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "planet类型不存在于目录"
+    },
+    {
+      "id": "B07-08",
+      "batch": 7,
+      "query": "天狼星",
+      "type_hint": "star",
+      "desc": "中文别名+正确类型",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B07-09",
+      "batch": 7,
+      "query": "天狼星",
+      "type_hint": "deep_sky",
+      "desc": "中文别名+错误类型",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 0.475,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "0.95*0.5=0.475"
+    },
+    {
+      "id": "B07-10",
+      "batch": 7,
+      "query": "M13",
+      "type_hint": "deep_sky",
+      "desc": "正确类型提示不影响结果",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M13",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 250.4235,
+        "dec_deg": 36.4613,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B08-01",
+      "batch": 8,
+      "query": "",
+      "type_hint": null,
+      "desc": "空字符串应抛出ValueError",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "raised": "ValueError: target_name cannot be empty"
+      }
+    },
+    {
+      "id": "B08-02",
+      "batch": 8,
+      "query": "   ",
+      "type_hint": null,
+      "desc": "纯空格应抛出ValueError",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "raised": "ValueError: target_name cannot be empty"
+      }
+    },
+    {
+      "id": "B08-03",
+      "batch": 8,
+      "query": "M",
+      "type_hint": null,
+      "desc": "单字符'M'前缀匹配所有M天体",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B08-04",
+      "batch": 8,
+      "query": "星",
+      "type_hint": null,
+      "desc": "单字'星'（长度<2，包含匹配被跳过）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "单字'星'，len<2不触发包含匹配，检测行为"
+    },
+    {
+      "id": "B08-05",
+      "batch": 8,
+      "query": "a",
+      "type_hint": null,
+      "desc": "单字符'a'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Alpha Centauri",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 219.9021,
+        "dec_deg": -60.834,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "单字符'a'，检测前缀匹配行为"
+    },
+    {
+      "id": "B08-06",
+      "batch": 8,
+      "query": "M 31",
+      "type_hint": null,
+      "desc": "带空格的'M 31'（normalize去空格）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "空格被normalize去除"
+    },
+    {
+      "id": "B08-07",
+      "batch": 8,
+      "query": "m_31",
+      "type_hint": null,
+      "desc": "带下划线的'm_31'（normalize去下划线）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "下划线被normalize去除"
+    },
+    {
+      "id": "B08-08",
+      "batch": 8,
+      "query": "NGC224",
+      "type_hint": null,
+      "desc": "'NGC224'无空格（normalize后匹配'NGC 224'→'ngc224'）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "NGC无空格"
+    },
+    {
+      "id": "B08-09",
+      "batch": 8,
+      "query": "  M31  ",
+      "type_hint": null,
+      "desc": "前后有空格的M31",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B08-10",
+      "batch": 8,
+      "query": "M31",
+      "type_hint": "",
+      "desc": "空字符串type_hint",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "空字符串type_hint应等同于None"
+    },
+    {
+      "id": "B09-01",
+      "batch": 9,
+      "query": "M31",
+      "type_hint": null,
+      "desc": "验证返回坐标在有效范围内",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-02",
+      "batch": 9,
+      "query": "Polaris",
+      "type_hint": null,
+      "desc": "北极星赤纬应>89°",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Polaris",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 37.9546,
+        "dec_deg": 89.2641,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "北极星赤纬应接近+90°"
+    },
+    {
+      "id": "B09-03",
+      "batch": 9,
+      "query": "Canopus",
+      "type_hint": null,
+      "desc": "老人星赤纬应<-50°",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Canopus",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 95.988,
+        "dec_deg": -52.6957,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "老人星赤纬应<-50°"
+    },
+    {
+      "id": "B09-04",
+      "batch": 9,
+      "query": "M42",
+      "type_hint": null,
+      "desc": "M42坐标范围验证（猎户座）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-05",
+      "batch": 9,
+      "query": "Sirius",
+      "type_hint": null,
+      "desc": "天狼星坐标范围验证",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Sirius",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 101.2872,
+        "dec_deg": -16.7161,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-06",
+      "batch": 9,
+      "query": "M1",
+      "type_hint": null,
+      "desc": "M1坐标范围验证（金牛座）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-07",
+      "batch": 9,
+      "query": "Vega",
+      "type_hint": null,
+      "desc": "织女星坐标范围验证",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Vega",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 279.2347,
+        "dec_deg": 38.7837,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-08",
+      "batch": 9,
+      "query": "M87",
+      "type_hint": null,
+      "desc": "M87坐标范围验证（室女座）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M87",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 187.7059,
+        "dec_deg": 12.3911,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-09",
+      "batch": 9,
+      "query": "Altair",
+      "type_hint": null,
+      "desc": "牛郎星坐标范围验证",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Altair",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 297.6958,
+        "dec_deg": 8.8683,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B09-10",
+      "batch": 9,
+      "query": "M110",
+      "type_hint": null,
+      "desc": "M110坐标范围验证（仙女座）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M110",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.0919,
+        "dec_deg": 41.6854,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-01",
+      "batch": 10,
+      "query": "仙女座星系",
+      "type_hint": null,
+      "desc": "精确别名不应因部分名歧义而误判",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "虽然'仙女座'匹配多个，但'仙女座星系'精确匹配M31别名"
+    },
+    {
+      "id": "B10-02",
+      "batch": 10,
+      "query": "人马座球状星团",
+      "type_hint": null,
+      "desc": "精确匹配M22别名'人马座球状星团'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M22",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 279.0998,
+        "dec_deg": -23.9047,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-03",
+      "batch": 10,
+      "query": "蛇夫座球状星团",
+      "type_hint": null,
+      "desc": "'蛇夫座球状星团'精确匹配M9，分差足够自动确认",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M9",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 259.7991,
+        "dec_deg": -18.5162,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "M9精确匹配0.95，第二名0.85，分差0.10>=0.08自动确认"
+    },
+    {
+      "id": "B10-04",
+      "batch": 10,
+      "query": "狮子座",
+      "type_hint": null,
+      "desc": "'狮子座'应匹配多个狮子座目标",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M65",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 5,
+        "ra_deg": 169.733,
+        "dec_deg": 13.0923,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-05",
+      "batch": 10,
+      "query": "天鹅座",
+      "type_hint": null,
+      "desc": "'天鹅座'应匹配M29/M39及天鹅座恒星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M29",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 305.9417,
+        "dec_deg": 38.4867,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-06",
+      "batch": 10,
+      "query": "大熊座",
+      "type_hint": null,
+      "desc": "'大熊座'匹配（目录覆盖有限，仅深空天体含星座名别名）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M109",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 179.3998,
+        "dec_deg": 53.3747,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "已知数据限制：恒星别名无星座名前缀，仅M109命中"
+    },
+    {
+      "id": "B10-07",
+      "batch": 10,
+      "query": "御夫座",
+      "type_hint": null,
+      "desc": "'御夫座'应匹配M36/M37/M38及Capella",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M36",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 3,
+        "ra_deg": 84.0842,
+        "dec_deg": 34.135,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-08",
+      "batch": 10,
+      "query": "武仙座球状星团",
+      "type_hint": null,
+      "desc": "精确匹配M13别名'武仙座球状星团'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M13",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 250.4235,
+        "dec_deg": 36.4613,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-09",
+      "batch": 10,
+      "query": "天蝎座",
+      "type_hint": null,
+      "desc": "'天蝎座'应匹配M4/M6/M7/M80及Antares",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M4",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 245.8968,
+        "dec_deg": -26.5258,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B10-10",
+      "batch": 10,
+      "query": "双子座",
+      "type_hint": null,
+      "desc": "'双子座'匹配（目录覆盖有限，仅M35含星座名别名）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M35",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 92.2721,
+        "dec_deg": 24.3361,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "已知数据限制：Pollux/Castor别名为北河三/北河二，不含双子座"
+    },
+    {
+      "id": "B11-01",
+      "batch": 11,
+      "query": "Crab Nebula",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95，第二名应<0.5",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-02",
+      "batch": 11,
+      "query": "Eagle Nebula",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M16",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 274.688,
+        "dec_deg": -13.792,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-03",
+      "batch": 11,
+      "query": "Omega Nebula",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M17",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 275.1958,
+        "dec_deg": -16.1717,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-04",
+      "batch": 11,
+      "query": "Dumbbell Nebula",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M27",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 299.9015,
+        "dec_deg": 22.7212,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-05",
+      "batch": 11,
+      "query": "Whirlpool Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M51",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 202.4696,
+        "dec_deg": 47.1953,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-06",
+      "batch": 11,
+      "query": "Sombrero Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M104",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 189.9976,
+        "dec_deg": -11.6231,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-07",
+      "batch": 11,
+      "query": "Pinwheel Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M101",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 210.8024,
+        "dec_deg": 54.3488,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-08",
+      "batch": 11,
+      "query": "Bode's Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95（含撇号）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M81",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 148.8882,
+        "dec_deg": 69.0653,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-09",
+      "batch": 11,
+      "query": "Cigar Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M82",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 148.9685,
+        "dec_deg": 69.6797,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B11-10",
+      "batch": 11,
+      "query": "Sunflower Galaxy",
+      "type_hint": null,
+      "desc": "精确别名匹配0.95",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M63",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 198.9553,
+        "dec_deg": 42.0294,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-01",
+      "batch": 12,
+      "query": "Galaxy",
+      "type_hint": "deep_sky",
+      "desc": "'Galaxy'+类型过滤仍应有多候选",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-02",
+      "batch": 12,
+      "query": "Nebula",
+      "type_hint": "deep_sky",
+      "desc": "'Nebula'+类型过滤",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-03",
+      "batch": 12,
+      "query": "Alpha",
+      "type_hint": "star",
+      "desc": "'Alpha'+star类型应匹配多颗Alpha星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Canopus",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 95.988,
+        "dec_deg": -52.6957,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-04",
+      "batch": 12,
+      "query": "Beta",
+      "type_hint": "star",
+      "desc": "'Beta'+star类型应匹配多颗Beta星",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Rigel",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 6,
+        "ra_deg": 78.6345,
+        "dec_deg": -8.2016,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-05",
+      "batch": 12,
+      "query": "参宿",
+      "type_hint": null,
+      "desc": "'参宿'应匹配参宿一~七（多颗猎户座恒星）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Rigel",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 7,
+        "ra_deg": 78.6345,
+        "dec_deg": -8.2016,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-06",
+      "batch": 12,
+      "query": "天",
+      "type_hint": null,
+      "desc": "单字'天'（长度<2）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "单字'天'，len<2不触发包含匹配"
+    },
+    {
+      "id": "B12-07",
+      "batch": 12,
+      "query": "天津",
+      "type_hint": null,
+      "desc": "'天津'应匹配Deneb（天津四）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Deneb",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 310.358,
+        "dec_deg": 45.2803,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "'天津'包含于'天津四'(Deneb别名)"
+    },
+    {
+      "id": "B12-08",
+      "batch": 12,
+      "query": "河鼓",
+      "type_hint": null,
+      "desc": "'河鼓'包含于Altair别名'河鼓二'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Altair",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 297.6958,
+        "dec_deg": 8.8683,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-09",
+      "batch": 12,
+      "query": "轩辕",
+      "type_hint": null,
+      "desc": "'轩辕'包含于Regulus别名'轩辕十四'",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Regulus",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 152.093,
+        "dec_deg": 11.9672,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B12-10",
+      "batch": 12,
+      "query": "北河",
+      "type_hint": null,
+      "desc": "'北河'应歧义（北河二/北河三）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Pollux",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 116.329,
+        "dec_deg": 28.0262,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "'北河'匹配'北河二'(Castor)和'北河三'(Pollux)"
+    },
+    {
+      "id": "B13-01",
+      "batch": 13,
+      "query": "XYZ123",
+      "type_hint": null,
+      "desc": "完全无意义的输入",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B13-02",
+      "batch": 13,
+      "query": "哈利波特星云",
+      "type_hint": null,
+      "desc": "虚构目标名",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B13-03",
+      "batch": 13,
+      "query": "M999",
+      "type_hint": null,
+      "desc": "不存在的M编号M999",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "M999不存在，但'M'前缀匹配可能给0.3"
+    },
+    {
+      "id": "B13-04",
+      "batch": 13,
+      "query": "NGC 99999",
+      "type_hint": null,
+      "desc": "不存在的NGC编号",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "不存在的NGC编号"
+    },
+    {
+      "id": "B13-05",
+      "batch": 13,
+      "query": "!@#$%",
+      "type_hint": null,
+      "desc": "特殊字符输入",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B13-06",
+      "batch": 13,
+      "query": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "type_hint": null,
+      "desc": "超长字符串（500字符）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "超长输入不应崩溃"
+    },
+    {
+      "id": "B13-07",
+      "batch": 13,
+      "query": "M31 M42",
+      "type_hint": null,
+      "desc": "多目标同时输入",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "",
+        "confidence": 0.0,
+        "requires_confirmation": true,
+        "candidates_count": 0,
+        "ra_deg": 0.0,
+        "dec_deg": 0.0,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "多目标输入，normalize后为'm31m42'"
+    },
+    {
+      "id": "B13-08",
+      "batch": 13,
+      "query": "仙女座星系M31",
+      "type_hint": null,
+      "desc": "中文名+编号混合",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.8,
+        "requires_confirmation": true,
+        "candidates_count": 1,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "中文名+编号混合输入"
+    },
+    {
+      "id": "B13-09",
+      "batch": 13,
+      "query": "\t\n",
+      "type_hint": null,
+      "desc": "制表符/换行符（strip后为空）",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "raised": "ValueError: target_name cannot be empty"
+      }
+    },
+    {
+      "id": "B13-10",
+      "batch": 13,
+      "query": "M31",
+      "type_hint": null,
+      "desc": "验证source字段正确",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B14-01",
+      "batch": 14,
+      "query": "仙女座",
+      "type_hint": null,
+      "desc": "候选列表完整性-仙女座",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 3,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "候选列表应包含所有仙女座目标"
+    },
+    {
+      "id": "B14-02",
+      "batch": 14,
+      "query": "猎户座",
+      "type_hint": null,
+      "desc": "候选列表完整性-猎户座",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M42",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 83.8201,
+        "dec_deg": -5.3876,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "候选列表应包含M42"
+    },
+    {
+      "id": "B14-03",
+      "batch": 14,
+      "query": "Al",
+      "type_hint": null,
+      "desc": "候选列表完整性-Al前缀",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Alpha Centauri",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 219.9021,
+        "dec_deg": -60.834,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "候选列表应包含Al开头的恒星"
+    },
+    {
+      "id": "B14-04",
+      "batch": 14,
+      "query": "球状星团",
+      "type_hint": null,
+      "desc": "候选列表不超过10条",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M2",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 323.3626,
+        "dec_deg": -0.8232,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "候选列表上限10条"
+    },
+    {
+      "id": "B14-05",
+      "batch": 14,
+      "query": "星云",
+      "type_hint": null,
+      "desc": "候选列表上限验证-星云",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B14-06",
+      "batch": 14,
+      "query": "M1",
+      "type_hint": null,
+      "desc": "精确匹配时候选列表应为空/None",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 1.0,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "精确匹配M1时不应有候选列表（即使有前缀匹配）"
+    },
+    {
+      "id": "B14-07",
+      "batch": 14,
+      "query": "北河",
+      "type_hint": null,
+      "desc": "候选列表应包含北河二和北河三",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Pollux",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 2,
+        "ra_deg": 116.329,
+        "dec_deg": 28.0262,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B14-08",
+      "batch": 14,
+      "query": "参宿",
+      "type_hint": null,
+      "desc": "候选列表应包含参宿四和参宿七",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Rigel",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 7,
+        "ra_deg": 78.6345,
+        "dec_deg": -8.2016,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B14-09",
+      "batch": 14,
+      "query": "M",
+      "type_hint": null,
+      "desc": "候选列表恰好达到上限10",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M1",
+        "confidence": 0.3,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 83.6324,
+        "dec_deg": 22.0174,
+        "source": "built_in_catalog_v1"
+      },
+      "note": "候选列表恰好10条（上限）"
+    },
+    {
+      "id": "B14-10",
+      "batch": 14,
+      "query": "人马座",
+      "type_hint": null,
+      "desc": "候选列表数量合理性-人马座",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M18",
+        "confidence": 0.85,
+        "requires_confirmation": true,
+        "candidates_count": 10,
+        "ra_deg": 274.9875,
+        "dec_deg": -17.0883,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-01",
+      "batch": 15,
+      "query": "仙女座大星云",
+      "type_hint": null,
+      "desc": "M31别名'仙女座大星云'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M31",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 10.6847,
+        "dec_deg": 41.2688,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-02",
+      "batch": 15,
+      "query": "七姊妹星团",
+      "type_hint": null,
+      "desc": "M45别名'七姊妹星团'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M45",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 56.6008,
+        "dec_deg": 24.1139,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-03",
+      "batch": 15,
+      "query": "奥特曼星云",
+      "type_hint": null,
+      "desc": "M78别名'奥特曼星云'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "M78",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 86.6908,
+        "dec_deg": 0.0792,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-04",
+      "batch": 15,
+      "query": "大火",
+      "type_hint": null,
+      "desc": "Antares别名'大火'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Antares",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 247.3519,
+        "dec_deg": -26.432,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-05",
+      "batch": 15,
+      "query": "勾陈一",
+      "type_hint": null,
+      "desc": "Polaris别名'勾陈一'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Polaris",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 37.9546,
+        "dec_deg": 89.2641,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-06",
+      "batch": 15,
+      "query": "五车二",
+      "type_hint": null,
+      "desc": "Capella别名'五车二'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Capella",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 79.1723,
+        "dec_deg": 45.998,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-07",
+      "batch": 15,
+      "query": "南门二",
+      "type_hint": null,
+      "desc": "Alpha Centauri别名'南门二'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Alpha Centauri",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 219.9021,
+        "dec_deg": -60.834,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-08",
+      "batch": 15,
+      "query": "北落师门",
+      "type_hint": null,
+      "desc": "Fomalhaut别名'北落师门'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Fomalhaut",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 344.4127,
+        "dec_deg": -29.6222,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-09",
+      "batch": 15,
+      "query": "辇道增七",
+      "type_hint": null,
+      "desc": "Albireo别名'辇道增七'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Albireo",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 292.6803,
+        "dec_deg": 27.9597,
+        "source": "built_in_catalog_v1"
+      }
+    },
+    {
+      "id": "B15-10",
+      "batch": 15,
+      "query": "大陵五",
+      "type_hint": null,
+      "desc": "Algol别名'大陵五'精确匹配",
+      "status": "PASS",
+      "issues": [],
+      "actual": {
+        "standard_name": "Algol",
+        "confidence": 0.95,
+        "requires_confirmation": false,
+        "candidates_count": 0,
+        "ra_deg": 47.0422,
+        "dec_deg": 40.9556,
+        "source": "built_in_catalog_v1"
+      }
+    }
+  ]
+}
