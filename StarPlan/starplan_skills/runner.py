@@ -517,11 +517,20 @@ def run_starplan_nl(
         Same as run_starplan().
     """
     from .nl_parser import parse_natural_language
+    from .config import get_run_dir
+
+    # Generate run_id early so NL parse is logged to the same run directory
+    if not run_id:
+        ts_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_id = f"nl_parse_{ts_slug}"
+
+    run_dir = get_run_dir(run_id)
+    log_path = str(run_dir / "model_call_log.jsonl")
 
     print(f"[NL] Parsing natural language input...")
     print(f"  Input: {user_text[:100]}{'...' if len(user_text) > 100 else ''}")
 
-    starplan_input = parse_natural_language(user_text)
+    starplan_input = parse_natural_language(user_text, log_path=log_path)
 
     print(f"  [OK] Parsed: target={starplan_input.target}, "
           f"location={starplan_input.location}, "

@@ -1,0 +1,68 @@
+{
+  "catalog_file": "built_in_catalog_v1.json",
+  "catalog_version": "1.0",
+  "created_date": "2026-07-20",
+  "last_validated": "2026-07-24",
+  "total_targets": 150,
+  "target_breakdown": {
+    "messier_objects": 110,
+    "bright_stars": 40
+  },
+  "field_sources": {
+    "standard_name": {
+      "source": "Messier catalog / Yale Bright Star Catalog",
+      "notes": "Messier编号为标准名，恒星使用Bayer/Flamsteed英文名"
+    },
+    "ra_deg": {
+      "source": "SIMBAD (CDS, Strasbourg)",
+      "query_reference": "J2000 equinox, ICRS frame",
+      "precision_note": "存储精度为小数点后4位(约0.36角秒)，非测量精度"
+    },
+    "dec_deg": {
+      "source": "SIMBAD (CDS, Strasbourg)",
+      "query_reference": "J2000 equinox, ICRS frame",
+      "precision_note": "存储精度为小数点后4位(约0.36角秒)，非测量精度"
+    },
+    "visual_magnitude": {
+      "source": "SIMBAD V-band magnitude / Messier catalog literature values",
+      "notes": "变星取平均星等，精度0.1 mag"
+    },
+    "angular_size_arcmin": {
+      "source": "SIMBAD dim_maj/dim_min (arcsec converted to arcmin)",
+      "notes": "部分目标SIMBAD无尺寸数据则为null"
+    },
+    "constellation": {
+      "source": "IAU constellation boundaries (Roman 1987)",
+      "notes": "基于J2000坐标判定所属星座"
+    },
+    "aliases": {
+      "source": "SIMBAD identifications + 中文天文名词审定",
+      "notes": "中文名参考《中国恒星观测史》及国家天文台译名"
+    },
+    "target_type": {
+      "source": "SIMBAD otype classification",
+      "notes": "star/deep_sky二分类，基于SIMBAD主类型映射"
+    }
+  },
+  "simbad_query_info": {
+    "service": "SIMBAD TAP (http://simbad.cds.unistra.fr/simbad/sim-tap)",
+    "query_date": "2026-07-18",
+    "query_method": "Object resolution by identifier, then retrieve coordinates/magnitude/dimensions/otype",
+    "coordinate_epoch": "J2000.0",
+    "note": "原始SIMBAD查询结果未随项目提交，可通过simbad_tap_query.py复现"
+  },
+  "validation_history": [
+    {
+      "date": "2026-07-22",
+      "validator": "layer1_validation.py",
+      "scope": "坐标范围、星等范围、星座一致性、角大小合理性",
+      "result": "150 targets PASS"
+    },
+    {
+      "date": "2026-07-24",
+      "validator": "layer23_validation.py",
+      "scope": "坐标精度、星等范围、NGC编号、别名归属、中文名、子类型",
+      "result": "8 precision warnings (non-critical)"
+    }
+  ]
+}

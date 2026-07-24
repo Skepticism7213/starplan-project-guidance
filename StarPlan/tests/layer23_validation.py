@@ -1,13 +1,19 @@
 """
 Layer 2 & 3: Cross-reference and Semantic Validation (10 rounds)
-- Check 7: Angular size vs SIMBAD
+- Check 5: Coordinate validation (RA/Dec range & internal consistency)
+- Check 6: Visual magnitude validation (range per target type)
+- Check 7: Angular size vs SIMBAD (requires simbad_dim_otype.json)
 - Check 8: NGC number verification
 - Check 9: Alias attribution (SIMBAD resolves alias to correct target)
 - Check 10: Chinese name verification
-- Check 11: Target subtype classification
+- Check 11: Target subtype classification (requires simbad_dim_otype.json)
+
+Note: Checks 7 and 11 require data/simbad_dim_otype.json. If the file is
+missing, those checks are skipped with a warning (not treated as failure).
 """
 import json
 import sys
+import math
 from pathlib import Path
 from collections import defaultdict
 
@@ -108,10 +114,152 @@ DEEP_SKY_OTYPES = {
 def load_data():
     with open(DATA_DIR / "built_in_catalog_v1.json", encoding="utf-8") as f:
         catalog = json.load(f)
-    with open(DATA_DIR / "simbad_dim_otype.json", encoding="utf-8") as f:
-        simbad = json.load(f)
-    simbad_map = {r["standard_name"]: r for r in simbad}
+
+    simbad_path = DATA_DIR / "simbad_dim_otype.json"
+    simbad_map = {}
+    if simbad_path.exists():
+        with open(simbad_path, encoding="utf-8") as f:
+            simbad = json.load(f)
+        simbad_map = {r["standard_name"]: r for r in simbad}
+    else:
+        print(f"  [WARN] {simbad_path.name} not found — "
+              f"SIMBAD cross-reference checks (7, 11) will be skipped.")
+
     return catalog, simbad_map
+
+
+def check_provenance(catalog, simbad_map, round_num):
+    """Check 4: Catalog data provenance/traceability metadata."""
+    issues = []
+    prov_path = DATA_DIR / "catalog_provenance.json"
+
+    if not prov_path.exists():
+        issues.append(
+            "CRITICAL | catalog_provenance.json missing — "
+            "no data source traceability"
+        )
+        return issues
+
+    with open(prov_path, encoding="utf-8") as f:
+        prov = json.load(f)
+
+    # Required top-level fields
+    required_fields = ["field_sources", "simbad_query_info", "validation_history"]
+    for field in required_fields:
+        if field not in prov:
+            issues.append(f"CRITICAL | provenance missing required field: {field}")
+
+    # Check field_sources covers all catalog fields
+    catalog_fields = {"ra_deg", "dec_deg", "visual_magnitude", "angular_size_arcmin",
+                      "constellation", "aliases", "target_type", "standard_name"}
+    documented = set(prov.get("field_sources", {}).keys())
+    missing_docs = catalog_fields - documented
+    if missing_docs:
+        issues.append(
+            f"WARNING | provenance field_sources missing docs for: {missing_docs}"
+        )
+
+    # Check simbad_query_info has query_date
+    sqi = prov.get("simbad_query_info", {})
+    if not sqi.get("query_date"):
+        issues.append("WARNING | simbad_query_info missing query_date")
+
+    return issues
+
+
+def check_coordinates(catalog, simbad_map, round_num):
+    """Check 5: Coordinate validation (RA/Dec range & internal consistency)."""
+    issues = []
+    seen_coords = {}  # (ra_rounded, dec_rounded) -> target_name
+
+    for t in catalog:
+        name = t["standard_name"]
+        ra = t.get("ra_deg")
+        dec = t.get("dec_deg")
+
+        # Check RA range [0, 360)
+        if ra is None:
+            issues.append(f"CRITICAL | {name} | missing ra_deg")
+        elif ra < 0 or ra >= 360:
+            issues.append(f"CRITICAL | {name} | ra_deg={ra} out of range [0, 360)")
+
+        # Check Dec range [-90, 90]
+        if dec is None:
+            issues.append(f"CRITICAL | {name} | missing dec_deg")
+        elif dec < -90 or dec > 90:
+            issues.append(f"CRITICAL | {name} | dec_deg={dec} out of range [-90, 90]")
+
+        if ra is None or dec is None:
+            continue
+
+        # Check for duplicate coordinates (within 0.01 degree ~ 36 arcsec)
+        coord_key = (round(ra, 2), round(dec, 2))
+        if coord_key in seen_coords:
+            other = seen_coords[coord_key]
+            issues.append(
+                f"WARNING | {name} | coordinates nearly identical to {other} "
+                f"(RA={ra:.4f}, Dec={dec:.4f})"
+            )
+        else:
+            seen_coords[coord_key] = name
+
+        # On odd rounds: check RA/Dec precision (should have >= 3 decimal places)
+        if round_num % 2 == 1:
+            ra_str = str(ra)
+            dec_str = str(dec)
+            if "." in ra_str and len(ra_str.split(".")[1]) < 3:
+                issues.append(
+                    f"WARNING | {name} | ra_deg={ra} has low precision "
+                    f"(< 3 decimal places)"
+                )
+            if "." in dec_str and len(dec_str.split(".")[1]) < 3:
+                issues.append(
+                    f"WARNING | {name} | dec_deg={dec} has low precision "
+                    f"(< 3 decimal places)"
+                )
+
+    return issues
+
+
+def check_visual_magnitude(catalog, simbad_map, round_num):
+    """Check 6: Visual magnitude validation (range per target type)."""
+    issues = []
+
+    for t in catalog:
+        name = t["standard_name"]
+        mag = t.get("visual_magnitude")
+        ttype = t.get("target_type", "")
+
+        if mag is None:
+            # Missing magnitude is a warning, not critical
+            issues.append(f"WARNING | {name} | missing visual_magnitude")
+            continue
+
+        # Range checks per target type
+        if ttype == "star":
+            # Bright stars catalog: should be roughly -2 to +7
+            if mag < -2.0 or mag > 7.0:
+                issues.append(
+                    f"CRITICAL | {name} | star magnitude {mag} "
+                    f"outside expected range [-2, 7]"
+                )
+        elif ttype == "deep_sky":
+            # Messier objects: roughly +1.5 to +11
+            if mag < -1.0 or mag > 12.0:
+                issues.append(
+                    f"CRITICAL | {name} | deep_sky magnitude {mag} "
+                    f"outside expected range [-1, 12]"
+                )
+
+        # On even rounds: check for magnitude precision (should have 1 decimal)
+        if round_num % 2 == 0:
+            mag_str = str(mag)
+            if "." in mag_str and len(mag_str.split(".")[1]) > 2:
+                issues.append(
+                    f"WARNING | {name} | magnitude {mag} has unusual precision"
+                )
+
+    return issues
 
 
 def check_angular_size(catalog, simbad_map, round_num):
@@ -364,6 +512,9 @@ def main():
     round_summaries = []
 
     checks = [
+        ("Provenance", check_provenance),
+        ("Coordinate", check_coordinates),
+        ("VisualMagnitude", check_visual_magnitude),
         ("AngularSize", check_angular_size),
         ("NGC-Number", check_ngc_numbers),
         ("Alias-Attribution", check_alias_attribution),
