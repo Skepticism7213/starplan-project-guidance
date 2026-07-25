@@ -66,9 +66,11 @@ def main() -> bool:
         if parsed and parsed.get("status") == "ok":
             print(f"  [OK] JSON 解析成功: {parsed}")
         else:
-            print(f"  [WARN] JSON 解析结果异常: {json_result.get('json_error') or parsed}")
+            print(f"  [FAIL] JSON 解析结果异常: {json_result.get('json_error') or parsed}")
+            return False
     except Exception as e:
-        print(f"  [WARN] JSON 模式测试出错: {type(e).__name__}: {e}")
+        print(f"  [FAIL] JSON 模式测试出错: {type(e).__name__}: {e}")
+        return False
     print()
 
     print("=" * 60)

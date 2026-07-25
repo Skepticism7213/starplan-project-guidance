@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ──────────────────────────────────────────────
@@ -43,6 +43,9 @@ class ObservingConstraint(BaseModel):
 class StarPlanInput(BaseModel):
     """Unified input schema for starplan.run."""
 
+    # W-9 fix: reject unknown fields instead of silently discarding them
+    model_config = ConfigDict(extra="forbid")
+
     target: str = Field(description="Target name (Chinese, English, Messier, NGC, etc.)")
     target_type: Optional[str] = Field(
         default=None,
@@ -68,6 +71,11 @@ class StarPlanInput(BaseModel):
     equipment: str = Field(description="Equipment type: naked_eye, binoculars, small_telescope, large_telescope")
     goal: str = Field(default="校园科普观测", description="Activity goal description")
     constraints: Optional[ObservingConstraint] = Field(default=None, description="Custom observing constraints")
+    # W-9 fix: observation_log is now part of the unified input schema
+    observation_log: Optional[ObservationLog] = Field(
+        default=None,
+        description="Actual observation log for review (Skill 4). If provided, triggers observation_review.",
+    )
 
     @field_validator("date_range")
     @classmethod
@@ -222,6 +230,7 @@ class ObservabilityResult(BaseModel):
     moon_info: MoonInfo
     alternative_suggestions: list[AlternativeSuggestion] = Field(default_factory=list)
     risk_flags: list[RiskFlag] = Field(default_factory=list)
+    nights_computed: int = Field(default=1, description="Number of nights actually computed (MVP computes first night only for multi-day ranges)")
     observability_csv_path: Optional[str] = None
     visibility_curve_path: Optional[str] = None
 

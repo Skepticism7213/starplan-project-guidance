@@ -60,7 +60,7 @@ def run_starplan(
         target_slug = starplan_input.target.lower().replace(" ", "_")
         date_slug = starplan_input.date_range[0].strftime("%Y%m%d")
         ts_slug = datetime.now().strftime("%H%M%S")
-        has_log = "observation_log" in input_data
+        has_log = starplan_input.observation_log is not None
         suffix = "_review" if has_log else ""
         run_id = f"{target_slug}_{starplan_input.location.replace('_', '-')}_{date_slug}_{ts_slug}{suffix}"
 
@@ -168,14 +168,18 @@ def run_starplan(
 
     # ── Step 5: Observation review (if log provided) ──
     review = None
-    observation_log = input_data.get("observation_log")
-    if observation_log:
+    # W-9 fix: use the schema-validated observation_log field
+    if starplan_input.observation_log:
         print(f"[4/4] Reviewing observation log")
-        log = ObservationLog(**observation_log)
+        log = starplan_input.observation_log
+        # W-9 fix: save independent observation_log.json as evidence
+        with open(run_dir / "observation_log.json", "w", encoding="utf-8") as f:
+            json.dump(log.model_dump(mode="json"), f, ensure_ascii=False, indent=2, default=str)
         review = review_observation(
             original_plan=obs_result,
             log=log,
             run_dir=run_dir,
+            timezone_name=location.get("timezone", "Asia/Shanghai"),
         )
         print(f"  [OK] Deviations found: {len(review.deviation_summary)}")
         print(f"  [OK] Review report: {review.review_report_md_path}")

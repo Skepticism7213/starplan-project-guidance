@@ -15,6 +15,7 @@ import json
 from datetime import timedelta, timezone
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 from .schemas import (
     CauseEntry,
@@ -30,6 +31,7 @@ def review_observation(
     original_plan: ObservabilityResult,
     log: ObservationLog,
     run_dir: Optional[Path] = None,
+    timezone_name: str = "Asia/Shanghai",
 ) -> ObservationReview:
     """
     Compare original plan with actual observation log and generate review.
@@ -38,6 +40,7 @@ def review_observation(
         original_plan: The observability plan that was followed.
         log: The actual observation log.
         run_dir: Output directory for reports.
+        timezone_name: IANA timezone for interpreting naive datetimes.
 
     Returns:
         ObservationReview with deviations, causes, and revised plan.
@@ -53,8 +56,11 @@ def review_observation(
         actual_start = log.actual_start_time
 
         # Normalize both to UTC for a correct comparison.
-        # Naive times are assumed to be local (Asia/Shanghai, +08:00).
-        local_tz = timezone(timedelta(hours=8))
+        # Naive times are interpreted in the location's timezone.
+        try:
+            local_tz = ZoneInfo(timezone_name)
+        except (KeyError, Exception):
+            local_tz = ZoneInfo("Asia/Shanghai")
         if planned_start.tzinfo is None:
             planned_start = planned_start.replace(tzinfo=local_tz)
         if actual_start.tzinfo is None:
