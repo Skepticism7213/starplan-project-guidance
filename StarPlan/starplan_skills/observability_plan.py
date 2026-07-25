@@ -20,28 +20,16 @@ a language model. This is the core "工具算" principle.
 from __future__ import annotations
 
 import csv
-import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.time import Time
 import astropy.units as u
 
-# Suppress Astropy cross-frame transformation warnings (numerically acceptable
-# for angular separation at the precision needed here).
-warnings.filterwarnings(
-    "ignore",
-    message=".*NonRotationTransformationWarning.*",
-    category=UserWarning,
-)
-try:
-    from astropy.coordinates.baseframe import NonRotationTransformationWarning
-    warnings.filterwarnings("ignore", category=NonRotationTransformationWarning)
-except ImportError:
-    pass
 
 from .config import load_constraints
 from .schemas import (
@@ -59,11 +47,38 @@ from .schemas import (
 
 # ── Helpers ──────────────────────────────────────────
 
-def _tz_offset_hours(tz_name: str) -> float:
-    """Return UTC offset in hours for a timezone name."""
-    # Simple mapping for common Chinese timezones; extend as needed
-    tz_map = {"Asia/Shanghai": 8.0, "Asia/Tokyo": 9.0, "UTC": 0.0}
-    return tz_map.get(tz_name, 8.0)
+def _tz_offset_hours(tz_name: str, at_dt: Optional[datetime] = None) -> float:
+    """Return UTC offset in hours for an IANA timezone name.
+
+    Uses zoneinfo to resolve any valid IANA timezone (e.g. 'America/New_York'),
+    correctly accounting for daylight saving time at the given datetime.
+
+    Args:
+        tz_name: IANA timezone string (e.g. 'Asia/Shanghai', 'America/New_York').
+        at_dt: The datetime at which to evaluate the offset (defaults to now).
+               Used to resolve DST-affected timezones correctly.
+
+    Returns:
+        UTC offset in hours (e.g. 8.0 for Shanghai, -4.0 for New York in summer).
+
+    Raises:
+        ValueError: If tz_name is not a valid IANA timezone.
+    """
+    try:
+        tz = ZoneInfo(tz_name)
+    except (KeyError, Exception) as e:
+        raise ValueError(
+            f"Invalid IANA timezone: '{tz_name}'. "
+            f"Use a valid timezone like 'Asia/Shanghai', 'America/New_York', 'UTC'."
+        ) from e
+    if at_dt is None:
+        at_dt = datetime.now()
+    if at_dt.tzinfo is None:
+        at_dt = at_dt.replace(tzinfo=tz)
+    else:
+        at_dt = at_dt.astimezone(tz)
+    offset = at_dt.utcoffset()
+    return offset.total_seconds() / 3600.0
 
 
 def _make_location(lat: float, lon: float, elev: float) -> EarthLocation:
@@ -135,15 +150,16 @@ def compute_observability(
     lon = location["longitude"]
     elev = location.get("elevation_m", 0)
     tz_name = location.get("timezone", "Asia/Shanghai")
-    tz_hours = _tz_offset_hours(tz_name)
+
+    # Parse dates (before tz offset so DST is resolved for the correct date)
+    d_start = datetime.strptime(date_range[0], "%Y-%m-%d")
+    d_end = datetime.strptime(date_range[-1], "%Y-%m-%d")
+
+    tz_hours = _tz_offset_hours(tz_name, at_dt=d_start)
     tz = timezone(timedelta(hours=tz_hours))
 
     obs_loc = _make_location(lat, lon, elev)
     target = _make_target(ra_deg, dec_deg)
-
-    # Parse dates
-    d_start = datetime.strptime(date_range[0], "%Y-%m-%d")
-    d_end = datetime.strptime(date_range[-1], "%Y-%m-%d")
 
     # Use the first date for computation (MVP: single-night analysis)
     obs_date = d_start
@@ -172,12 +188,14 @@ def compute_observability(
     )
 
     # Define observing night window: from astronomical twilight end to morning twilight start
+    # W-7 fix: apply buffer_minutes from config (wait after twilight ends)
+    buffer_minutes = tw_cfg.get("buffer_minutes", 0)
     if tw_astro_end and tw_astro_start:
-        night_start = tw_astro_end
+        night_start = tw_astro_end + timedelta(minutes=buffer_minutes)
         night_end = tw_astro_start
     elif sunset_utc and sunrise_utc:
         # Fallback: use sunset to sunrise
-        night_start = sunset_utc + timedelta(minutes=30)
+        night_start = sunset_utc + timedelta(minutes=30 + buffer_minutes)
         night_end = sunrise_utc - timedelta(minutes=30)
     else:
         night_start = _local_to_utc(
@@ -215,7 +233,10 @@ def compute_observability(
         moon_coord = get_body("moon", astropy_t, obs_loc)
         moon_altaz = moon_coord.transform_to(altaz_frame)
         moon_alt = float(moon_altaz.alt.deg)
-        moon_sep = float(target.separation(moon_coord).deg)
+        # C-1 fix: use same-frame AltAz separation (both target_altaz and
+        # moon_altaz share the same obstime & location) instead of cross-frame
+        # ICRS-vs-GCRS separation which gave physically meaningless results.
+        moon_sep = float(target_altaz.separation(moon_altaz).deg)
 
         hourly_data.append(
             HourlyData(
@@ -241,6 +262,8 @@ def compute_observability(
     moon_seps = [h.moon_separation_deg for h in hourly_data if h.moon_separation_deg is not None]
 
     # Moon phase (approximate from elongation)
+    # NOTE: sun_coord and moon_coord are both GCRS (same frame, same obstime/location
+    # from get_body), so this separation is same-frame and physically valid.
     mid_time = _astropy_time(night_start + (night_end - night_start) / 2)
     sun_coord = get_body("sun", mid_time, obs_loc)
     moon_coord = get_body("moon", mid_time, obs_loc)
@@ -253,7 +276,10 @@ def compute_observability(
         moonset=None,
         peak_altitude_deg=round(max(moon_alts), 2) if moon_alts else None,
         min_separation_deg=round(min(moon_seps), 2) if moon_seps else None,
-        impact_assessment=_assess_moon_impact(moon_phase, min(moon_seps) if moon_seps else 0, moon_cfg),
+        impact_assessment=_assess_moon_impact(
+            moon_phase, min(moon_seps) if moon_seps else 0, moon_cfg,
+            moon_ever_up=any(a > 0 for a in moon_alts) if moon_alts else False,
+        ),
     )
 
     # Analyze windows: find contiguous periods where target is above min_altitude
@@ -267,10 +293,12 @@ def compute_observability(
     window_peak_alt = 0
 
     for i, h in enumerate(hourly_data):
-        # Check moon impact: bright moon close to target eliminates the slot
+        # W-6 fix: Moon only affects observation when above the horizon.
+        # Eliminate slot if moon is up AND (illumination exceeds limit OR too close to target).
         moon_ok = True
-        if h.moon_separation_deg is not None:
-            if moon_phase > max_moon_illum and h.moon_separation_deg < min_moon_sep:
+        moon_up = (h.moon_altitude_deg is not None and h.moon_altitude_deg > 0)
+        if moon_up and h.moon_separation_deg is not None:
+            if moon_phase > max_moon_illum or h.moon_separation_deg < min_moon_sep:
                 moon_ok = False
         is_good = (
             h.altitude_deg >= min_alt
@@ -317,6 +345,24 @@ def compute_observability(
                         ),
                         reason=f"大气质量 {h.airmass:.2f} 超过最大允许值 {max_am}",
                         violated_constraint="max_airmass",
+                    )
+                )
+            elif not moon_ok:
+                if moon_phase > max_moon_illum:
+                    reason = f"月相 {moon_phase:.2f} 超过照明上限 {max_moon_illum:.2f}"
+                    constraint = "moon_illumination"
+                else:
+                    reason = f"月球与目标角距 {h.moon_separation_deg:.1f}° 小于最小要求 {min_moon_sep:.0f}°"
+                    constraint = "moon_separation"
+                eliminated_windows.append(
+                    EliminatedWindow(
+                        window=TimeWindow(
+                            start=h.time,
+                            end=h.time + timedelta(minutes=15),
+                            duration_minutes=15,
+                        ),
+                        reason=reason,
+                        violated_constraint=constraint,
                     )
                 )
 
@@ -380,6 +426,12 @@ def compute_observability(
                     f"可能难以看清，建议更换更大口径设备"
                 ),
             ))
+            # W-7 fix: annotate recommended_window.reason so the limitation is
+            # visible in the recommendation itself, not only in risk_flags.
+            if recommended_window:
+                recommended_window.reason += (
+                    f"。注意：目标视星等 {target_magnitude:.1f} 超出 {equipment} 极限星等 {max_mag:.1f}，仅建议不推荐"
+                )
     if equip_cfg and target_angular_size_arcmin:
         min_size = equip_cfg.get("min_angular_size_arcmin")
         major_axis = target_angular_size_arcmin[0]
@@ -579,9 +631,16 @@ def _to_local(utc_dt: datetime, tz: timezone) -> datetime:
 
 
 def _assess_moon_impact(
-    phase: float, min_separation: float, moon_cfg: dict
+    phase: float, min_separation: float, moon_cfg: dict, moon_ever_up: bool = True
 ) -> str:
-    """Assess moon impact on deep-sky observation using configured thresholds."""
+    """Assess moon impact on deep-sky observation using configured thresholds.
+
+    W-6 fix: if the moon never rises above the horizon during the observing
+    night, its impact is 'none' regardless of phase or separation.
+    """
+    if not moon_ever_up:
+        return "none"
+
     levels = moon_cfg.get("impact_levels", {})
 
     # Read thresholds from config, fall back to sensible defaults

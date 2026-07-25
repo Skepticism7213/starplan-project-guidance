@@ -41,21 +41,26 @@ def _match_catalog_entry(query: str, entry: dict) -> float:
     if norm_query == standard:
         return 1.0
 
-    # Match on aliases
+    # Match on aliases — check ALL aliases and return the best score
+    best_alias_score = 0.0
     for alias in entry.get("aliases", []):
         norm_alias = _normalize_query(alias)
-        # Exact alias match
+        # Exact alias match (highest priority, can short-circuit)
         if norm_query == norm_alias:
             return 0.95
         # Query is contained in alias (e.g. "三角座" in "三角座星系")
-        if len(norm_query) >= 2 and norm_query in norm_alias:
-            return 0.85
+        # Require query length >= 30% of alias length to avoid spurious short-substring matches
+        if len(norm_query) >= 2 and norm_query in norm_alias and len(norm_query) >= len(norm_alias) * 0.3:
+            best_alias_score = max(best_alias_score, 0.85)
         # Alias is contained in query (e.g. "triangulum" in "triangulum galaxy xyz")
-        if len(norm_alias) >= 2 and norm_alias in norm_query:
-            return 0.80
+        elif len(norm_alias) >= 2 and norm_alias in norm_query:
+            best_alias_score = max(best_alias_score, 0.80)
 
-    # Partial / prefix match on standard name (e.g., "M3" matches "M31")
-    if standard.startswith(norm_query) or norm_query.startswith(standard):
+    if best_alias_score > 0:
+        return best_alias_score
+
+    # Partial / prefix match: query is a prefix of standard name (e.g., "M3" matches "M31")
+    if standard.startswith(norm_query) and len(norm_query) >= 1:
         return 0.3  # Low confidence, will likely be ambiguous
 
     return 0.0
@@ -111,9 +116,11 @@ def resolve_target(
             requires_confirmation=True,
         )
 
-    # Case: single clear match (best score >= 0.9, second best < 0.5)
+    # Case: single clear match
+    # Auto-confirm if best >= 0.9 AND (no competitor OR second < 0.5 OR gap >= 0.08)
     best_score, best_entry = scored[0]
-    if best_score >= 0.9 and (len(scored) < 2 or scored[1][0] < 0.5):
+    second_score = scored[1][0] if len(scored) >= 2 else 0.0
+    if best_score >= 0.9 and (second_score < 0.5 or (best_score - second_score) >= 0.08):
         return ResolvedTarget(
             standard_name=best_entry["standard_name"],
             aliases=best_entry.get("aliases", []),

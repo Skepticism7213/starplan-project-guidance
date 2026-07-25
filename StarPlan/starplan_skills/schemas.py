@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # ──────────────────────────────────────────────
@@ -43,10 +43,19 @@ class ObservingConstraint(BaseModel):
 class StarPlanInput(BaseModel):
     """Unified input schema for starplan.run."""
 
+    # W-9 fix: reject unknown fields instead of silently discarding them
+    model_config = ConfigDict(extra="forbid")
+
     target: str = Field(description="Target name (Chinese, English, Messier, NGC, etc.)")
     target_type: Optional[str] = Field(
         default=None,
         description="Optional target type hint: deep_sky, star, planet, asterism",
+    )
+    confirmed_target: Optional[str] = Field(
+        default=None,
+        description="Explicitly confirmed standard target name (e.g. 'M33'). "
+        "When provided, indicates a human has already selected from candidates; "
+        "the pipeline bypasses the ambiguity check and uses this name directly.",
     )
     location: str = Field(description="Location identifier, e.g. '济南_四门塔'")
     location_detail: Optional[LocationDetail] = Field(
@@ -62,6 +71,11 @@ class StarPlanInput(BaseModel):
     equipment: str = Field(description="Equipment type: naked_eye, binoculars, small_telescope, large_telescope")
     goal: str = Field(default="校园科普观测", description="Activity goal description")
     constraints: Optional[ObservingConstraint] = Field(default=None, description="Custom observing constraints")
+    # W-9 fix: observation_log is now part of the unified input schema
+    observation_log: Optional[ObservationLog] = Field(
+        default=None,
+        description="Actual observation log for review (Skill 4). If provided, triggers observation_review.",
+    )
 
     @field_validator("date_range")
     @classmethod
@@ -216,6 +230,7 @@ class ObservabilityResult(BaseModel):
     moon_info: MoonInfo
     alternative_suggestions: list[AlternativeSuggestion] = Field(default_factory=list)
     risk_flags: list[RiskFlag] = Field(default_factory=list)
+    nights_computed: int = Field(default=1, description="Number of nights actually computed (MVP computes first night only for multi-day ranges)")
     observability_csv_path: Optional[str] = None
     visibility_curve_path: Optional[str] = None
 
@@ -254,12 +269,21 @@ class OutreachPack(BaseModel):
 
     target_name: str
     audience: str
+    pack_type: str = Field(
+        default="observation",
+        description="Pack type: 'observation' (normal) or 'not_observable' "
+        "(cancellation/reschedule/alternative pack)",
+    )
     activity_schedule: list[ActivityScheduleItem] = Field(default_factory=list)
     talking_points: list[str] = Field(default_factory=list)
     equipment_checklist: list[EquipmentItem] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
     manual_check_items: list[str] = Field(default_factory=list)
     unconfirmed_items: list[str] = Field(default_factory=list)
+    alternative_suggestions: list[str] = Field(
+        default_factory=list,
+        description="Alternative target/date suggestions when target is not observable",
+    )
     outreach_pack_md_path: Optional[str] = None
     qwen_used: bool = False
     qwen_validation_issues: list[str] = Field(default_factory=list)
@@ -339,8 +363,12 @@ class ModelInfo(BaseModel):
     """Qwen model information."""
 
     provider: str = "阿里云百炼"
-    model_name: str = "Qwen3.7-Max"
+    model_name: Optional[str] = None
     model_version: Optional[str] = None
+    called: bool = Field(
+        default=False,
+        description="Whether the model was actually invoked during this run",
+    )
 
 
 class CalculationManifest(BaseModel):
@@ -357,3 +385,11 @@ class CalculationManifest(BaseModel):
     intermediate_files: list[str] = Field(default_factory=list)
     manual_overrides: list[str] = Field(default_factory=list)
     validation_status: str = "pending"
+    validation_issues: list[str] = Field(
+        default_factory=list,
+        description="Issues found during validation (empty if all passed)",
+    )
+    qwen_used: bool = Field(
+        default=False,
+        description="Whether Qwen was actually used for outreach pack generation",
+    )
