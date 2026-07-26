@@ -95,11 +95,27 @@ def generate_outreach_pack(
     # Equipment checklist
     equipment_checklist = _build_equipment_checklist(equipment, target, obs_result)
 
-    # Safety notes
+    # Safety notes (temperature hint based on actual observation month)
+    obs_month = None
+    if obs_result.date_range:
+        try:
+            obs_month = int(str(obs_result.date_range[0]).split("-")[1])
+        except (IndexError, ValueError):
+            pass
+
+    if obs_month in (11, 12, 1, 2):
+        temp_note = "注意保暖，冬季夜间气温可能降至 0°C 以下"
+    elif obs_month in (3, 4, 10):
+        temp_note = "注意保暖，春/秋夜间气温可能降至 10°C 以下"
+    elif obs_month in (5, 9):
+        temp_note = "夜间气温适宜，但仍建议携带薄外套"
+    else:
+        temp_note = "夏季夜间注意防蚊，适当补充水分"
+
     safety_notes = [
         "夜间活动请注意人身安全，避免单独行动",
         "使用红色手电筒保护暗适应视力",
-        "注意保暖，10 月夜间气温可能降至 10°C 以下",
+        temp_note,
         "请勿使用激光笔直接指向天空有人区域",
     ]
 
@@ -531,14 +547,16 @@ def _validate_talking_points(
     fact_cards: list[FactCard],
 ) -> tuple[list[str], list[str]]:
     """
-    Validate that all numerical values in talking points are traceable
-    to fact cards. This is the hallucination protection layer.
+    Validate that all numerical values AND text facts in talking points
+    are traceable to fact cards. This is the hallucination protection layer.
 
     Strategy:
       - Extract all numbers (int/float) from each talking point via regex.
       - Build a set of "allowed numbers" from fact card values.
       - If a talking point contains a number NOT in the allowed set,
         flag it and remove the point.
+      - Additionally check text fact claims (distance, physical nature,
+        visibility) against fact card data.
 
     Returns:
         (validated_points, issues) tuple.
@@ -546,6 +564,17 @@ def _validate_talking_points(
     # Build allowed number set from fact cards
     allowed_numbers: set[str] = set()
     number_pattern = re.compile(r"\d+\.?\d*")
+
+    # Extract fact card info for text validation
+    fact_keys = {card.key: card.value for card in fact_cards}
+    target_type = fact_keys.get("target_type", "")
+    magnitude_str = fact_keys.get("visual_magnitude", "")
+    target_mag = None
+    if magnitude_str:
+        try:
+            target_mag = float(magnitude_str)
+        except ValueError:
+            pass
 
     for card in fact_cards:
         # Extract all numbers from the fact card value
@@ -563,11 +592,32 @@ def _validate_talking_points(
     safe_numbers = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}
     allowed_numbers.update(safe_numbers)
 
+    # Text fact patterns that require validation
+    # Distance claims (e.g., "254万光年", "1500光年") — not in fact cards, always suspect
+    distance_pattern = re.compile(r"[\d.]+\s*(万)?光年")
+    # Physical nature claims that must match target_type
+    nature_claims = {
+        "恒星诞生区": ["deep_sky"],
+        "恒星形成区": ["deep_sky"],
+        "行星状星云": ["deep_sky"],
+        "超新星遗迹": ["deep_sky"],
+        "球状星团": ["deep_sky"],
+        "疏散星团": ["deep_sky"],
+        "旋涡星系": ["deep_sky"],
+        "椭圆星系": ["deep_sky"],
+        "双星系统": ["star"],
+        "红巨星": ["star"],
+        "白矮星": ["star"],
+        "中子星": ["star"],
+    }
+
     validated: list[str] = []
     issues: list[str] = []
 
     for point in talking_points:
-        # Extract numbers from this talking point
+        point_issues = []
+
+        # ── Number validation (original logic) ──
         found_nums = number_pattern.findall(point)
         untraceable = []
         for num in found_nums:
@@ -583,9 +633,30 @@ def _validate_talking_points(
                 untraceable.append(num)
 
         if untraceable:
+            point_issues.append(f"不可溯源数值: {', '.join(untraceable)}")
+
+        # ── Text fact validation (new) ──
+        # Check distance claims (not backed by any fact card)
+        if distance_pattern.search(point):
+            point_issues.append("含距离描述(光年)，事实卡无此数据")
+
+        # Check physical nature claims against target_type
+        for claim, valid_types in nature_claims.items():
+            if claim in point and target_type and target_type not in valid_types:
+                point_issues.append(
+                    f"文本事实'{claim}'与目标类型'{target_type}'不符"
+                )
+
+        # Check "肉眼可见" claim against magnitude
+        if "肉眼可见" in point and target_mag is not None and target_mag > 6.0:
+            point_issues.append(
+                f"声称'肉眼可见'但视星等={target_mag}，通常肉眼极限为6等"
+            )
+
+        if point_issues:
             issues.append(
-                f"[幻觉防护] 移除含不可溯源数值的讲解要点: "
-                f"\"{point[:50]}...\" (数值: {', '.join(untraceable)})"
+                f"[幻觉防护] 移除讲解要点: \"{point[:50]}...\" "
+                f"({'；'.join(point_issues)})"
             )
         else:
             validated.append(point)

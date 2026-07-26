@@ -119,6 +119,71 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "outreach_pack",
+            "description": (
+                "根据已验证的目标信息和可观测性计算结果，生成科普观测活动包。"
+                "包含活动流程、讲解要点、设备清单、安全提示和人工核对项。"
+                "讲解要点中的数值必须可溯源到事实卡，不可编造。"
+                "必须在 target_resolve 和 observability_plan 之后调用。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_name": {
+                        "type": "string",
+                        "description": "标准目标名称（来自 target_resolve 结果）",
+                    },
+                    "audience": {
+                        "type": "string",
+                        "description": "受众描述，如'天文社新成员'、'小学生'",
+                    },
+                    "equipment": {
+                        "type": "string",
+                        "enum": ["naked_eye", "binoculars", "small_telescope", "large_telescope"],
+                        "description": "设备类型",
+                    },
+                    "goal": {
+                        "type": "string",
+                        "description": "活动目标，默认'校园科普观测'",
+                    },
+                },
+                "required": ["target_name", "audience", "equipment"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "observation_review",
+            "description": (
+                "对已完成的观测活动进行回顾评估。"
+                "输入观测日志（实际天气、参与人数、观测效果等），"
+                "输出评估报告：目标达成度、改进建议、下次活动优化方案。"
+                "用于 4-Skill 闭环的最后一步。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_name": {
+                        "type": "string",
+                        "description": "观测目标名称",
+                    },
+                    "observation_log": {
+                        "type": "string",
+                        "description": "观测日志文本，包含实际天气、参与情况、观测效果等",
+                    },
+                    "planned_window": {
+                        "type": "string",
+                        "description": "原计划观测时段（来自 observability_plan）",
+                    },
+                },
+                "required": ["target_name", "observation_log"],
+            },
+        },
+    },
 ]
 
 
