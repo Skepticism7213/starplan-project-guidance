@@ -6,10 +6,10 @@ target_resolve returns requires_confirmation=True with confidence > 0,
 instead of silently proceeding with the best guess.
 
 Reference case:
-  Input:    "三角座" (Triangulum)
-  Expected: resolve_target returns M33 with confidence ~0.85,
-            requires_confirmation=True, candidates include M33.
-  Old bug:  Pipeline printed a warning but continued, auto-selecting M33.
+  Input:    "星云" (Nebula — matches many targets)
+  Expected: resolve_target returns M1 with confidence ~0.85,
+            requires_confirmation=True, candidates include M1, M8, M17, etc.
+  Old bug:  Pipeline printed a warning but continued, auto-selecting best match.
   Fix:      Pipeline raises TargetConfirmationRequired, halting execution.
 
 Also tests:
@@ -63,20 +63,21 @@ BASE_INPUT = {
 class TestResolveTargetAmbiguity:
     """Verify target_resolve correctly flags ambiguous inputs."""
 
-    def test_triangulum_is_ambiguous(self):
-        """'三角座' should return requires_confirmation=True with candidates."""
-        result = resolve_target("三角座")
+    def test_nebula_is_ambiguous(self):
+        """'星云' should return requires_confirmation=True with candidates."""
+        result = resolve_target("星云")
         assert result.requires_confirmation is True
         assert result.confidence > 0
         assert result.confidence < 0.9
         assert result.candidates is not None
         assert len(result.candidates) >= 1
 
-    def test_triangulum_candidates_include_m33(self):
-        """M33 (Triangulum Galaxy) should be among the candidates."""
-        result = resolve_target("三角座")
+    def test_nebula_candidates_include_deep_sky(self):
+        """Deep sky objects with '星云' in aliases should be among candidates."""
+        result = resolve_target("星云")
         candidate_names = [c.standard_name for c in result.candidates]
-        assert "M33" in candidate_names
+        # M1 (蟹状星云) should be the top candidate
+        assert "M1" in candidate_names
 
     def test_m31_is_unambiguous(self):
         """'M31' should resolve cleanly without confirmation."""
@@ -98,8 +99,8 @@ class TestPipelineHaltsOnAmbiguity:
     """Verify run_starplan raises TargetConfirmationRequired for ambiguous targets."""
 
     def test_ambiguous_target_raises_exception(self):
-        """run_starplan with '三角座' must raise TargetConfirmationRequired."""
-        input_data = {**BASE_INPUT, "target": "三角座"}
+        """run_starplan with '星云' must raise TargetConfirmationRequired."""
+        input_data = {**BASE_INPUT, "target": "星云"}
         with pytest.raises(TargetConfirmationRequired) as exc_info:
             run_starplan(input_data, run_id="test_c2_ambiguous")
 
@@ -111,23 +112,23 @@ class TestPipelineHaltsOnAmbiguity:
 
     def test_exception_message_is_informative(self):
         """The exception message should mention the target and candidate count."""
-        input_data = {**BASE_INPUT, "target": "三角座"}
+        input_data = {**BASE_INPUT, "target": "星云"}
         with pytest.raises(TargetConfirmationRequired) as exc_info:
             run_starplan(input_data, run_id="test_c2_msg")
 
         msg = str(exc_info.value)
-        assert "三角座" in msg
+        assert "星云" in msg
         assert "ambiguous" in msg.lower() or "歧义" in msg
         assert "confirmed_target" in msg
 
     def test_format_candidates_helper(self):
         """The exception's format_candidates() should produce a readable list."""
-        input_data = {**BASE_INPUT, "target": "三角座"}
+        input_data = {**BASE_INPUT, "target": "星云"}
         with pytest.raises(TargetConfirmationRequired) as exc_info:
             run_starplan(input_data, run_id="test_c2_fmt")
 
         formatted = exc_info.value.format_candidates()
-        assert "M33" in formatted
+        assert "M1" in formatted
         assert "1." in formatted  # numbered list
 
     def test_not_found_raises_valueerror_not_confirmation(self):
@@ -143,16 +144,16 @@ class TestConfirmedTargetBypass:
     """Verify that confirmed_target allows the pipeline to proceed."""
 
     def test_confirmed_target_proceeds(self):
-        """With confirmed_target='M33', pipeline should run without exception."""
-        input_data = {**BASE_INPUT, "target": "三角座", "confirmed_target": "M33"}
-        # Should not raise — M33 is a valid unambiguous target
+        """With confirmed_target='M31', pipeline should run without exception."""
+        input_data = {**BASE_INPUT, "target": "星云", "confirmed_target": "M31"}
+        # Should not raise — M31 is a valid unambiguous target
         result = run_starplan(input_data, run_id="test_c2_confirmed")
         assert result is not None
         assert "plan" in result or "target" in result
 
     def test_confirmed_target_still_ambiguous_raises(self):
         """If confirmed_target itself is ambiguous, raise ValueError."""
-        input_data = {**BASE_INPUT, "target": "三角座", "confirmed_target": "三角座"}
+        input_data = {**BASE_INPUT, "target": "星云", "confirmed_target": "星云"}
         with pytest.raises(ValueError, match="still ambiguous"):
             run_starplan(input_data, run_id="test_c2_confirmed_ambig")
 

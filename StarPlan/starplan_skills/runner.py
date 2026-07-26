@@ -621,10 +621,72 @@ def run_starplan_chat(
         captured["_obs_location_used"] = {"latitude": latitude, "longitude": longitude}
         return json.dumps(obs.model_dump(mode="json"), ensure_ascii=False, default=str)
 
+    def _exec_outreach_pack(
+        target_name: str, audience: str, equipment: str,
+        goal: str = "校园科普观测",
+    ) -> str:
+        """Execute outreach_pack using previously captured tool results."""
+        target_data = captured.get("target_resolve")
+        obs_data = captured.get("observability_plan")
+        if not target_data or not obs_data:
+            return json.dumps(
+                {"error": "必须先调用 target_resolve 和 observability_plan 再生成活动包"},
+                ensure_ascii=False,
+            )
+        # Reconstruct objects from captured dicts
+        resolved_obj = ResolvedTarget(**target_data)
+        obs_obj = ObservabilityResult(**obs_data)
+        pack = generate_outreach_pack(
+            target=resolved_obj,
+            obs_result=obs_obj,
+            audience=audience,
+            equipment=equipment,
+            goal=goal,
+            use_qwen=True,
+            log_path=log_path,
+        )
+        captured["outreach_pack"] = pack.model_dump()
+        return json.dumps(pack.model_dump(), ensure_ascii=False, default=str)
+
+    def _exec_observation_review(
+        target_name: str, observation_log: str,
+        planned_window: str = "",
+    ) -> str:
+        """Execute observation_review from a text observation log."""
+        obs_data = captured.get("observability_plan")
+        if not obs_data:
+            return json.dumps(
+                {"error": "必须先调用 observability_plan 获得计划数据再进行复盘"},
+                ensure_ascii=False,
+            )
+        obs_obj = ObservabilityResult(**obs_data)
+        # Parse free-text log into structured ObservationLog (best-effort)
+        # Use the planned date as actual_date fallback
+        plan_date = obs_obj.date_range[0] if obs_obj.date_range else None
+        base_dt = datetime(
+            plan_date.year, plan_date.month, plan_date.day, 20, 0
+        ) if plan_date else datetime.now()
+        log_entry = ObservationLog(
+            actual_start_time=base_dt,
+            actual_end_time=base_dt + timedelta(hours=3),
+            targets_observed=[target_name],
+            targets_missed=[],
+            equipment_used="binoculars",
+            observer_notes=observation_log,
+        )
+        review = review_observation(
+            original_plan=obs_obj,
+            log=log_entry,
+        )
+        captured["observation_review"] = review.model_dump()
+        return json.dumps(review.model_dump(), ensure_ascii=False, default=str)
+
     tool_executors = {
         "target_resolve": _exec_target_resolve,
         "resolve_location": _exec_resolve_location,
         "observability_plan": _exec_observability_plan,
+        "outreach_pack": _exec_outreach_pack,
+        "observation_review": _exec_observation_review,
     }
 
     # System prompt for the orchestrator.

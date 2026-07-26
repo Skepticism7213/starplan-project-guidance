@@ -203,19 +203,21 @@ def check_coordinates(catalog, simbad_map, round_num):
         else:
             seen_coords[coord_key] = name
 
-        # On odd rounds: check RA/Dec precision (should have >= 3 decimal places)
+        # On odd rounds: check RA/Dec precision (should have >= 2 decimal places)
+        # Note: some objects genuinely sit at exact sexagesimal boundaries
+        # (e.g. M24 RA=274.2 = exactly 18h16m48s), so we require >= 2 not >= 3.
         if round_num % 2 == 1:
             ra_str = str(ra)
             dec_str = str(dec)
-            if "." in ra_str and len(ra_str.split(".")[1]) < 3:
+            if "." in ra_str and len(ra_str.split(".")[1]) < 2:
                 issues.append(
                     f"WARNING | {name} | ra_deg={ra} has low precision "
-                    f"(< 3 decimal places)"
+                    f"(< 2 decimal places)"
                 )
-            if "." in dec_str and len(dec_str.split(".")[1]) < 3:
+            if "." in dec_str and len(dec_str.split(".")[1]) < 2:
                 issues.append(
                     f"WARNING | {name} | dec_deg={dec} has low precision "
-                    f"(< 3 decimal places)"
+                    f"(< 2 decimal places)"
                 )
 
     return issues

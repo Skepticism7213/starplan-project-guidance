@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-07-24T14:25:47.721489",
+  "timestamp": "2026-07-26T11:04:46.916279",
   "total": 150,
   "passed": 150,
   "failed": 0,
@@ -940,8 +940,8 @@
         "confidence": 1.0,
         "requires_confirmation": false,
         "candidates_count": 0,
-        "ra_deg": 270.8,
-        "dec_deg": -24.3833,
+        "ra_deg": 270.9042,
+        "dec_deg": -24.3867,
         "source": "built_in_catalog_v1"
       }
     },

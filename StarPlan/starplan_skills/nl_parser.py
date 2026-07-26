@@ -126,7 +126,7 @@ def _post_process(parsed: dict, ref_date: date) -> dict:
     """Post-process Qwen output: normalize equipment, validate location, etc."""
 
     # Normalize equipment
-    equipment = parsed.get("equipment", "")
+    equipment = parsed.get("equipment") or ""
     if equipment in _EQUIPMENT_MAP:
         parsed["equipment"] = _EQUIPMENT_MAP[equipment]
     elif equipment not in ("naked_eye", "binoculars", "small_telescope", "large_telescope"):

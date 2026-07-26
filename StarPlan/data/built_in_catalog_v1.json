@@ -125,8 +125,8 @@
       "NGC 6523"
     ],
     "target_type": "deep_sky",
-    "ra_deg": 270.8,
-    "dec_deg": -24.3833,
+    "ra_deg": 270.9042,
+    "dec_deg": -24.3867,
     "visual_magnitude": 6.0,
     "angular_size_arcmin": [
       90.0,
@@ -406,7 +406,7 @@
     ],
     "target_type": "deep_sky",
     "ra_deg": 274.2,
-    "dec_deg": -18.55,
+    "dec_deg": -18.4167,
     "visual_magnitude": 4.6,
     "angular_size_arcmin": [
       95.0,
@@ -679,8 +679,8 @@
       "双星"
     ],
     "target_type": "deep_sky",
-    "ra_deg": 185.55,
-    "dec_deg": 58.0833,
+    "ra_deg": 185.5521,
+    "dec_deg": 58.0828,
     "visual_magnitude": 9.0,
     "angular_size_arcmin": [
       0.9,
@@ -731,7 +731,7 @@
       "NGC 1982"
     ],
     "target_type": "deep_sky",
-    "ra_deg": 83.8792,
+    "ra_deg": 83.8813,
     "dec_deg": -5.27,
     "visual_magnitude": 9.0,
     "angular_size_arcmin": [
@@ -887,8 +887,8 @@
       "仙后座疏散星团"
     ],
     "target_type": "deep_sky",
-    "ra_deg": 351.195,
-    "dec_deg": 61.59,
+    "ra_deg": 351.2,
+    "dec_deg": 61.5933,
     "visual_magnitude": 6.9,
     "angular_size_arcmin": [
       13.8,
@@ -1246,7 +1246,7 @@
       "Asterism in Aquarius"
     ],
     "target_type": "deep_sky",
-    "ra_deg": 314.75,
+    "ra_deg": 314.725,
     "dec_deg": -12.6333,
     "visual_magnitude": 9.0,
     "angular_size_arcmin": [
