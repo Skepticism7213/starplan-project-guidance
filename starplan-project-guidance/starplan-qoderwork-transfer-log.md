@@ -1,6 +1,9 @@
 # 星程 StarPlan Loop 项目转移日志
 
-日期：2026-07-18  
+初始日期：2026-07-18
+
+最近更新：2026-07-26
+
 用途：将当前对话与项目方案转移到 QoderWork，作为后续开发、分工和材料撰写的上下文。
 
 ## 1. 赛项背景
@@ -227,9 +230,12 @@ AI 调用 skill
 自然语言输入
 -> Qwen/百炼解析任务
 -> 标准化输入 schema
+-> 输入确认与业务状态判断
 -> 目标解析
 -> 可观测性计算
--> 科普活动包生成
+-> Allowed Claims Builder
+-> Qwen 结构化表达计划
+-> 程序验证并渲染科普活动包
 -> 活动执行与观测日志导入
 -> 偏差归因与修订计划
 -> validation_report
@@ -240,7 +246,9 @@ AI 调用 skill
 
 ```text
 工具算
-模型讲
+Claim 准入
+模型编排
+程序渲染
 报告验
 人工确认
 ```
@@ -253,8 +261,9 @@ AI 调用 skill
 - 日落时间
 - 行星位置
 - 星图
+- “肉眼可见”“适合新手”“光污染较低”等无来源文字事实
 
-Qwen 只能基于工具生成的事实卡做任务理解、流程编排和科普表达。
+所有用户可见事实必须先进入本次运行的 Claim Registry。默认安全模式下，Qwen 只能选择 `claim_id`、已审核的 `sentence_variant_id`、顺序和语气标签，不能直接生成最终事实句。验证失败或模型不可用时必须使用确定性回退，禁止把被阻断原文返回给用户。
 
 ## 7. Skills 清单
 
@@ -264,8 +273,8 @@ Qwen 只能基于工具生成的事实卡做任务理解、流程编排和科普
 |---|---|---|---|---|
 | `target_resolve` | 把自然语言目标转成标准天体/坐标/类型 | 用户输入目标后 | 目标名、可选目标类型 | 标准名称、坐标、来源、置信度；歧义时要求确认 |
 | `observability_plan` | 判断目标何时可观测并生成计划 | 目标和地点时间确定后 | 坐标、地点、日期、设备约束 | 可见窗口、高度/方位、airmass、暮光/月光风险、备选时段 |
-| `outreach_pack` | 把确定性计算结果转成科普活动包 | 已有事实卡和计算结果后 | 事实卡、受众、设备 | 活动流程、讲解词、设备清单、安全提示、人工核对项 |
-| `observation_review` | 对比计划和实际日志并修订下一轮计划 | 活动日志导入后 | 原计划、实际时间、结果、云量、设备、备注 | 偏差分类、证据、改进建议、修订后的计划 |
+| `outreach_pack` | 把验证后的 Claims 转成科普活动包 | 已生成 Claim Registry 后 | Claims、受众、设备 | 活动流程、讲解词、Claim 映射、设备清单、安全提示、人工核对项 |
+| `observation_review` | 对比计划和实际日志并修订下一轮计划 | 活动日志导入后 | 原计划、结构化日志、Evidence Claims | 偏差分类、证据引用、改进建议、修订后的计划 |
 
 总控调用：
 
@@ -275,7 +284,7 @@ from starplan_skills.runner import run_starplan
 result = run_starplan(input_data)
 ```
 
-总控入口负责识别用户意图、依次调用必要 Skill、保存运行目录，并同时返回机器可读结果和人类可读报告。
+总控入口负责识别用户意图、依次调用必要 Skill、维护业务状态、构建 Claims、执行验证和确定性回退、保存运行目录，并同时返回机器可读结果和人类可读报告。至少区分目标待确认、可观测、不可观测、数据不足、工具错误和验证阻断；不得把工具失败当成不可观测。
 
 ## 8. 统一输入输出约定
 
@@ -298,6 +307,10 @@ result = run_starplan(input_data)
 runs/case_xxx/
   input.json
   resolved_target.json
+  claims.json
+  expression_plan.json
+  render_trace.json
+  run_outcome.json
   calculation_manifest.json
   observability.csv
   visibility_curve.png
@@ -308,9 +321,12 @@ runs/case_xxx/
   revised_plan.json
   validation_report.md
   model_call_log.jsonl
+  audit_events.jsonl
 ```
 
-`calculation_manifest.json` 记录输入地点、时区和时间范围、目标来源和坐标、工具及版本、约束规则、中间结果文件以及人工修改和确认记录。
+`run_outcome.json` 是业务状态、验证状态和交付状态的单一事实来源。`calculation_manifest.json` 和 `validation_report.md` 必须从同一个 RunOutcome 生成。
+
+`calculation_manifest.json` 记录 Schema 版本、输入地点、时区和时间范围、目标来源和坐标、工具及版本、约束规则、Claim/模板/数据快照版本、真实模型调用状态、中间结果、人工确认和关键产物哈希。
 
 `resolved_target.json` 示例字段：
 
@@ -360,14 +376,15 @@ runs/case_xxx/
 - 地点和时区是否正确
 - 高度角/方位角趋势是否合理
 - 推荐窗口是否满足规则
-- 科普稿是否忠实于事实卡
+- 所有用户可见事实是否具有 Claim ID、来源、作用域和渲染映射
 
 基础规则由团队在首周冻结并写入配置，不在代码和模型提示词中分散维护。初始规则至少覆盖：
 
 - 目标高度、airmass、暮光和月光条件。
 - 设备类型与目标可见性的基本匹配。
 - 低高度、强月光和信息缺失的风险等级。
-- 所有关键数值必须来自工具计算，不能来自大模型自由生成。
+- 所有数值和文字事实必须来自 Claims，不能来自大模型自由生成。
+- 验证失败原文不得进入用户输出；Qwen 不可用时必须走确定性模板。
 
 具体阈值需要用固定案例和参考工具校准后再冻结，不能把未经验证的经验阈值直接写成科学结论。
 
@@ -388,7 +405,7 @@ validation_report.md
 
 答辩表述：
 
-> 我们团队并不依赖主观观星经验来判断结果正确性，而是采用“权威数据源 + 确定性计算 + 交叉验证 + 人工校验入口”的验证机制。目标信息和参考结果根据目标类型选择可靠来源，可见性由 Astropy/astroplan 等确定性工具计算；SIMBAD、JPL Horizons、Stellarium 或 KStars 可作为交叉校验，不作为首期核心服务的唯一依赖。大模型只负责语言理解、工具编排和科普表达，所有关键数值均来自工具输出，并在 validation_report 中保留来源、规则和中间结果。
+> 我们团队并不依赖主观观星经验来判断结果正确性，而是采用“权威数据源 + 确定性计算 + Claim 准入 + 交叉验证 + 人工校验入口”的验证机制。目标信息和参考结果根据目标类型选择可靠来源，可见性由 Astropy/astroplan 等确定性工具计算；SIMBAD、JPL Horizons、Stellarium 或 KStars 可作为交叉校验，不作为首期核心服务的唯一依赖。大模型只负责语言理解、工具编排和受限表达计划，数值和文字事实均来自验证后的 Claims，并通过 RunOutcome、Manifest 和 validation_report 保留来源、规则和中间结果。
 
 ## 11. 五人分工
 
@@ -397,7 +414,7 @@ validation_report.md
 | A | 项目负责人 + 天文校验 | 定项目边界、3 个典型案例、校验规则、汇总进度 | 案例设计、验证标准、`validation_report` 模板、PPT 总逻辑 |
 | B | 天文计算内核 | 用 Astropy/astroplan 计算高度角、airmass、暮光/月光影响、最佳窗口 | `observability_plan`、CSV 中间结果、曲线图、规则测试 |
 | C | 目标数据与结果展示 | 维护首批目标目录，处理名称歧义，生成必要图表；外部工具只做可选校验 | `target_resolve`、目标目录、展示层和可选交叉验证 |
-| D | Qwen/百炼 + Skill 编排 | 设计 Schema、工具调用、事实卡、科普稿和模型审计 | `skills.yaml`、`runner.py`、`outreach_pack`、`model_call_log` |
+| D | Qwen/百炼 + Skill 编排 | 设计 Claim/表达 Schema、工具调用、确定性渲染和模型审计 | `skills.yaml`、`runner.py`、`outreach_pack`、`model_call_log` |
 | E | 复盘与交付展示 | 观测日志、偏差归因、修订计划、轻量页面、README、PPT 和视频 | `observation_review`、演示页、技术报告、视频、复现材料 |
 
 ## 12. 线上协作方式
@@ -459,6 +476,10 @@ python scripts/run_case.py examples/case_03_observation_review.json
 ```text
   input.json
   resolved_target.json
+  claims.json
+  expression_plan.json
+  render_trace.json
+  run_outcome.json
   calculation_manifest.json
   observability.csv
   visibility_curve.png
@@ -469,6 +490,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
   revised_plan.json
   validation_report.md
   model_call_log.jsonl
+  audit_events.jsonl
 ```
 
 ## 13. 时间安排
@@ -477,8 +499,8 @@ python scripts/run_case.py examples/case_03_observation_review.json
 |---|---|---|
 | 第 1 周 | 冻结范围、Schema、案例和验证规则 | Skills 清单、输入样例、输出目录、测试基线 |
 | 第 2 周 | 跑通目标解析和本地可观测性计算 | M31 案例能生成结构化计算结果和验证报告 |
-| 第 3 周 | 接入 Qwen 编排和科普活动包 | 模型只使用事实卡，调用过程可追踪 |
-| 第 4 周 | 完成观测日志与复盘闭环 | 能从计划和日志生成有依据的修订计划 |
+| 第 3 周 | 加固 Qwen 编排和科普活动包 | Claim Schema 冻结；模型原文无直达用户路径；验证失败确定性回退；调用可追踪 |
+| 第 4 周 | 完成观测日志与复盘闭环 | Evidence Claims 可追溯；证据不足时区分 `possible`/`undetermined` |
 | 第 5 周 | 完成演示入口和 3 类案例 | 新环境可复跑，失败场景可解释 |
 | 第 6 周 | 打磨提交材料 | PPT/PDF、视频、开源工具说明、校验报告 |
 
@@ -519,8 +541,9 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 - 用统一 schema 和标准 API 体现 skill 设计。
 - 所有关键数值来自确定性天文工具；JPL Horizons 等在线服务仅作为按目标类型选择的可选校验。
-- Qwen 只基于事实卡生成讲解稿。
-- 每次运行保存 `calculation_manifest.json`、模型调用日志和人工确认记录。
+- Qwen 只选择允许的 Claims、句式、顺序和语气，最终事实句由程序渲染。
+- 每次运行保存 Claims、RunOutcome、Manifest、模型调用日志、验证结果和人工确认记录。
+- 使用 Mock Qwen 测试纯文字幻觉、夹带事实、错误单位/时区、伪造 Claim、提示注入和非法 JSON。
 - 每个案例保存完整中间结果和校验报告。
 - 先完成本地计算最小链路，再接入 Qwen 和轻量展示层。
 - 每周跑 3 个固定案例，其中至少一个包含失败或复盘场景。
@@ -529,10 +552,10 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 转移到 QoderWork 后，优先做以下事项：
 
-1. 冻结 4 个核心 Skill 的 Schema、3 个案例和验证规则。
-2. 创建项目目录、统一输出目录和 `calculation_manifest.json` 规范。
+1. 冻结 4 个核心 Skill、Claim、状态机和表达计划 Schema，以及 3 个案例和验证规则。
+2. 创建项目目录，统一 Claims、RunOutcome、Manifest、渲染映射和审计事件规范。
 3. 先完成 M31 + 北京 + 日期的本地目标解析和可观测性计算。
-4. 接入 Qwen/百炼，保存工具调用与模型审计记录。
+4. 接入 Qwen/百炼的结构化表达计划，保存工具调用与模型审计记录，并验证 fail-closed。
 5. 增加观测日志复盘，再制作轻量演示入口，不要一开始做全功能。
 
 第一阶段最低目标：
