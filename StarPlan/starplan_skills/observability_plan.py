@@ -96,6 +96,52 @@ def _astropy_time(dt: datetime) -> Time:
     return Time(dt, scale="utc")
 
 
+def moon_target_apparent_separation(
+    target_icrs: SkyCoord,
+    obstime: Time,
+    location: EarthLocation,
+    refraction_policy: str = "astropy_default",
+) -> float:
+    """Compute the apparent angular separation between Moon and target.
+
+    This is the SINGLE approved function for moon-target separation.
+    It enforces the C-1 fix: both bodies are transformed to the SAME
+    AltAz frame (same obstime, same location) before computing separation.
+
+    Callers MUST NOT compute separation by calling .separation() across
+    different coordinate frames (e.g., ICRS vs GCRS) — that produces
+    physically meaningless results.
+
+    Args:
+        target_icrs: Target coordinates in ICRS frame.
+        obstime: Observation time (Astropy Time).
+        location: Observer location (Astropy EarthLocation).
+        refraction_policy: Refraction model to use. Currently only
+            'astropy_default' is supported (Astropy's built-in refraction
+            in AltAz transform). Recorded in Manifest for reproducibility.
+
+    Returns:
+        Angular separation in degrees (always >= 0).
+
+    Raises:
+        ValueError: If refraction_policy is not recognized.
+    """
+    if refraction_policy != "astropy_default":
+        raise ValueError(
+            f"Unknown refraction_policy: '{refraction_policy}'. "
+            f"Supported: 'astropy_default'"
+        )
+
+    # Both transforms use the SAME frame with SAME obstime and location
+    altaz_frame = AltAz(obstime=obstime, location=location)
+    target_altaz = target_icrs.transform_to(altaz_frame)
+    moon_coord = get_body("moon", obstime, location)
+    moon_altaz = moon_coord.transform_to(altaz_frame)
+
+    # Same-frame separation is physically valid
+    return float(target_altaz.separation(moon_altaz).deg)
+
+
 # ── Core computation ─────────────────────────────────
 
 def compute_observability(
@@ -233,10 +279,8 @@ def compute_observability(
         moon_coord = get_body("moon", astropy_t, obs_loc)
         moon_altaz = moon_coord.transform_to(altaz_frame)
         moon_alt = float(moon_altaz.alt.deg)
-        # C-1 fix: use same-frame AltAz separation (both target_altaz and
-        # moon_altaz share the same obstime & location) instead of cross-frame
-        # ICRS-vs-GCRS separation which gave physically meaningless results.
-        moon_sep = float(target_altaz.separation(moon_altaz).deg)
+        # Use encapsulated function (enforces same-frame AltAz, C-1 fix)
+        moon_sep = moon_target_apparent_separation(target, astropy_t, obs_loc)
 
         hourly_data.append(
             HourlyData(

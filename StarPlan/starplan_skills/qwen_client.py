@@ -14,6 +14,7 @@ and outreach expression. It NEVER generates astronomical numerical values.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from datetime import datetime, timezone, timedelta
@@ -456,15 +457,23 @@ def _log_call(
     result: dict,
     model: str,
 ) -> None:
-    """Append a call log entry to the JSONL file."""
+    """Append a call log entry to the JSONL file (Phase E: enhanced audit)."""
     tz = timezone(timedelta(hours=8))
+    content = result.get("content") or ""
+
+    # Compute hashes for evidence chain (never store API key)
+    prompt_hash = hashlib.sha256(prompt_preview.encode("utf-8")).hexdigest()[:16]
+    response_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
+
     entry = {
         "timestamp": datetime.now(tz).isoformat(),
         "step": step_name,
         "type": "model_call",
         "model": model,
         "prompt_preview": prompt_preview[:300],
-        "content_preview": (result.get("content") or "")[:300],
+        "prompt_hash": prompt_hash,
+        "content_preview": content[:300],
+        "response_hash": response_hash,
         "finish_reason": result.get("finish_reason", "unknown"),
         "has_tool_calls": result.get("tool_calls") is not None,
         "error": result.get("error"),

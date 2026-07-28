@@ -28,6 +28,7 @@ from .schemas import (
     ObservationLog,
     ObservabilityResult,
     ResolvedTarget,
+    RunState,
     StarPlanInput,
     ToolVersions,
 )
@@ -55,6 +56,18 @@ def run_starplan(
     # Parse and validate input
     starplan_input = StarPlanInput(**input_data)
 
+    # Phase D: RunState state machine tracking
+    state_log: list[dict] = []
+
+    def _transition(new_state: RunState, note: str = ""):
+        state_log.append({
+            "state": new_state.value,
+            "timestamp": datetime.now(timezone(timedelta(hours=8))).isoformat(),
+            "note": note,
+        })
+
+    _transition(RunState.RECEIVED, f"input target={starplan_input.target}")
+
     # Generate run ID (with timestamp to avoid collisions between cases)
     if not run_id:
         target_slug = starplan_input.target.lower().replace(" ", "_")
@@ -69,6 +82,8 @@ def run_starplan(
     # Save original input
     with open(run_dir / "input.json", "w", encoding="utf-8") as f:
         json.dump(input_data, f, ensure_ascii=False, indent=2)
+
+    _transition(RunState.INPUT_VALIDATED, "StarPlanInput schema validated")
 
     # ── Step 1: Resolve target ──
     # C-2 fix: If confirmed_target is provided, the human has already selected
@@ -113,6 +128,8 @@ def run_starplan(
             raise ValueError(f"Location '{starplan_input.location}' not found. Provide location_detail.")
         location = loc
 
+    _transition(RunState.READY_TO_COMPUTE, f"location={location.get('name', 'unknown')}")
+
     # ── Step 3: Compute observability ──
     print(f"[2/4] Computing observability for {resolved.standard_name} at {location['name']}")
     obs_result = compute_observability(
@@ -136,10 +153,12 @@ def run_starplan(
         w = obs_result.recommended_window.window
         print(f"  [OK] Observable! Recommended: {w.start.strftime('%H:%M')} ~ {w.end.strftime('%H:%M')}")
         print(f"    Peak altitude: {obs_result.recommended_window.peak_altitude_deg:.1f} deg")
+        _transition(RunState.COMPUTED_OBSERVABLE, f"peak_alt={obs_result.recommended_window.peak_altitude_deg:.1f}")
     else:
         print(f"  [FAIL] Target not observable on this date.")
         for s in obs_result.alternative_suggestions:
             print(f"    Suggestion: {s.description}")
+        _transition(RunState.COMPUTED_NOT_OBSERVABLE, "target below constraints")
 
     # ── Step 4: Generate outreach pack ──
     print(f"[3/4] Generating outreach pack for audience: {starplan_input.audience}")
@@ -209,6 +228,12 @@ def run_starplan(
 
     print(f"\n[OK] Run complete: {run_dir}")
     print(f"  Files: {len(list(run_dir.iterdir()))} in {run_dir}")
+
+    _transition(RunState.RENDERED, "all outputs written")
+
+    # Save state machine log
+    with open(run_dir / "state_log.json", "w", encoding="utf-8") as f:
+        json.dump(state_log, f, ensure_ascii=False, indent=2)
 
     return {
         "run_id": run_id,

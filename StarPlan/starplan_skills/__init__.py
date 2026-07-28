@@ -13,9 +13,11 @@ Week 3 additions:
     - runner: Three entry modes (structured / NL / chat orchestration)
 """
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from .runner import run_starplan, run_starplan_nl, run_starplan_chat
 from .exceptions import TargetConfirmationRequired
 from .nl_parser import parse_natural_language
 from .qwen_client import call_qwen, call_qwen_json, call_qwen_chat
+from .claims import AllowedClaimsBuilder
+from .templates import SENTENCE_VARIANTS, render_sentence

@@ -21,13 +21,22 @@ import re
 from pathlib import Path
 from typing import Optional
 
+from .claims import AllowedClaimsBuilder
+from .expression_validator import validate_expression_plan
+from .rendering import (
+    render_deterministic_fallback,
+    render_from_expression_plan,
+    render_not_observable_fallback,
+)
 from .schemas import (
     ActivityScheduleItem,
     EquipmentItem,
+    ExpressionPlan,
     FactCard,
     ObservabilityResult,
     OutreachPack,
     ResolvedTarget,
+    SelectedClaim,
 )
 
 
@@ -73,24 +82,83 @@ def generate_outreach_pack(
     # Build fact cards from target + obs_result
     fact_cards = _build_fact_cards(target, obs_result)
 
+    # Phase B: Build Claim Registry (runs alongside FactCards during transition)
+    claims_builder = AllowedClaimsBuilder(
+        target=target,
+        obs_result=obs_result,
+        location_id=obs_result.location_name,
+        audience=audience,
+        equipment=equipment,
+    )
+    claims_builder.build()
+    if run_dir:
+        claims_builder.save(run_dir)
+
     # Generate activity schedule based on recommended window
     schedule = _build_schedule(obs_result, audience)
 
-    # Generate talking points: try Qwen first, fall back to template
+    # Generate talking points: Phase C ExpressionPlan protocol
+    # Qwen selects claims → validator checks → program renders deterministically
     qwen_used = False
     qwen_validation_issues: list[str] = []
+    sentence_claim_map: dict = {}
+
     if use_qwen and _qwen_available():
         try:
-            talking_points, qwen_validation_issues = _generate_talking_points_qwen(
-                target, obs_result, audience, fact_cards, log_path,
+            plan, plan_issues = _generate_expression_plan_qwen(
+                target, obs_result, audience, claims_builder, log_path,
             )
-            qwen_used = True
+            if plan is not None:
+                # Validate the ExpressionPlan (8-step)
+                vresult = validate_expression_plan(
+                    plan, claims_builder,
+                    expected_scope_target=target.standard_name,
+                    expected_scope_date=str(obs_result.date_range[0]) if obs_result.date_range else None,
+                )
+                if vresult.passed:
+                    # Render deterministically from claims
+                    render_result = render_from_expression_plan(plan, claims_builder, audience)
+                    talking_points = render_result.talking_points
+                    sentence_claim_map = render_result.sentence_claim_map
+                    qwen_used = True
+                    qwen_validation_issues = [w.message for w in vresult.warnings]
+                else:
+                    # Validation failed → fail-closed fallback
+                    render_result = render_deterministic_fallback(
+                        claims_builder, audience,
+                        reason=f"ExpressionPlan validation failed: {vresult.summary}",
+                    )
+                    talking_points = render_result.talking_points
+                    sentence_claim_map = render_result.sentence_claim_map
+                    qwen_validation_issues = [
+                        f"[fail-closed] {e.message}" for e in vresult.errors
+                    ]
+            else:
+                # Qwen returned invalid data → fail-closed
+                render_result = render_deterministic_fallback(
+                    claims_builder, audience,
+                    reason="Qwen returned invalid ExpressionPlan",
+                )
+                talking_points = render_result.talking_points
+                sentence_claim_map = render_result.sentence_claim_map
+                qwen_validation_issues = plan_issues
         except Exception as e:
-            # Qwen failed — fall back to template silently
-            talking_points = _build_talking_points(target, audience, fact_cards)
-            qwen_validation_issues = [f"Qwen 调用失败，回退到模板: {e}"]
+            # Qwen call failed → fail-closed fallback
+            render_result = render_deterministic_fallback(
+                claims_builder, audience,
+                reason=f"Qwen 调用异常: {e}",
+            )
+            talking_points = render_result.talking_points
+            sentence_claim_map = render_result.sentence_claim_map
+            qwen_validation_issues = [f"[fail-closed] Qwen 调用失败，回退到确定性渲染: {e}"]
     else:
-        talking_points = _build_talking_points(target, audience, fact_cards)
+        # No Qwen → deterministic fallback
+        render_result = render_deterministic_fallback(
+            claims_builder, audience,
+            reason="template_mode (Qwen not available or disabled)",
+        )
+        talking_points = render_result.talking_points
+        sentence_claim_map = render_result.sentence_claim_map
 
     # Equipment checklist
     equipment_checklist = _build_equipment_checklist(equipment, target, obs_result)
@@ -662,6 +730,90 @@ def _validate_talking_points(
             validated.append(point)
 
     return validated, issues
+
+
+# ── Phase C: ExpressionPlan protocol ─────────────────
+
+def _generate_expression_plan_qwen(
+    target: ResolvedTarget,
+    obs_result: ObservabilityResult,
+    audience: str,
+    claims_builder: AllowedClaimsBuilder,
+    log_path: Optional[str] = None,
+) -> tuple[Optional[ExpressionPlan], list[str]]:
+    """
+    Ask Qwen to produce an ExpressionPlan: select and order claims.
+
+    Qwen does NOT generate any factual text. It only chooses which claims
+    to present, which sentence variant to use, and the ordering/tone.
+    The program then renders deterministically from the Claim Registry.
+
+    Returns:
+        (ExpressionPlan or None, issues) tuple.
+        None means Qwen failed to produce a valid plan.
+    """
+    from .qwen_client import call_qwen_json
+
+    # Build the claim catalog for Qwen to choose from
+    claim_catalog_lines: list[str] = []
+    for claim in claims_builder.allowed_claims:
+        variants_str = ", ".join(claim.allowed_variant_ids)
+        claim_catalog_lines.append(
+            f"  - claim_id: \"{claim.claim_id}\" | "
+            f"type: {claim.claim_type.value} | "
+            f"display: \"{claim.display_value}\" | "
+            f"variants: [{variants_str}]"
+        )
+    claim_catalog = "\n".join(claim_catalog_lines)
+
+    system_prompt = (
+        "你是 StarPlan 的表达编排器。你的唯一任务是从【Claim 目录】中选择要展示的条目，"
+        "并为每条选择一个句式变体（variant_id）。\n\n"
+        "严格规则：\n"
+        "1. 你只能选择目录中存在的 claim_id，绝对不能编造新的 claim_id。\n"
+        "2. 你只能选择该 claim 列出的 variant_id，绝对不能编造新的 variant_id。\n"
+        "3. 你不能输出任何事实性文字、数值或描述。你只输出选择结果。\n"
+        "4. 选择 5-10 条 claim，按讲解逻辑排序。\n"
+        "5. 返回严格 JSON 格式（见下方 schema）。\n\n"
+        "返回 JSON schema:\n"
+        "{\n"
+        '  "schema_version": "1.0",\n'
+        '  "selected_claims": [\n'
+        '    {"claim_id": "...", "sentence_variant_id": "..."}\n'
+        "  ],\n"
+        '  "section_order": ["target", "observability", "risk", "actions"],\n'
+        '  "tone": "beginner_friendly",\n'
+        '  "connector_ids": []\n'
+        "}\n"
+    )
+
+    user_prompt = (
+        f"【Claim 目录】（共 {len(claims_builder.allowed_claims)} 条）\n"
+        f"{claim_catalog}\n\n"
+        f"【受众】{audience}\n"
+        f"【目标】{target.standard_name}\n"
+        f"【可观测】{'是' if obs_result.is_observable else '否'}\n\n"
+        "请从上述目录中选择适合该受众的 claim，组成讲解要点。"
+        "记住：只输出 JSON 选择结果，不要输出任何事实文字！"
+    )
+
+    result = call_qwen_json(
+        prompt=user_prompt,
+        system_prompt=system_prompt,
+        log_path=log_path,
+        step_name="expression_plan",
+    )
+
+    # Parse the ExpressionPlan from Qwen's response
+    parsed = result.get("parsed_json")
+    if not parsed:
+        return None, [f"[fail-closed] Qwen 未返回有效 JSON: {result.get('json_error', 'unknown')}"]
+
+    try:
+        plan = ExpressionPlan(**parsed)
+        return plan, []
+    except Exception as e:
+        return None, [f"[fail-closed] ExpressionPlan 解析失败: {e}"]
 
 
 def _build_equipment_checklist(
