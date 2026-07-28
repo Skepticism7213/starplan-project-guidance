@@ -17,7 +17,28 @@ from dataclasses import dataclass, field
 
 from .claims import AllowedClaimsBuilder
 from .schemas import Claim, ClaimType, ExpressionPlan, SelectedClaim
-from .templates import CONNECTORS, SECTION_HEADERS, render_sentence
+from .templates import SENTENCE_VARIANTS, render_sentence
+
+
+def _audience_key(audience: str) -> str:
+    """Determine audience level from audience description string."""
+    if "新" in audience or "入门" in audience or "小学" in audience:
+        return "beginner"
+    return "general"
+
+
+def _pick_variant_for_audience(allowed_ids: list[str], audience: str) -> str:
+    """Pick the best variant from allowed_ids for the given audience.
+
+    Prefers variants tagged for the audience level; falls back to first allowed.
+    """
+    key = _audience_key(audience)
+    for vid in allowed_ids:
+        info = SENTENCE_VARIANTS.get(vid, {})
+        if key in info.get("audience", []):
+            return vid
+    # Fallback: first allowed variant
+    return allowed_ids[0] if allowed_ids else ""
 
 
 @dataclass
@@ -92,7 +113,6 @@ def render_from_expression_plan(
             continue
 
         # Determine section from template
-        from .templates import SENTENCE_VARIANTS
         variant_info = SENTENCE_VARIANTS.get(selected.sentence_variant_id, {})
         section = variant_info.get("section", "target")
 
@@ -161,13 +181,14 @@ def render_deterministic_fallback(
         if not claim.allowed_variant_ids:
             continue
 
-        # Use the first allowed variant
-        variant_id = claim.allowed_variant_ids[0]
+        # Use audience-aware variant selection
+        variant_id = _pick_variant_for_audience(claim.allowed_variant_ids, audience)
+        if not variant_id:
+            continue
         text = render_sentence(variant_id, claim.display_value)
         if text is None:
             continue
 
-        from .templates import SENTENCE_VARIANTS
         variant_info = SENTENCE_VARIANTS.get(variant_id, {})
         section = variant_info.get("section", "target")
 
@@ -212,12 +233,13 @@ def render_not_observable_fallback(
         if not claim.allowed_variant_ids:
             continue
 
-        variant_id = claim.allowed_variant_ids[0]
+        variant_id = _pick_variant_for_audience(claim.allowed_variant_ids, audience)
+        if not variant_id:
+            continue
         text = render_sentence(variant_id, claim.display_value)
         if text is None:
             continue
 
-        from .templates import SENTENCE_VARIANTS
         variant_info = SENTENCE_VARIANTS.get(variant_id, {})
         section = variant_info.get("section", "target")
 

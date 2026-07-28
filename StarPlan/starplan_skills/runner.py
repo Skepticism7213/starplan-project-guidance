@@ -58,6 +58,7 @@ def run_starplan(
 
     # Phase D: RunState state machine tracking
     state_log: list[dict] = []
+    _run_dir_ref: list = []  # mutable ref so closure can access run_dir before assignment
 
     def _transition(new_state: RunState, note: str = ""):
         state_log.append({
@@ -65,6 +66,13 @@ def run_starplan(
             "timestamp": datetime.now(timezone(timedelta(hours=8))).isoformat(),
             "note": note,
         })
+        # Incremental flush: preserve audit trail even on exception
+        if _run_dir_ref:
+            try:
+                with open(_run_dir_ref[0] / "state_log.json", "w", encoding="utf-8") as f:
+                    json.dump(state_log, f, ensure_ascii=False, indent=2)
+            except OSError:
+                pass  # Best-effort; don't crash pipeline for logging
 
     _transition(RunState.RECEIVED, f"input target={starplan_input.target}")
 
@@ -78,6 +86,7 @@ def run_starplan(
         run_id = f"{target_slug}_{starplan_input.location.replace('_', '-')}_{date_slug}_{ts_slug}{suffix}"
 
     run_dir = get_run_dir(run_id)
+    _run_dir_ref.append(run_dir)  # Enable incremental state_log flush
 
     # Save original input
     with open(run_dir / "input.json", "w", encoding="utf-8") as f:

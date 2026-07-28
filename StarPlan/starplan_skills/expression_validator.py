@@ -224,18 +224,34 @@ def validate_expression_plan(
                 ))
 
     # ── Step 8: Source hash integrity ──
-    # Verify that claims with source_hash still match the registry
-    # (In a single-run context this is always true, but the check exists
-    #  for future multi-step or cached-claim scenarios)
+    # Verify that observed_fact claims have a valid source_hash.
+    # observed_fact claims MUST trace to a deterministic source; a missing
+    # hash means the claim was built without proper provenance tracking.
     for sc in plan.selected_claims:
         claim = claims_builder.get_claim(sc.claim_id)
-        if claim is None or not claim.source_hash:
+        if claim is None:
             continue
-        # Re-hash the source to verify integrity
-        # In current implementation, the hash was computed at build time
-        # and the registry is immutable within a run, so this always passes.
-        # The check is here for architectural completeness.
-        pass
+        if claim.claim_type == ClaimType.OBSERVED_FACT:
+            if not claim.source_hash:
+                issues.append(ValidationIssue(
+                    step=8, step_name="source_hash",
+                    severity="error",
+                    message=(
+                        f"observed_fact claim '{sc.claim_id}' has no source_hash — "
+                        f"cannot verify provenance"
+                    ),
+                    claim_id=sc.claim_id,
+                ))
+            elif len(claim.source_hash) != 16:
+                warnings.append(ValidationIssue(
+                    step=8, step_name="source_hash",
+                    severity="warning",
+                    message=(
+                        f"Claim '{sc.claim_id}' source_hash has unexpected length "
+                        f"{len(claim.source_hash)} (expected 16)"
+                    ),
+                    claim_id=sc.claim_id,
+                ))
 
     # ── Final verdict ──
     passed = len([i for i in issues if i.severity == "error"]) == 0
