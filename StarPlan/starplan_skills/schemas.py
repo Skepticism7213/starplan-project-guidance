@@ -7,6 +7,7 @@ Uses Pydantic v2 for validation, serialization, and JSON Schema generation.
 from __future__ import annotations
 
 from datetime import date, datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -34,6 +35,130 @@ class ObservingConstraint(BaseModel):
     max_airmass: float = Field(default=2.0, description="Maximum acceptable airmass")
     prefer_early_night: bool = Field(default=False, description="Prefer windows before local midnight")
     max_moon_illumination: Optional[float] = Field(default=None, description="Maximum moon illumination fraction (0-1)")
+
+
+# ──────────────────────────────────────────────
+# Claim architecture (hallucination prevention)
+#
+# Core invariant: only claims registered in this run's Claim Registry are
+# eligible to appear in user-visible output. Qwen never produces final fact
+# text; it only selects/orders pre-approved claims, and the program renders
+# deterministically. See starplan-hallucination-prevention-architecture.md.
+# ──────────────────────────────────────────────
+
+class ClaimType(str, Enum):
+    """Type of a factual claim, which determines how it may be expressed."""
+
+    OBSERVED_FACT = "observed_fact"      # Direct output of catalog or deterministic tool
+    DERIVED_FACT = "derived_fact"        # Deterministically derived by a versioned rule
+    HUMAN_CONFIRMED = "human_confirmed"  # Confirmed by a person (site, equipment, activity)
+    UNCONFIRMED = "unconfirmed"          # Cannot be verified now; may only be stated as "待确认"
+    PROHIBITED = "prohibited"            # Forbidden for this run; must not reach any user-visible fact sentence
+
+
+class RunState(str, Enum):
+    """Business state machine for a single run.
+
+    Business state (observable / not observable / data insufficient / tool
+    error / needs confirmation) is kept separate from validation state and
+    delivery state; see CalculationManifest / RunOutcome.
+    """
+
+    RECEIVED = "received"
+    INPUT_VALIDATED = "input_validated"
+    NEEDS_CONFIRMATION = "needs_confirmation"
+    READY_TO_COMPUTE = "ready_to_compute"
+    COMPUTED_OBSERVABLE = "computed_observable"
+    COMPUTED_NOT_OBSERVABLE = "computed_not_observable"
+    DATA_INSUFFICIENT = "data_insufficient"
+    TOOL_ERROR = "tool_error"
+    CLAIMS_BUILT = "claims_built"
+    EXPRESSION_PLANNED = "expression_planned"
+    VERIFIED = "verified"
+    VALIDATION_BLOCKED = "validation_blocked"
+    RENDERED = "rendered"
+    ARCHIVED = "archived"
+
+
+class ValidityScope(BaseModel):
+    """Scope in which a claim is valid (target / location / date / branch)."""
+
+    target: Optional[str] = Field(default=None, description="Standard target name, e.g. 'M31'")
+    location_id: Optional[str] = Field(default=None, description="Location key, e.g. '济南_四门塔'")
+    date: Optional[str] = Field(default=None, description="Date (YYYY-MM-DD) the claim applies to")
+    timezone: Optional[str] = Field(default=None, description="IANA timezone, e.g. 'Asia/Shanghai'")
+    business_branch: Optional[str] = Field(
+        default=None,
+        description="Business branch the claim applies to: observable / not_observable / data_insufficient / tool_error",
+    )
+
+
+class Claim(BaseModel):
+    """A single registered factual claim — the atomic unit of user-visible fact.
+
+    Every user-visible factual sentence must map to one or more Claims, and
+    every Claim must trace to a deterministic tool, a trusted data snapshot,
+    an explicit derivation rule, or a human confirmation.
+    """
+
+    schema_version: str = "1.0"
+    claim_id: str = Field(description="Stable unique ID, e.g. 'obs.peak_altitude'")
+    claim_type: ClaimType
+    subject: str = Field(description="e.g. 'M31@济南_四门塔@2026-10-17'")
+    predicate: str = Field(description="Attribute name, e.g. 'peak_altitude'")
+    canonical_value: Optional[float] = Field(default=None, description="Numeric canonical value (for numeric facts)")
+    text_value: Optional[str] = Field(default=None, description="Non-numeric value (for text facts)")
+    unit: Optional[str] = Field(default=None, description="Canonical unit, e.g. 'deg'")
+    display_value: str = Field(description="User-facing rendered value, e.g. '85.0°'")
+    display_tolerance: Optional[float] = Field(default=None, description="Allowed display deviation")
+    validity_scope: ValidityScope = Field(default_factory=ValidityScope)
+    source_refs: list[str] = Field(default_factory=list, description="e.g. ['observability_plan.hourly_data']")
+    derivation_rule: Optional[str] = Field(default=None, description="Rule version for derived_fact, e.g. 'visibility_rule_v1'")
+    source_hash: Optional[str] = Field(default=None, description="sha256 of the source data snapshot")
+    allowed_variant_ids: list[str] = Field(default_factory=list, description="Approved sentence variant IDs for rendering")
+
+
+class SelectedClaim(BaseModel):
+    """Qwen's selection of a claim plus an approved sentence variant.
+
+    Qwen returns ONLY this selection — never free fact text. The final
+    sentence is rendered by the program from the Claim's display_value and
+    the approved variant template.
+    """
+
+    claim_id: str = Field(description="Must exist in this run's Claim Registry")
+    sentence_variant_id: str = Field(description="Must be in the claim's allowed_variant_ids")
+
+
+class ExpressionPlan(BaseModel):
+    """Qwen's structured expression plan — selects and orders claims.
+
+    This is the only thing Qwen produces for outreach expression. It contains
+    no factual content itself; all facts come from the referenced Claims.
+    """
+
+    schema_version: str = "1.0"
+    selected_claims: list[SelectedClaim] = Field(default_factory=list)
+    section_order: list[str] = Field(
+        default_factory=list,
+        description="e.g. ['target', 'observability', 'risk', 'actions']",
+    )
+    tone: Optional[str] = Field(default=None, description="e.g. 'beginner_friendly'")
+    connector_ids: list[str] = Field(default_factory=list, description="Approved connector IDs, e.g. ['then_v1']")
+
+
+# Frozen numeric display rules (architecture §5.3). Each numeric quantity has a
+# fixed display precision and tolerance; validation compares against the Claim's
+# canonical value numerically, never by string matching.
+NUMERIC_DISPLAY_RULES: dict = {
+    "altitude_deg": {"precision": 1, "unit": "deg", "tolerance": 0.1},
+    "azimuth_deg": {"precision": 1, "unit": "deg", "tolerance": 0.1},
+    "moon_separation_deg": {"precision": 1, "unit": "deg", "tolerance": 0.1},
+    "airmass": {"precision": 2, "unit": None, "tolerance": 0.01},
+    "moon_phase": {"precision": 3, "unit": None, "tolerance": 0.001},
+    "time": {"precision": 0, "unit": "HH:MM", "tolerance_minutes": 1},
+    "visual_magnitude": {"precision": 1, "unit": "mag", "tolerance": 0.1},
+}
 
 
 # ──────────────────────────────────────────────
@@ -374,6 +499,7 @@ class ModelInfo(BaseModel):
 class CalculationManifest(BaseModel):
     """The evidence file for each run — records everything needed for reproducibility."""
 
+    schema_version: str = "1.0"
     run_id: str
     timestamp: datetime
     input: dict

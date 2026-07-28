@@ -15,6 +15,7 @@ dashscope>=1.20.0
 
 # Utilities
 python-dotenv>=1.0
+tzdata>=2024.1  # IANA timezone database; required by zoneinfo on Windows
 
 # Testing (dev)
 pytest>=7.0
