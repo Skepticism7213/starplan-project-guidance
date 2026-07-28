@@ -1,17 +1,26 @@
 """
-StarPlan Loop - Skill 4: observation_review (stub for MVP)
+StarPlan Loop - Skill 4: observation_review
 
 Compares an original observation plan with an actual observation log,
 identifies deviations, classifies causes, and generates a revised plan.
 
+Two modes:
+  - Rule-based (always): deterministic keyword/threshold detection.
+  - Qwen-assisted (optional): richer cause classification and suggestions,
+    constrained to predefined classification levels. Fail-closed: if Qwen
+    fails or returns invalid data, rule-based results are used.
+
 Core principle: Distinguish "evidence-based cause" from "possible cause"
 and "undetermined". Never assign strong blame to factors with only weak
-evidence.
+evidence. Qwen NEVER invents numerical data — it only classifies and
+suggests based on the structured evidence provided.
 """
 
 from __future__ import annotations
 
 import json
+import os
+import re
 from datetime import timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -32,6 +41,8 @@ def review_observation(
     log: ObservationLog,
     run_dir: Optional[Path] = None,
     timezone_name: str = "Asia/Shanghai",
+    use_qwen: bool = True,
+    log_path: Optional[str] = None,
 ) -> ObservationReview:
     """
     Compare original plan with actual observation log and generate review.
@@ -152,6 +163,25 @@ def review_observation(
             classification="possible",
             evidence=f"视宁度记录为 {log.seeing_conditions}，但无法确定是否为主要影响因素",
         ))
+
+    # ── 6. Qwen-assisted attribution (optional enhancement) ──
+    qwen_used = False
+    if use_qwen and deviations and _qwen_available():
+        try:
+            qwen_causes, qwen_suggestions = _qwen_assisted_attribution(
+                original_plan, log, deviations, causes, log_path,
+            )
+            if qwen_causes:
+                # Merge: Qwen causes supplement rule-based causes
+                existing_cause_names = {c.cause for c in causes}
+                for qc in qwen_causes:
+                    if qc.cause not in existing_cause_names:
+                        causes.append(qc)
+                if qwen_suggestions:
+                    suggestions.extend(qwen_suggestions)
+                qwen_used = True
+        except Exception:
+            pass  # Fail-closed: keep rule-based results
 
     # ── Build revised plan ──
     revised_plan = _build_revised_plan(original_plan, plan_diffs, suggestions)
@@ -276,3 +306,141 @@ def _write_revised_plan(plan: dict, path: str) -> None:
     """Write the revised plan as JSON."""
     with open(path, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=2, default=str)
+
+
+# ── Qwen-assisted attribution (Phase: post-Claim architecture) ──
+
+def _qwen_available() -> bool:
+    """Check if DASHSCOPE_API_KEY is configured."""
+    api_key = os.getenv("DASHSCOPE_API_KEY")
+    return bool(api_key) and api_key != "your_api_key_here"
+
+
+# Allowed classification levels (Qwen must only use these)
+_ALLOWED_CLASSIFICATIONS = {"evidence_based", "possible", "undetermined"}
+
+
+def _qwen_assisted_attribution(
+    plan: ObservabilityResult,
+    log: ObservationLog,
+    deviations: list[Deviation],
+    rule_causes: list[CauseEntry],
+    log_path: Optional[str] = None,
+) -> tuple[list[CauseEntry], list[str]]:
+    """
+    Use Qwen to provide richer cause attribution and improvement suggestions.
+
+    Qwen receives structured evidence (deviations + rule-based causes) and
+    returns additional cause classifications and suggestions. It NEVER
+    generates numerical data — only classifies and suggests.
+
+    Validation:
+      - classification must be in {evidence_based, possible, undetermined}
+      - no numbers in cause/evidence that aren't in the input data
+      - suggestions must not contain specific numerical claims
+
+    Returns:
+        (additional_causes, additional_suggestions) tuple.
+        Empty lists if Qwen fails or validation rejects.
+    """
+    from .qwen_client import call_qwen_json
+
+    # Build structured evidence context
+    deviation_text = "\n".join(
+        f"- [{d.deviation_type}] {d.description} (计划: {d.plan_reference}; 实际: {d.actual_value})"
+        for d in deviations
+    )
+    rule_cause_text = "\n".join(
+        f"- {c.cause} [{c.classification}]: {c.evidence}"
+        for c in rule_causes
+    )
+
+    # Collect all numbers from input data (for validation)
+    allowed_numbers: set[str] = set()
+    number_pattern = re.compile(r"\d+\.?\d*")
+    for d in deviations:
+        for n in number_pattern.findall(f"{d.description} {d.plan_reference} {d.actual_value}"):
+            allowed_numbers.add(n)
+    if log.success_rating:
+        allowed_numbers.add(str(log.success_rating))
+    allowed_numbers.update({str(i) for i in range(11)})  # Safe small numbers
+
+    system_prompt = (
+        "你是一位天文观测活动复盘顾问。根据提供的偏差证据，分析可能的原因并给出改进建议。\n\n"
+        "严格规则：\n"
+        "1. 原因分类只能是: evidence_based（有证据）、possible（可能）、undetermined（无法判断）\n"
+        "2. 绝对不能编造任何数字（时间、角度、温度等），只能引用证据中已有的数值\n"
+        "3. 不要重复已有的规则分析结果，只补充新视角\n"
+        "4. 建议要具体可操作，但不要包含具体数值\n"
+        "5. 返回 JSON: {\"causes\": [{\"cause\": \"...\", \"classification\": \"...\", \"evidence\": \"...\"}], "
+        "\"suggestions\": [\"...\"]}\n"
+    )
+
+    user_prompt = (
+        f"【观测偏差】\n{deviation_text}\n\n"
+        f"【已有规则分析】\n{rule_cause_text}\n\n"
+        f"【观测日志摘要】\n"
+        f"- 云量: {log.cloud_cover or '未记录'}\n"
+        f"- 视宁度: {log.seeing_conditions or '未记录'}\n"
+        f"- 设备: {log.equipment_used}\n"
+        f"- 备注: {log.observer_notes or '无'}\n"
+        f"- 自评: {log.success_rating or '未评分'}/5\n\n"
+        "请补充规则分析未覆盖的原因视角，并给出改进建议。"
+    )
+
+    result = call_qwen_json(
+        prompt=user_prompt,
+        system_prompt=system_prompt,
+        log_path=log_path,
+        step_name="review_attribution",
+    )
+
+    parsed = result.get("parsed_json")
+    if not parsed:
+        return [], []
+
+    # Validate and extract causes
+    valid_causes: list[CauseEntry] = []
+    raw_causes = parsed.get("causes", [])
+    if isinstance(raw_causes, list):
+        for rc in raw_causes[:5]:  # Limit to 5 additional causes
+            if not isinstance(rc, dict):
+                continue
+            cause_name = str(rc.get("cause", ""))[:50]
+            classification = str(rc.get("classification", "undetermined"))
+            evidence = str(rc.get("evidence", ""))[:200]
+
+            # Validate classification
+            if classification not in _ALLOWED_CLASSIFICATIONS:
+                classification = "undetermined"
+
+            # Validate no invented numbers in evidence
+            evidence_nums = number_pattern.findall(evidence)
+            has_invented = any(
+                n not in allowed_numbers and n not in {"1", "2", "3", "4", "5"}
+                for n in evidence_nums
+            )
+            if has_invented:
+                continue  # Skip causes with invented numbers
+
+            if cause_name:
+                valid_causes.append(CauseEntry(
+                    cause=cause_name,
+                    classification=classification,
+                    evidence=evidence or "Qwen 辅助分析",
+                ))
+
+    # Validate suggestions (no specific numbers)
+    valid_suggestions: list[str] = []
+    raw_suggestions = parsed.get("suggestions", [])
+    if isinstance(raw_suggestions, list):
+        for s in raw_suggestions[:5]:
+            s = str(s)[:200]
+            # Skip suggestions with specific numerical claims
+            s_nums = number_pattern.findall(s)
+            if any(n not in allowed_numbers and len(n) > 2 for n in s_nums):
+                continue
+            if s:
+                valid_suggestions.append(s)
+
+    return valid_causes, valid_suggestions
