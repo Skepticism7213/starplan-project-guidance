@@ -40,6 +40,12 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "section": "target",
         "note": "Formal target introduction",
     },
+    "target_name_not_obs_v1": {
+        "template": "本次活动原定目标为 {display_value}",
+        "audience": ["beginner", "general"],
+        "section": "target",
+        "note": "Not-observable branch: past-tense intro, no observation language",
+    },
     "target_type_v1": {
         "template": "它是一个{display_value}",
         "audience": ["beginner", "general"],

@@ -233,7 +233,12 @@ def render_not_observable_fallback(
         if not claim.allowed_variant_ids:
             continue
 
-        variant_id = _pick_variant_for_audience(claim.allowed_variant_ids, audience)
+        # Use not-observable-specific variant for target name to avoid
+        # observation language like "今晚我们要观测的是"
+        if claim_id == "target.standard_name":
+            variant_id = "target_name_not_obs_v1"
+        else:
+            variant_id = _pick_variant_for_audience(claim.allowed_variant_ids, audience)
         if not variant_id:
             continue
         text = render_sentence(variant_id, claim.display_value)
