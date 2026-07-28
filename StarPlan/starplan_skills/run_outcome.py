@@ -53,6 +53,7 @@ class ValidationStatus(str, Enum):
     PASSED_WITH_WARNINGS = "passed_with_warnings"
     BLOCKED = "blocked"
     PENDING = "pending"
+    TARGET_NOT_OBSERVABLE = "target_not_observable"
 
 
 class DeliveryStatus(str, Enum):
@@ -178,12 +179,13 @@ class RunOutcome:
             ValidationStatus.PASSED_WITH_WARNINGS: "passed_with_warnings",
             ValidationStatus.BLOCKED: "blocked",
             ValidationStatus.PENDING: "pending",
+            ValidationStatus.TARGET_NOT_OBSERVABLE: "target_not_observable",
         }
         validation_status = vs_map[self.validation_status]
 
-        # If business is not observable, reflect that
+        # If business is not observable, override to reflect that
         if self.business_status == BusinessStatus.NOT_OBSERVABLE:
-            validation_status = "target_not_observable"
+            validation_status = vs_map[ValidationStatus.TARGET_NOT_OBSERVABLE]
 
         return CalculationManifest(
             schema_version="1.0",

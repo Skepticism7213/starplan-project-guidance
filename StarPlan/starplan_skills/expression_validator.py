@@ -101,6 +101,15 @@ def validate_expression_plan(
     # ── Step 3: Claim ID allowed-set check ──
     seen_claims: dict[str, list[str]] = {}  # claim_id -> [variant_ids]
     for sc in plan.selected_claims:
+        # Check prohibited set first (specific diagnostic)
+        if claims_builder.is_prohibited(sc.claim_id):
+            issues.append(ValidationIssue(
+                step=3, step_name="claim_id_allowed",
+                severity="error",
+                message=f"PROHIBITED claim '{sc.claim_id}' selected — forbidden for this run",
+                claim_id=sc.claim_id,
+            ))
+            continue
         claim = claims_builder.get_claim(sc.claim_id)
         if claim is None:
             issues.append(ValidationIssue(

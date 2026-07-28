@@ -463,11 +463,12 @@ def _write_model_call_log(
 
     # Record NL parse step if applicable
     if nl_parsed:
+        from .qwen_client import DEFAULT_MODEL as _DM
         log_entries.append({
             "timestamp": datetime.now(tz).isoformat(),
             "step": "nl_parse",
             "type": "model_call",
-            "model_used": "Qwen3.7-Max",
+            "model_used": _DM,
             "note": "Natural language input parsed to structured StarPlanInput via Qwen JSON mode",
         })
 
@@ -499,6 +500,7 @@ def _write_model_call_log(
     })
 
     # Record outreach_pack step with actual Qwen usage
+    from .qwen_client import DEFAULT_MODEL as _DEFAULT_MODEL
     qwen_used = outreach.qwen_used if outreach else False
     validation_issues = outreach.qwen_validation_issues if outreach else []
     log_entries.append({
@@ -506,7 +508,7 @@ def _write_model_call_log(
         "step": "outreach_pack",
         "type": "model_assisted" if qwen_used else "deterministic_tool",
         "qwen_used": qwen_used,
-        "model_used": "Qwen3.7-Max" if qwen_used else None,
+        "model_used": _DEFAULT_MODEL if qwen_used else None,
         "validation_issues": validation_issues,
         "note": (
             f"Qwen generated talking points, {len(validation_issues)} validation issues"

@@ -207,7 +207,7 @@ def render_not_observable_fallback(
         claim = claims_builder.get_claim(claim_id)
         if claim is None:
             continue
-        if claim.claim_type in (ClaimType.PROHIBITED,):
+        if claim.claim_type in (ClaimType.PROHIBITED, ClaimType.UNCONFIRMED):
             continue
         if not claim.allowed_variant_ids:
             continue

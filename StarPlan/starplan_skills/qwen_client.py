@@ -461,18 +461,20 @@ def _log_call(
     tz = timezone(timedelta(hours=8))
     content = result.get("content") or ""
 
-    # Compute hashes for evidence chain (never store API key)
-    prompt_hash = hashlib.sha256(prompt_preview.encode("utf-8")).hexdigest()[:16]
-    response_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
+    # Truncate FIRST, then hash the stored text (auditors can recompute)
+    prompt_stored = prompt_preview[:300]
+    content_stored = content[:300]
+    prompt_hash = hashlib.sha256(prompt_stored.encode("utf-8")).hexdigest()[:16]
+    response_hash = hashlib.sha256(content_stored.encode("utf-8")).hexdigest()[:16]
 
     entry = {
         "timestamp": datetime.now(tz).isoformat(),
         "step": step_name,
         "type": "model_call",
         "model": model,
-        "prompt_preview": prompt_preview[:300],
+        "prompt_preview": prompt_stored,
         "prompt_hash": prompt_hash,
-        "content_preview": content[:300],
+        "content_preview": content_stored,
         "response_hash": response_hash,
         "finish_reason": result.get("finish_reason", "unknown"),
         "has_tool_calls": result.get("tool_calls") is not None,

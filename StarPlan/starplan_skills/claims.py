@@ -130,6 +130,17 @@ class AllowedClaimsBuilder:
                 return c
         return None
 
+    def get_prohibited_claim(self, claim_id: str) -> Optional[Claim]:
+        """Look up a prohibited claim by ID (for validator step 6)."""
+        for c in self._prohibited:
+            if c.claim_id == claim_id:
+                return c
+        return None
+
+    def is_prohibited(self, claim_id: str) -> bool:
+        """Check if a claim_id is in the prohibited set."""
+        return any(c.claim_id == claim_id for c in self._prohibited)
+
     def _compute_registry_hash(self) -> str:
         """Compute a sha256 hash over all claims for tamper detection."""
         content = json.dumps(
@@ -486,7 +497,7 @@ class AllowedClaimsBuilder:
             validity_scope=self._scope,
             source_refs=["target_resolve.visual_magnitude", "input.equipment"],
             derivation_rule=f"equipment.match@{rule_ver}",
-            allowed_variant_ids=["equipment_match_v1", "equipment_mismatch_v1"],
+            allowed_variant_ids=["equipment_match_v1"] if matched else ["equipment_mismatch_v1"],
         ))
 
     # ── Moon claims ──

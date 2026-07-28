@@ -67,22 +67,7 @@ def generate_outreach_pack(
     Returns:
         OutreachPack with schedule, talking points, checklist, etc.
     """
-    # C-3 fix: If target is NOT observable, generate a cancellation/alternative
-    # pack instead of an observation activity pack.
-    if not obs_result.is_observable:
-        return _generate_not_observable_pack(
-            target=target,
-            obs_result=obs_result,
-            audience=audience,
-            equipment=equipment,
-            goal=goal,
-            run_dir=run_dir,
-        )
-
-    # Build fact cards from target + obs_result
-    fact_cards = _build_fact_cards(target, obs_result)
-
-    # Phase B: Build Claim Registry (runs alongside FactCards during transition)
+    # Phase B: Build Claim Registry FIRST (both observable and not-observable use it)
     claims_builder = AllowedClaimsBuilder(
         target=target,
         obs_result=obs_result,
@@ -93,6 +78,22 @@ def generate_outreach_pack(
     claims_builder.build()
     if run_dir:
         claims_builder.save(run_dir)
+
+    # C-3 fix: If target is NOT observable, generate a cancellation/alternative
+    # pack instead of an observation activity pack.
+    if not obs_result.is_observable:
+        return _generate_not_observable_pack(
+            target=target,
+            obs_result=obs_result,
+            audience=audience,
+            equipment=equipment,
+            goal=goal,
+            run_dir=run_dir,
+            claims_builder=claims_builder,
+        )
+
+    # Build fact cards from target + obs_result (legacy, kept for backward compat)
+    fact_cards = _build_fact_cards(target, obs_result)
 
     # Generate activity schedule based on recommended window
     schedule = _build_schedule(obs_result, audience)
@@ -215,6 +216,11 @@ def generate_outreach_pack(
             equipment_checklist, safety_notes, manual_check_items,
             unconfirmed_items, audience, md_path, qwen_used=qwen_used,
         )
+        # Persist sentence→claim provenance map for audit
+        if sentence_claim_map:
+            import json as _json
+            with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
+                _json.dump(sentence_claim_map, f, ensure_ascii=False, indent=2)
 
     return OutreachPack(
         target_name=target.standard_name,
@@ -238,6 +244,7 @@ def _generate_not_observable_pack(
     equipment: str,
     goal: str,
     run_dir: Optional[Path] = None,
+    claims_builder: Optional[AllowedClaimsBuilder] = None,
 ) -> OutreachPack:
     """
     C-3 fix: Generate a cancellation/reschedule/alternative pack when the
@@ -247,8 +254,15 @@ def _generate_not_observable_pack(
     context about the target, and suggests alternatives — instead of generating
     an observation activity pack that contradicts the observability result.
     """
-    # Build talking points explaining the situation
-    talking_points = _build_not_observable_talking_points(target, obs_result, audience)
+    # Phase C: Use Claim-based rendering for the core talking points
+    if claims_builder is not None:
+        render_result = render_not_observable_fallback(claims_builder, audience)
+        talking_points = render_result.talking_points
+    else:
+        talking_points = []
+
+    # Supplement with contextual explanation (non-numerical, safe)
+    talking_points.extend(_build_not_observable_talking_points(target, obs_result, audience))
 
     # Build alternative suggestions list
     alt_suggestions = [s.description for s in obs_result.alternative_suggestions]
