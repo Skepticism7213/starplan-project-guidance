@@ -208,6 +208,7 @@ def run_starplan(
             log=log,
             run_dir=run_dir,
             timezone_name=location.get("timezone", "Asia/Shanghai"),
+            log_path=str(run_dir / "model_call_log.jsonl"),
         )
         print(f"  [OK] Deviations found: {len(review.deviation_summary)}")
         print(f"  [OK] Review report: {review.review_report_md_path}")
@@ -217,23 +218,61 @@ def run_starplan(
     # ── Generate model call log ──
     _write_model_call_log(run_dir, starplan_input, resolved, obs_result, outreach=outreach)
 
-    # ── Generate validation report (before manifest so files list is complete) ──
-    # C-5 fix: write validation report first, then manifest captures all files
+    # ── C-5 fix: RunOutcome as single source of truth ──
+    from .run_outcome import RunOutcome, ValidationStatus, DeliveryStatus
+
+    outcome = RunOutcome(
+        run_id=run_id,
+        target=resolved,
+        obs_result=obs_result,
+        location=location,
+        input_data=input_data,
+        state_log=state_log,
+    )
+    # Set delivery status from actual outreach generation
+    if outreach.qwen_used:
+        outcome.set_delivery(DeliveryStatus.QWEN_EXPRESSION_PLAN, qwen_used=True)
+        # Record model call event so manifest derives called=True from evidence
+        outcome.add_model_call_event({
+            "type": "model_call",
+            "step": "outreach_pack",
+            "model": "qwen3.7-max",
+        })
+    else:
+        outcome.set_delivery(DeliveryStatus.TEMPLATE, qwen_used=False)
+    # Set validation status
+    if outreach.qwen_validation_issues:
+        outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, outreach.qwen_validation_issues)
+    else:
+        outcome.set_validation(ValidationStatus.PASSED)
+    # Record claims hash if available
+    claims_path = run_dir / "claims.json"
+    if claims_path.exists():
+        import hashlib as _hl
+        outcome.claims_registry_hash = _hl.sha256(claims_path.read_bytes()).hexdigest()[:16]
+
+    # Build manifest from RunOutcome (not from scattered _build_manifest)
+    manifest = outcome.build_manifest(run_dir, starplan_input=starplan_input)
+
+    # Write validation report
     _write_validation_report(run_dir, resolved, obs_result, None)
 
-    # ── Save calculation manifest (C-5 fix: evidence-accurate) ──
-    manifest = _build_manifest(
-        run_id=run_id,
-        input_data=input_data,
-        resolved=resolved,
-        location=location,
-        obs_result=obs_result,
-        run_dir=run_dir,
-        outreach=outreach,
-        starplan_input=starplan_input,
-    )
+    # Write manifest
     with open(run_dir / "calculation_manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest.model_dump(), f, ensure_ascii=False, indent=2, default=str)
+
+    # Write run_outcome.json (audit summary)
+    with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
+        json.dump(outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
+
+    # Compute file hashes for key outputs
+    for fname in ["plan.json", "claims.json", "outreach_pack.md", "calculation_manifest.json"]:
+        fpath = run_dir / fname
+        if fpath.exists():
+            outcome.compute_file_hash(fpath)
+    # Re-write run_outcome with hashes
+    with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
+        json.dump(outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
 
     print(f"\n[OK] Run complete: {run_dir}")
     print(f"  Files: {len(list(run_dir.iterdir()))} in {run_dir}")
@@ -772,32 +811,29 @@ def run_starplan_chat(
     # Guardrail 3b: detect if Qwen guessed coordinates instead of using resolve_location
     coord_warning = _check_coordinate_source(captured)
 
+    # C-4 + C-2 fix: FAIL CLOSED BY DESIGN — Qwen free text is NEVER the
+    # final user output. Always render from deterministic tool results.
+    # This closes the pure-text hallucination gap (false claims without numbers
+    # like "肉眼清晰可见" would pass the number-only regex check).
+    # The Qwen text is preserved in blocked_content for audit only.
+    blocked_content = final_content
+    final_content = _build_deterministic_summary(captured)
+    hallucination_blocked = True  # Always: free text never reaches user
+
     verification = {
         "untraceable_numbers": untraceable,
         "coordinate_warning": coord_warning,
         "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
         "passed": (not untraceable) and (not coord_warning),
+        "delivery": "deterministic_render",
+        "note": "Qwen free text is never delivered; deterministic summary used by design",
     }
 
     if untraceable:
-        print(f"  [!] 幻觉核查：发现 {len(untraceable)} 个无法溯源到工具输出的数值: {untraceable[:10]}")
-    else:
-        print(f"  [OK] 幻觉核查：最终总结中的数值均可溯源到工具输出")
+        print(f"  [!] 幻觉核查：Qwen 文本含 {len(untraceable)} 个不可溯源数值（已阻断）")
     if coord_warning:
         print(f"  [!] {coord_warning}")
-    else:
-        print(f"  [OK] 坐标来源核查：经纬度来自 resolve_location 工具")
-
-    # C-4 fix: FAIL CLOSED — if hallucination check fails, do NOT return
-    # Qwen's free-text summary. Replace with deterministic rendering from
-    # tool results. The blocked content is preserved for audit only.
-    hallucination_blocked = not verification["passed"]
-    blocked_content = None
-    if hallucination_blocked:
-        blocked_content = final_content
-        final_content = _build_deterministic_summary(captured)
-        print(f"  [BLOCKED] Qwen 自由文本含不可溯源数值，已替换为确定性渲染摘要")
-        print(f"  [BLOCKED] 原始 Qwen 回答 ({len(blocked_content)} chars) 保存在 blocked_content 字段供审计")
+    print(f"  [OK] 最终输出使用确定性渲染（Qwen 原文 {len(blocked_content)} chars 仅供审计）")
 
     # Save conversation log + verification
     with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:

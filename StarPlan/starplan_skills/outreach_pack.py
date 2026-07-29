@@ -217,10 +217,23 @@ def generate_outreach_pack(
             unconfirmed_items, audience, md_path, qwen_used=qwen_used,
         )
         # Persist sentence→claim provenance map for audit
-        if sentence_claim_map:
-            import json as _json
+        # C-1 fix: cover ALL user-visible items, not just talking points.
+        # Schedule/equipment/safety/manual-check are procedural (non-fact)
+        # and tagged as such so coverage is honest and complete.
+        import json as _json
+        full_trace: dict = dict(sentence_claim_map) if sentence_claim_map else {}
+        for item in schedule:
+            label = f"[流程] {item.time_label}: {item.activity}"
+            full_trace[label] = ["procedural.schedule"]
+        for eq in equipment_checklist:
+            full_trace[f"[设备] {eq.item}"] = ["procedural.equipment"]
+        for sn in safety_notes:
+            full_trace[f"[安全] {sn}"] = ["procedural.safety"]
+        for mc in manual_check_items:
+            full_trace[f"[核对] {mc}"] = ["procedural.manual_check"]
+        if full_trace:
             with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
-                _json.dump(sentence_claim_map, f, ensure_ascii=False, indent=2)
+                _json.dump(full_trace, f, ensure_ascii=False, indent=2)
 
     return OutreachPack(
         target_name=target.standard_name,
@@ -308,28 +321,62 @@ def _build_not_observable_talking_points(
     obs: ObservabilityResult,
     audience: str,
 ) -> list[str]:
-    """Build talking points for a not-observable target (educational, not observational)."""
+    """Build talking points for a not-observable target.
+
+    Blocking reasons are derived from the actual eliminated_windows and
+    risk_flags produced by the deterministic computation — never guessed
+    from target type or season.
+    """
     points: list[str] = []
 
-    # Explain why not observable
-    points.append(
-        f"{target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测条件"
-        f"（最高高度角过低），本次观测活动取消或改期"
-    )
+    # ── Derive structured blocking reasons from computation output ──
+    constraint_set: set[str] = set()
+    reason_details: list[str] = []
+    for ew in obs.eliminated_windows:
+        if ew.violated_constraint and ew.violated_constraint not in constraint_set:
+            constraint_set.add(ew.violated_constraint)
+            reason_details.append(ew.reason)
 
-    # Educational content about the target (still useful for the audience)
-    if target.target_type == "deep_sky":
-        if target.constellation:
-            points.append(f"{target.standard_name} 位于 {target.constellation} 星座方向")
-        if target.visual_magnitude is not None:
-            points.append(f"它的视星等约为 {target.visual_magnitude:.1f}，属于深空天体")
-        points.append("该目标在当前季节处于太阳方向附近/地平线以下，无法在夜间观测")
-    elif target.target_type == "star":
-        if target.constellation:
-            points.append(f"{target.standard_name} 是 {target.constellation} 座的恒星")
-        points.append("该恒星在当前季节的夜间不可见")
+    # Build the primary "why not observable" sentence from actual constraints
+    if constraint_set:
+        constraint_labels = {
+            "min_altitude": "目标高度角低于最低要求",
+            "max_airmass": "大气质量超过允许上限",
+            "moon_illumination": "月光照明超过设定上限",
+            "moon_separation": "月球与目标角距过近",
+        }
+        reasons_text = "；".join(
+            constraint_labels.get(c, c) for c in sorted(constraint_set)
+        )
+        points.append(
+            f"{target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测条件"
+            f"（{reasons_text}），本次观测活动取消或改期"
+        )
+        # Include one concrete detail from the first eliminated window
+        if reason_details:
+            points.append(f"具体约束: {reason_details[0]}")
+    else:
+        # Fallback: no eliminated windows recorded (shouldn't happen normally)
+        max_alt = max((h.altitude_deg for h in obs.hourly_data), default=None)
+        if max_alt is not None and max_alt < 0:
+            points.append(
+                f"{target.standard_name} 在 {obs.date_range[0]} 当晚位于地平线以下"
+                f"（最高 {max_alt:.1f}°），无法观测"
+            )
+        else:
+            points.append(
+                f"{target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测约束，"
+                f"本次观测活动取消或改期"
+            )
 
-    # Alternative suggestions
+    # ── Educational context (identity only, no causal guessing) ──
+    if target.constellation:
+        points.append(f"{target.standard_name} 位于 {target.constellation} 星座方向")
+    if target.visual_magnitude is not None:
+        type_label = "深空天体" if target.target_type == "deep_sky" else "恒星"
+        points.append(f"它的视星等约为 {target.visual_magnitude:.1f}，属于{type_label}")
+
+    # ── Alternative suggestions ──
     if obs.alternative_suggestions:
         alt_names = [
             s.target_name for s in obs.alternative_suggestions
@@ -337,9 +384,9 @@ def _build_not_observable_talking_points(
         ]
         if alt_names:
             points.append(f"当季更适合观测的替代目标：{'、'.join(alt_names)}")
-        points.append("建议将活动改期到目标进入最佳观测季节时再举行")
+        points.append("建议将活动改期到约束条件满足时再举行")
 
-    # Audience-specific note
+    # ── Audience-specific note ──
     if "新成员" in audience or "新手" in audience:
         points.append("可以利用本次集会时间进行室内天文知识讲座或星图认读练习")
 
@@ -392,7 +439,22 @@ def _write_not_observable_markdown(
 
     lines.append("## 不可观测原因")
     lines.append("")
-    lines.append(f"- {target.standard_name} 在 {obs.date_range[0]} 当晚最高高度角过低，不满足最低观测条件")
+    # Derive reason from actual eliminated windows (not hardcoded)
+    constraint_set: set = set()
+    for ew in obs.eliminated_windows:
+        if ew.violated_constraint:
+            constraint_set.add(ew.violated_constraint)
+    constraint_labels = {
+        "min_altitude": "目标高度角低于最低要求",
+        "max_airmass": "大气质量超过允许上限",
+        "moon_illumination": "月光照明超过设定上限",
+        "moon_separation": "月球与目标角距过近",
+    }
+    if constraint_set:
+        reasons_text = "；".join(constraint_labels.get(c, c) for c in sorted(constraint_set))
+        lines.append(f"- {target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测条件（{reasons_text}）")
+    else:
+        lines.append(f"- {target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测约束")
     if obs.risk_flags:
         for rf in obs.risk_flags:
             lines.append(f"- 风险: {rf.description}")
