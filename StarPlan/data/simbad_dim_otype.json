@@ -1,0 +1,902 @@
+[
+  {
+    "standard_name": "M1",
+    "dim_maj_arcsec": 360.0,
+    "dim_min_arcsec": 240.0,
+    "otype": "SNR"
+  },
+  {
+    "standard_name": "M2",
+    "dim_maj_arcsec": 774.0,
+    "dim_min_arcsec": 774.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M3",
+    "dim_maj_arcsec": 972.0,
+    "dim_min_arcsec": 972.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M4",
+    "dim_maj_arcsec": 1578.0,
+    "dim_min_arcsec": 1578.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M5",
+    "dim_maj_arcsec": 1044.0,
+    "dim_min_arcsec": 1044.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M6",
+    "dim_maj_arcsec": 1500.0,
+    "dim_min_arcsec": 1500.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M7",
+    "dim_maj_arcsec": 4800.0,
+    "dim_min_arcsec": 4800.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M8",
+    "dim_maj_arcsec": 5400.0,
+    "dim_min_arcsec": 2400.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M9",
+    "dim_maj_arcsec": 558.0,
+    "dim_min_arcsec": 558.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M10",
+    "dim_maj_arcsec": 906.0,
+    "dim_min_arcsec": 906.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M11",
+    "dim_maj_arcsec": 846.0,
+    "dim_min_arcsec": 846.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M12",
+    "dim_maj_arcsec": 870.0,
+    "dim_min_arcsec": 870.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M13",
+    "dim_maj_arcsec": 996.0000000000001,
+    "dim_min_arcsec": 996.0000000000001,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M14",
+    "dim_maj_arcsec": 702.0,
+    "dim_min_arcsec": 702.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M15",
+    "dim_maj_arcsec": 738.0,
+    "dim_min_arcsec": 738.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M16",
+    "dim_maj_arcsec": 420.0,
+    "dim_min_arcsec": 420.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M17",
+    "dim_maj_arcsec": 660.0,
+    "dim_min_arcsec": 660.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M18",
+    "dim_maj_arcsec": 540.0,
+    "dim_min_arcsec": 540.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M19",
+    "dim_maj_arcsec": 810.0,
+    "dim_min_arcsec": 810.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M20",
+    "dim_maj_arcsec": 1680.0,
+    "dim_min_arcsec": 1680.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M21",
+    "dim_maj_arcsec": 876.0,
+    "dim_min_arcsec": 876.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M22",
+    "dim_maj_arcsec": 1440.0,
+    "dim_min_arcsec": 1440.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M23",
+    "dim_maj_arcsec": 1620.0,
+    "dim_min_arcsec": 1620.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M24",
+    "dim_maj_arcsec": 5700.0,
+    "dim_min_arcsec": 5700.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M25",
+    "dim_maj_arcsec": 1920.0,
+    "dim_min_arcsec": 1920.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M26",
+    "dim_maj_arcsec": 912.0,
+    "dim_min_arcsec": 912.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M27",
+    "dim_maj_arcsec": 480.0,
+    "dim_min_arcsec": 342.0,
+    "otype": "PN"
+  },
+  {
+    "standard_name": "M28",
+    "dim_maj_arcsec": 672.0,
+    "dim_min_arcsec": 672.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M29",
+    "dim_maj_arcsec": 420.0,
+    "dim_min_arcsec": 420.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M30",
+    "dim_maj_arcsec": 528.0,
+    "dim_min_arcsec": 528.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M31",
+    "dim_maj_arcsec": 10680.0,
+    "dim_min_arcsec": 3780.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M32",
+    "dim_maj_arcsec": 522.0,
+    "dim_min_arcsec": 390.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M33",
+    "dim_maj_arcsec": 4122.0,
+    "dim_min_arcsec": 2496.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M34",
+    "dim_maj_arcsec": 2100.0,
+    "dim_min_arcsec": 2100.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M35",
+    "dim_maj_arcsec": 1680.0,
+    "dim_min_arcsec": 1680.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M36",
+    "dim_maj_arcsec": 732.0,
+    "dim_min_arcsec": 732.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M37",
+    "dim_maj_arcsec": 1392.0,
+    "dim_min_arcsec": 1392.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M38",
+    "dim_maj_arcsec": 1260.0,
+    "dim_min_arcsec": 1260.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M39",
+    "dim_maj_arcsec": 1920.0,
+    "dim_min_arcsec": 1920.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M40",
+    "dim_maj_arcsec": 54.0,
+    "dim_min_arcsec": 54.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M41",
+    "dim_maj_arcsec": 2280.0,
+    "dim_min_arcsec": 2280.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M42",
+    "dim_maj_arcsec": 5100.0,
+    "dim_min_arcsec": 3600.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M43",
+    "dim_maj_arcsec": 1200.0,
+    "dim_min_arcsec": 900.0,
+    "otype": "HII"
+  },
+  {
+    "standard_name": "M44",
+    "dim_maj_arcsec": 5700.0,
+    "dim_min_arcsec": 5700.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M45",
+    "dim_maj_arcsec": 6600.0,
+    "dim_min_arcsec": 6600.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M46",
+    "dim_maj_arcsec": 1620.0,
+    "dim_min_arcsec": 1620.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M47",
+    "dim_maj_arcsec": 1800.0,
+    "dim_min_arcsec": 1800.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M48",
+    "dim_maj_arcsec": 3240.0,
+    "dim_min_arcsec": 3240.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M49",
+    "dim_maj_arcsec": 534.0,
+    "dim_min_arcsec": 444.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M50",
+    "dim_maj_arcsec": 1068.0,
+    "dim_min_arcsec": 1068.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M51",
+    "dim_maj_arcsec": 672.0,
+    "dim_min_arcsec": 414.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M52",
+    "dim_maj_arcsec": 828.0,
+    "dim_min_arcsec": 828.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M53",
+    "dim_maj_arcsec": 774.0,
+    "dim_min_arcsec": 774.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M54",
+    "dim_maj_arcsec": 546.0,
+    "dim_min_arcsec": 546.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M55",
+    "dim_maj_arcsec": 1140.0,
+    "dim_min_arcsec": 1140.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M56",
+    "dim_maj_arcsec": 528.0,
+    "dim_min_arcsec": 528.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M57",
+    "dim_maj_arcsec": 84.0,
+    "dim_min_arcsec": 60.0,
+    "otype": "PN"
+  },
+  {
+    "standard_name": "M58",
+    "dim_maj_arcsec": 354.0,
+    "dim_min_arcsec": 282.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M59",
+    "dim_maj_arcsec": 312.0,
+    "dim_min_arcsec": 216.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M60",
+    "dim_maj_arcsec": 444.0,
+    "dim_min_arcsec": 372.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M61",
+    "dim_maj_arcsec": 390.0,
+    "dim_min_arcsec": 366.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M62",
+    "dim_maj_arcsec": 846.0,
+    "dim_min_arcsec": 846.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M63",
+    "dim_maj_arcsec": 756.0,
+    "dim_min_arcsec": 450.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M64",
+    "dim_maj_arcsec": 612.0,
+    "dim_min_arcsec": 324.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M65",
+    "dim_maj_arcsec": 630.0,
+    "dim_min_arcsec": 204.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M66",
+    "dim_maj_arcsec": 546.0,
+    "dim_min_arcsec": 252.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M67",
+    "dim_maj_arcsec": 1800.0,
+    "dim_min_arcsec": 1800.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M68",
+    "dim_maj_arcsec": 690.0,
+    "dim_min_arcsec": 690.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M69",
+    "dim_maj_arcsec": 588.0,
+    "dim_min_arcsec": 588.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M70",
+    "dim_maj_arcsec": 576.0,
+    "dim_min_arcsec": 576.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M71",
+    "dim_maj_arcsec": 432.0,
+    "dim_min_arcsec": 432.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M72",
+    "dim_maj_arcsec": 396.0,
+    "dim_min_arcsec": 396.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M73",
+    "dim_maj_arcsec": 168.0,
+    "dim_min_arcsec": 168.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M74",
+    "dim_maj_arcsec": 630.0,
+    "dim_min_arcsec": 570.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M75",
+    "dim_maj_arcsec": 408.0,
+    "dim_min_arcsec": 408.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M76",
+    "dim_maj_arcsec": 162.0,
+    "dim_min_arcsec": 108.0,
+    "otype": "PN"
+  },
+  {
+    "standard_name": "M77",
+    "dim_maj_arcsec": 426.0,
+    "dim_min_arcsec": 354.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M78",
+    "dim_maj_arcsec": 480.0,
+    "dim_min_arcsec": 360.0,
+    "otype": "RfN"
+  },
+  {
+    "standard_name": "M79",
+    "dim_maj_arcsec": 576.0,
+    "dim_min_arcsec": 576.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M80",
+    "dim_maj_arcsec": 600.0,
+    "dim_min_arcsec": 600.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M81",
+    "dim_maj_arcsec": 1494.0,
+    "dim_min_arcsec": 690.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M82",
+    "dim_maj_arcsec": 672.0,
+    "dim_min_arcsec": 258.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M83",
+    "dim_maj_arcsec": 774.0,
+    "dim_min_arcsec": 690.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M84",
+    "dim_maj_arcsec": 390.0,
+    "dim_min_arcsec": 336.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M85",
+    "dim_maj_arcsec": 426.0,
+    "dim_min_arcsec": 330.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M86",
+    "dim_maj_arcsec": 534.0,
+    "dim_min_arcsec": 348.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M87",
+    "dim_maj_arcsec": 498.00000000000006,
+    "dim_min_arcsec": 396.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M88",
+    "dim_maj_arcsec": 414.0,
+    "dim_min_arcsec": 222.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M89",
+    "dim_maj_arcsec": 300.0,
+    "dim_min_arcsec": 282.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M90",
+    "dim_maj_arcsec": 570.0,
+    "dim_min_arcsec": 270.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M91",
+    "dim_maj_arcsec": 324.0,
+    "dim_min_arcsec": 258.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M92",
+    "dim_maj_arcsec": 672.0,
+    "dim_min_arcsec": 672.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M93",
+    "dim_maj_arcsec": 1320.0,
+    "dim_min_arcsec": 1320.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M94",
+    "dim_maj_arcsec": 672.0,
+    "dim_min_arcsec": 546.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M95",
+    "dim_maj_arcsec": 444.0,
+    "dim_min_arcsec": 300.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M96",
+    "dim_maj_arcsec": 456.0,
+    "dim_min_arcsec": 312.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M97",
+    "dim_maj_arcsec": 204.0,
+    "dim_min_arcsec": 198.0,
+    "otype": "PN"
+  },
+  {
+    "standard_name": "M98",
+    "dim_maj_arcsec": 570.0,
+    "dim_min_arcsec": 162.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M99",
+    "dim_maj_arcsec": 324.0,
+    "dim_min_arcsec": 318.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M100",
+    "dim_maj_arcsec": 444.0,
+    "dim_min_arcsec": 378.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M101",
+    "dim_maj_arcsec": 1728.0,
+    "dim_min_arcsec": 1614.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M102",
+    "dim_maj_arcsec": 396.0,
+    "dim_min_arcsec": 186.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M103",
+    "dim_maj_arcsec": 360.0,
+    "dim_min_arcsec": 360.0,
+    "otype": "OpC"
+  },
+  {
+    "standard_name": "M104",
+    "dim_maj_arcsec": 522.0,
+    "dim_min_arcsec": 210.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M105",
+    "dim_maj_arcsec": 324.0,
+    "dim_min_arcsec": 276.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M106",
+    "dim_maj_arcsec": 1116.0,
+    "dim_min_arcsec": 468.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M107",
+    "dim_maj_arcsec": 768.0,
+    "dim_min_arcsec": 768.0,
+    "otype": "GlC"
+  },
+  {
+    "standard_name": "M108",
+    "dim_maj_arcsec": 522.0,
+    "dim_min_arcsec": 132.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M109",
+    "dim_maj_arcsec": 456.0,
+    "dim_min_arcsec": 282.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "M110",
+    "dim_maj_arcsec": 1314.0,
+    "dim_min_arcsec": 654.0,
+    "otype": "G"
+  },
+  {
+    "standard_name": "Sirius",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Canopus",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alpha Centauri",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Arcturus",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Vega",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Capella",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Rigel",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Procyon",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Achernar",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Betelgeuse",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Altair",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Aldebaran",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Spica",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Antares",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Pollux",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Fomalhaut",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Deneb",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Regulus",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Castor",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Bellatrix",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alnilam",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alnitak",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alioth",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Dubhe",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alkaid",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Polaris",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Hamal",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Saiph",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Mizar",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Mirach",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Alpheratz",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Algol",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Mintaka",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Denebola",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Merak",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Scheat",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Phecda",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Markab",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Megrez",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  },
+  {
+    "standard_name": "Albireo",
+    "dim_maj_arcsec": null,
+    "dim_min_arcsec": null,
+    "otype": "V*"
+  }
+]

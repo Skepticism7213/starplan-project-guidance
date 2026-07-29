@@ -143,7 +143,8 @@ class TestPipelineMoonSeparation:
     """Verify compute_observability outputs correct moon separation."""
 
     @pytest.fixture(scope="class")
-    def pipeline_result(self):
+    @classmethod
+    def pipeline_result(cls):
         """Run the full observability pipeline for M31 at 四门塔 on 2026-10-17."""
         from starplan_skills.observability_plan import compute_observability
 

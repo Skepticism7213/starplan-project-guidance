@@ -17,9 +17,9 @@ import traceback
 from pathlib import Path
 from datetime import datetime
 
-# Fix Windows console encoding
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+# P2-3 fix: removed global stdout/stderr replacement (sys.stdout = io.TextIOWrapper...)
+# It broke pytest's capture mechanism. Console output uses errors='replace' via
+# PYTHONIOENCODING or the JSON results file for reliable output.
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 

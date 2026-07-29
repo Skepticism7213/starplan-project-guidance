@@ -206,7 +206,10 @@ def check_coordinates(catalog, simbad_map, round_num):
         # On odd rounds: check RA/Dec precision (should have >= 2 decimal places)
         # Note: some objects genuinely sit at exact sexagesimal boundaries
         # (e.g. M24 RA=274.2 = exactly 18h16m48s), so we require >= 2 not >= 3.
-        if round_num % 2 == 1:
+        # P2-2 fix: allowlist for targets at exact sexagesimal boundaries —
+        # their coordinates ARE the exact conversion and cannot gain precision.
+        EXACT_SEXAGESIMAL_BOUNDARY = {"M24", "M52"}
+        if round_num % 2 == 1 and name not in EXACT_SEXAGESIMAL_BOUNDARY:
             ra_str = str(ra)
             dec_str = str(dec)
             if "." in ra_str and len(ra_str.split(".")[1]) < 2:
