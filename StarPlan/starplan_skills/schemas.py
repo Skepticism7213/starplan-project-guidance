@@ -126,8 +126,17 @@ class SelectedClaim(BaseModel):
     the approved variant template.
     """
 
+    # P1-3: reject unknown fields (e.g. injected free_fact) instead of silent discard
+    model_config = ConfigDict(extra="forbid")
+
     claim_id: str = Field(description="Must exist in this run's Claim Registry")
     sentence_variant_id: str = Field(description="Must be in the claim's allowed_variant_ids")
+
+
+# P1-3: approved vocabularies for ExpressionPlan fields
+_VALID_SECTIONS = {"target", "observability", "risk", "actions"}
+_VALID_TONES = {"beginner_friendly", "general", "formal", "enthusiastic"}
+_VALID_CONNECTORS = {"then_v1", "also_v1", "however_v1", "therefore_v1"}
 
 
 class ExpressionPlan(BaseModel):
@@ -137,6 +146,9 @@ class ExpressionPlan(BaseModel):
     no factual content itself; all facts come from the referenced Claims.
     """
 
+    # P1-3: reject unknown fields instead of silent discard
+    model_config = ConfigDict(extra="forbid")
+
     schema_version: str = "1.0"
     selected_claims: list[SelectedClaim] = Field(default_factory=list)
     section_order: list[str] = Field(
@@ -145,6 +157,35 @@ class ExpressionPlan(BaseModel):
     )
     tone: Optional[str] = Field(default=None, description="e.g. 'beginner_friendly'")
     connector_ids: list[str] = Field(default_factory=list, description="Approved connector IDs, e.g. ['then_v1']")
+
+    @field_validator("section_order")
+    @classmethod
+    def validate_section_order(cls, v: list[str]) -> list[str]:
+        for s in v:
+            if s not in _VALID_SECTIONS:
+                raise ValueError(
+                    f"Unknown section '{s}'; must be one of {sorted(_VALID_SECTIONS)}"
+                )
+        return v
+
+    @field_validator("tone")
+    @classmethod
+    def validate_tone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v not in _VALID_TONES:
+            raise ValueError(
+                f"Unknown tone '{v}'; must be one of {sorted(_VALID_TONES)}"
+            )
+        return v
+
+    @field_validator("connector_ids")
+    @classmethod
+    def validate_connector_ids(cls, v: list[str]) -> list[str]:
+        for c in v:
+            if c not in _VALID_CONNECTORS:
+                raise ValueError(
+                    f"Unknown connector '{c}'; must be one of {sorted(_VALID_CONNECTORS)}"
+                )
+        return v
 
 
 # Frozen numeric display rules (architecture §5.3). Each numeric quantity has a

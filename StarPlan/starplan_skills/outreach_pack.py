@@ -74,6 +74,7 @@ def generate_outreach_pack(
         location_id=obs_result.location_name,
         audience=audience,
         equipment=equipment,
+        timezone_name=getattr(obs_result, '_timezone_name', None) or "Asia/Shanghai",
     )
     claims_builder.build()
     if run_dir:

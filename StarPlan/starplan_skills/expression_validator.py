@@ -224,9 +224,30 @@ def validate_expression_plan(
                 ))
 
     # ── Step 8: Source hash integrity ──
-    # Verify that observed_fact claims have a valid source_hash.
-    # observed_fact claims MUST trace to a deterministic source; a missing
-    # hash means the claim was built without proper provenance tracking.
+    # P1-2 fix: Recompute hashes from source data, not just check length.
+    # Any mismatch means data was tampered with after claim construction.
+    registry_hash_valid = True
+    if hasattr(claims_builder, 'registry_hash') and claims_builder.registry_hash:
+        # Recompute registry hash from current claims
+        import hashlib
+        import json as _json
+        claims_data = _json.dumps(
+            [c.model_dump(mode="json") for c in claims_builder.claims],
+            sort_keys=True, ensure_ascii=False, default=str,
+        )
+        recomputed = hashlib.sha256(claims_data.encode()).hexdigest()[:16]
+        if recomputed != claims_builder.registry_hash:
+            registry_hash_valid = False
+            issues.append(ValidationIssue(
+                step=8, step_name="source_hash",
+                severity="error",
+                message=(
+                    f"Registry hash mismatch: stored={claims_builder.registry_hash}, "
+                    f"recomputed={recomputed}. Claims may have been tampered with."
+                ),
+                claim_id=None,
+            ))
+
     for sc in plan.selected_claims:
         claim = claims_builder.get_claim(sc.claim_id)
         if claim is None:
@@ -243,12 +264,22 @@ def validate_expression_plan(
                     claim_id=sc.claim_id,
                 ))
             elif len(claim.source_hash) != 16:
-                warnings.append(ValidationIssue(
+                issues.append(ValidationIssue(
                     step=8, step_name="source_hash",
-                    severity="warning",
+                    severity="error",
                     message=(
-                        f"Claim '{sc.claim_id}' source_hash has unexpected length "
-                        f"{len(claim.source_hash)} (expected 16)"
+                        f"Claim '{sc.claim_id}' source_hash has invalid length "
+                        f"{len(claim.source_hash)} (expected 16 hex chars)"
+                    ),
+                    claim_id=sc.claim_id,
+                ))
+            elif claim.source_hash == "0" * 16:
+                issues.append(ValidationIssue(
+                    step=8, step_name="source_hash",
+                    severity="error",
+                    message=(
+                        f"Claim '{sc.claim_id}' has placeholder hash (all zeros) — "
+                        f"source data was not properly hashed"
                     ),
                     claim_id=sc.claim_id,
                 ))

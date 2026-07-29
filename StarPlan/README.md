@@ -47,11 +47,13 @@ python scripts/run_case.py examples/case_03_observation_review.json
 |---|---|
 | `input.json` | 原始输入 |
 | `resolved_target.json` | 目标解析结果（坐标、类型、来源） |
-| `calculation_manifest.json` | 计算证据清单（工具版本、约束、中间文件） |
 | `observability.csv` | 逐 15 分钟高度角/方位角/airmass 数据 |
 | `visibility_curve.png` | 高度-时间曲线图 |
 | `plan.json` | 观测计划（推荐窗口、风险、备选方案） |
+| `claims.json` | Claim Registry（所有事实声明 + registry_hash） |
+| `sentence_claim_map.json` | 输出句子 → claim_id 映射（覆盖审计） |
 | `outreach_pack.md` | 科普活动包（流程、讲解词、设备清单） |
+| `run_outcome.json` | RunOutcome（业务/验证/交付三状态 + 文件哈希） |
 | `review_report.md` | 偏差复盘报告（仅案例 3） |
 | `revised_plan.json` | 修订后的下一次计划（仅案例 3） |
 | `validation_report.md` | 验证报告 |
@@ -69,18 +71,22 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件
+  skills.yaml                  # Skills 定义文件（v0.2.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
     __init__.py
-    schemas.py                 # 统一输入/输出 Pydantic Schema
+    schemas.py                 # 统一输入/输出 Pydantic Schema（extra=forbid）
     config.py                  # 配置加载器
     runner.py                  # 总控入口 (starplan.run)
     target_resolve.py          # Skill 1: 目标解析
     observability_plan.py      # Skill 2: 可观测性计算
-    outreach_pack.py           # Skill 3: 科普活动包
-    observation_review.py      # Skill 4: 观测复盘
+    outreach_pack.py           # Skill 3: 科普活动包（Claim 渲染）
+    observation_review.py      # Skill 4: 观测复盘（Evidence Claim 归因）
+    claims.py                  # Claim Registry 构建器
+    expression_validator.py    # ExpressionPlan 8 步验证
+    templates.py               # 句子变体模板库 + 连接器
+    run_outcome.py             # RunOutcome 三状态落盘
     validation.py              # 验证工具
     qwen_client.py             # Qwen/百炼 API 调用封装
   data/
@@ -103,9 +109,9 @@ StarPlan/
 | Skill | 职责 | 输入 | 输出 |
 |---|---|---|---|
 | `target_resolve` | 解析目标名称为标准坐标 | 目标名称 | 标准名、坐标、类型、置信度 |
-| `observability_plan` | 计算可观测性并生成计划 | 坐标、地点、日期、设备 | 可见窗口、高度/方位、airmass、风险 |
-| `outreach_pack` | 生成科普活动包 | 事实卡、受众、设备 | 活动流程、讲解词、设备清单 |
-| `observation_review` | 复盘偏差并修订计划 | 原计划、观测日志 | 偏差分类、证据、修订计划 |
+| `observability_plan` | 计算可观测性并生成计划 | 坐标、地点、日期、设备 | 可见窗口、高度/方位、airmass、风险、blocking_reasons |
+| `outreach_pack` | 基于 Claim Registry 确定性渲染科普活动包 | Claim Registry、受众、设备 | 活动流程、讲解词、设备清单、sentence_claim_map |
+| `observation_review` | 复盘偏差并修订计划（Evidence Claim 归因） | 原计划、观测日志、log_path | 偏差分类、证据 Claims、修订计划 |
 
 ## 技术依赖
 
@@ -119,6 +125,25 @@ StarPlan/
 | dashscope | 阿里云百炼 API | Apache 2.0 |
 
 所有天文计算使用 Astropy/astroplan 离线完成，不依赖在线天文服务。Qwen 仅用于自然语言理解和科普表达，不生成天文数值。
+
+## 证据链架构（Claim Registry）
+
+自 v0.2.0 起，所有用户可见的事实性输出均经过 Claim 证据链门禁：
+
+1. **Claim 构建**：`AllowedClaimsBuilder` 从确定性计算结果（Astropy/astroplan）生成带来源引用的 Claim，每个 Claim 有唯一 ID、作用域、来源哈希和允许的变体列表。
+2. **表达计划**：Qwen 仅返回 `ExpressionPlan`（选择 claim_id + sentence_variant_id），不返回自由文本。`ExpressionPlan` 设为 `extra=forbid`，拒绝协议外字段。
+3. **8 步验证**：`expression_validator` 对 ExpressionPlan 做 schema/版本/claim 存在性/变体合法性/作用域/禁用检查/重复冲突/哈希完整性验证。任何错误触发 fail-closed 回退。
+4. **确定性渲染**：最终句子由模板库（`templates.py`）从 Claim 的 `display_value` 填充，Qwen 无法注入未经来源支持的事实。
+5. **RunOutcome 落盘**：每次运行生成 `run_outcome.json`，包含业务状态、验证状态、交付状态（三者正交）、文件哈希和约束记录。
+
+派生规则（肉眼可见性、双筒可见性、新手友好度）显式标注适用范围和缺失输入。深空天体在角径不足或天空背景数据缺失时标记为 `UNCONFIRMED`，不做过度承诺。
+
+## 当前 MVP 限制
+
+- 仅支持单晚观测：`date_range` 传入多天时只计算第一晚，接口和报告均显式声明此限制。
+- 折射策略：`astropy_default`（pressure=0，不启用大气折射），已写入 RunOutcome。
+- 不含行星实时历表、实时天气 API、Stellarium/Aladin 集成和复杂前端。
+- 可见性派生规则基于视星等阈值 + 角径，未建模天空背景、表面亮度、消光和观测经验。
 
 ## 协作规范
 

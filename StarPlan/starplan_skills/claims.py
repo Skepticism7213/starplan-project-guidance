@@ -60,6 +60,7 @@ class AllowedClaimsBuilder:
         location_id: str,
         audience: str = "general",
         equipment: str = "binoculars",
+        timezone_name: str = "Asia/Shanghai",
     ):
         self.target = target
         self.obs = obs_result
@@ -76,7 +77,7 @@ class AllowedClaimsBuilder:
             target=target.standard_name,
             location_id=location_id,
             date=obs_date,
-            timezone="Asia/Shanghai",
+            timezone=timezone_name,
             business_branch="observable" if obs_result.is_observable else "not_observable",
         )
 
@@ -94,6 +95,14 @@ class AllowedClaimsBuilder:
     def claim_ids(self) -> set[str]:
         """Set of all allowed claim IDs."""
         return self._claim_ids
+
+    @property
+    def registry_hash(self) -> str:
+        """Current registry hash over all claims (allowed + prohibited).
+
+        P1-2: exposed for expression_validator step 8 recomputation check.
+        """
+        return self._compute_registry_hash()
 
     def build(self) -> list[Claim]:
         """Build the complete claim registry. Returns allowed claims."""
@@ -142,10 +151,14 @@ class AllowedClaimsBuilder:
         return any(c.claim_id == claim_id for c in self._prohibited)
 
     def _compute_registry_hash(self) -> str:
-        """Compute a sha256 hash over all claims for tamper detection."""
+        """Compute a sha256 hash over all claims for tamper detection.
+
+        P1-2: uses mode='json' for deterministic serialization (dates as ISO
+        strings, etc.), matching the recomputation in expression_validator step 8.
+        """
         content = json.dumps(
-            [c.model_dump() for c in self._claims + self._prohibited],
-            sort_keys=True, ensure_ascii=False,
+            [c.model_dump(mode="json") for c in self._claims + self._prohibited],
+            sort_keys=True, ensure_ascii=False, default=str,
         )
         return hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
 
@@ -378,23 +391,47 @@ class AllowedClaimsBuilder:
     # ── Derived visibility claims (versioned rules) ──
 
     def _build_derived_visibility_claims(self) -> None:
-        """Build derived_fact claims using versioned derivation rules."""
+        """Build derived_fact claims using versioned derivation rules.
+
+        P1-1: Rules explicitly state their limitations. For deep-sky objects,
+        integrated magnitude alone is insufficient — surface brightness, sky
+        background, and angular size all matter. When inputs are inadequate,
+        claims are marked UNCONFIRMED rather than making overconfident assertions.
+        """
         t = self.target
         rule_ver = DERIVATION_RULES
+        is_deep_sky = (t.target_type == "deep_sky")
+        angular_major = t.angular_size_arcmin[0] if t.angular_size_arcmin else None
 
         # Naked eye visibility
         if t.visual_magnitude is not None:
-            if t.visual_magnitude <= 6.0:
+            # For deep-sky: integrated mag <= 6 is necessary but NOT sufficient.
+            # Small angular size (< 10') means high surface brightness threshold;
+            # without sky background data we cannot confirm naked-eye visibility.
+            if is_deep_sky and angular_major is not None and angular_major < 10.0:
+                self._add_claim(Claim(
+                    claim_id="derived.visibility.naked_eye",
+                    claim_type=ClaimType.UNCONFIRMED,
+                    subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="naked_eye_visible",
+                    text_value="insufficient_data",
+                    display_value="待确认（深空天体角径较小，肉眼可见性取决于天空背景，当前数据不足）",
+                    validity_scope=self._scope,
+                    source_refs=["target_resolve.visual_magnitude", "target_resolve.angular_size"],
+                    derivation_rule=f"visibility.naked_eye@{rule_ver['visibility.naked_eye']}|scope:mag_only,missing:sky_background",
+                    allowed_variant_ids=["unconfirmed_v1"],
+                ))
+            elif t.visual_magnitude <= 6.0:
                 self._add_claim(Claim(
                     claim_id="derived.visibility.naked_eye",
                     claim_type=ClaimType.DERIVED_FACT,
                     subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
                     predicate="naked_eye_visible",
                     text_value="yes",
-                    display_value="肉眼可见",
+                    display_value="肉眼可见（理想暗天条件下）",
                     validity_scope=self._scope,
                     source_refs=["target_resolve.visual_magnitude"],
-                    derivation_rule=f"visibility.naked_eye@{rule_ver['visibility.naked_eye']}",
+                    derivation_rule=f"visibility.naked_eye@{rule_ver['visibility.naked_eye']}|scope:mag_threshold_6.0,caveat:assumes_dark_sky",
                     allowed_variant_ids=["naked_eye_v1", "naked_eye_v2"],
                 ))
             else:
@@ -407,7 +444,7 @@ class AllowedClaimsBuilder:
                     display_value="肉眼不可见，需要望远镜辅助",
                     validity_scope=self._scope,
                     source_refs=["target_resolve.visual_magnitude"],
-                    derivation_rule=f"visibility.naked_eye@{rule_ver['visibility.naked_eye']}",
+                    derivation_rule=f"visibility.naked_eye@{rule_ver['visibility.naked_eye']}|scope:mag_threshold_6.0",
                     allowed_variant_ids=["not_naked_eye_v1"],
                 ))
 
@@ -419,25 +456,28 @@ class AllowedClaimsBuilder:
                     subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
                     predicate="binoculars_visible",
                     text_value="yes",
-                    display_value="双筒望远镜可见",
+                    display_value="双筒望远镜可见（中等光污染以下）",
                     validity_scope=self._scope,
                     source_refs=["target_resolve.visual_magnitude"],
-                    derivation_rule=f"visibility.binoculars@{rule_ver['visibility.binoculars']}",
+                    derivation_rule=f"visibility.binoculars@{rule_ver['visibility.binoculars']}|scope:mag_threshold_10.0,caveat:assumes_moderate_sky",
                     allowed_variant_ids=["binoculars_v1"],
                 ))
 
-            # Beginner friendly
-            if t.visual_magnitude <= 8.0 and t.angular_size_arcmin and t.angular_size_arcmin[0] > 5.0:
+            # Beginner friendly: require mag <= 8 AND angular_size > 10' for deep_sky
+            # (5' is too small for beginners to find without go-to)
+            min_size_for_beginner = 10.0 if is_deep_sky else 0.0
+            size_ok = (angular_major is not None and angular_major > min_size_for_beginner)
+            if t.visual_magnitude <= 8.0 and size_ok:
                 self._add_claim(Claim(
                     claim_id="derived.visibility.beginner_friendly",
                     claim_type=ClaimType.DERIVED_FACT,
                     subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
                     predicate="beginner_friendly",
                     text_value="yes",
-                    display_value="适合新手观测",
+                    display_value="适合新手观测，推荐作为入门观测对象",
                     validity_scope=self._scope,
                     source_refs=["target_resolve.visual_magnitude", "target_resolve.angular_size"],
-                    derivation_rule=f"visibility.beginner_friendly@{rule_ver['visibility.beginner_friendly']}",
+                    derivation_rule=f"visibility.beginner_friendly@{rule_ver['visibility.beginner_friendly']}|scope:mag<=8,size>{min_size_for_beginner}arcmin",
                     allowed_variant_ids=["beginner_v1"],
                 ))
         else:

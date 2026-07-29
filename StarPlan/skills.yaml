@@ -1,11 +1,11 @@
 # StarPlan Loop Skills Definition
-# Version: 0.1.0
-# Date: 2026-07-19
+# Version: 0.2.0
+# Date: 2026-07-29
 
 project:
   name: "StarPlan Loop"
-  version: "0.1.0"
-  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包"
+  version: "0.2.0"
+  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链架构）"
 
 skills:
   - name: target_resolve
@@ -69,15 +69,15 @@ skills:
       - "推荐窗口风险等级为高时"
 
   - name: outreach_pack
-    description: "将确定性计算结果转化为面向目标受众的科普活动包"
+    description: "将确定性计算结果转化为面向目标受众的科普活动包（Claim Registry + 确定性渲染）"
     trigger: "observability_plan 成功生成计划后"
     input:
       schema: OutreachPackInput
       fields:
-        - name: fact_cards
-          type: list[FactCard]
+        - name: target
+          type: ResolvedTarget
           required: true
-        - name: calculation_results
+        - name: obs_result
           type: ObservabilityResult
           required: true
         - name: audience
@@ -88,16 +88,21 @@ skills:
           required: true
     output:
       schema: OutreachPack
+      artifacts:
+        - claims.json (Claim Registry with registry_hash)
+        - sentence_claim_map.json (every output sentence → claim_id mapping)
+        - outreach_pack.md (final user-facing document)
     failure_handling:
-      - "事实卡不完整 → unconfirmed_items 标记 + 不补写数值"
-      - "Qwen 生成无法追溯的数值 → 验证层拦截"
-      - "受众类型未知 → 回退通用模板"
+      - "Claim 缺失 → unconfirmed 标记，不静默补值"
+      - "Qwen ExpressionPlan 验证失败 → fail-closed 确定性回退，原文不落地"
+      - "Qwen API 不可用 → 离线模板渲染，核心输出不受影响"
+      - "不可观测分支 → 取消/改期包，原因从 eliminated_windows 派生"
     human_confirmation:
-      - "科普稿引用未验证事实时"
+      - "科普稿引用 unconfirmed Claim 时"
       - "系统准备替换主目标时"
 
   - name: observation_review
-    description: "对比计划和实际日志，生成偏差分析和修订计划"
+    description: "对比计划和实际日志，生成偏差分析和修订计划（归因基于 Evidence Claims）"
     trigger: "用户导入实际观测日志后"
     input:
       schema: ObservationReviewInput
@@ -108,17 +113,41 @@ skills:
         - name: observation_log
           type: ObservationLog
           required: true
+        - name: log_path
+          type: string
+          required: true
+          description: "运行目录路径，用于写入审计日志和关联 model_call_log"
     output:
       schema: ObservationReview
+      artifacts:
+        - review_report.md (偏差分析报告)
+        - revised_plan.json (修订后的下一次计划)
     failure_handling:
       - "日志字段缺失 → 返回缺失清单 + 标记不可比较项"
       - "原计划不存在 → 返回明确错误"
-      - "信息不足 → classification=undetermined"
+      - "信息不足 → classification=undetermined，原因标记 possible/undetermined"
+      - "Qwen API 不可用 → 跳过归因叙述，仅输出结构化偏差数据"
     human_confirmation:
       - "复盘原因只有弱证据时"
       - "系统准备替换下次活动主目标时"
 
 orchestrator:
   entry: starplan.run
-  description: "总控入口：识别意图 → 调用 Skill → 保存运行目录 → 返回结果"
+  description: "总控入口：识别意图 → 调用 Skill → Claim 构建 → 表达验证 → 保存运行目录 → RunOutcome 落盘"
   output_directory: "runs/case_{run_id}/"
+  artifacts:
+    - input.json (原始输入)
+    - resolved_target.json (目标解析结果)
+    - observability.csv (逐 15 分钟高度/方位/airmass)
+    - visibility_curve.png (高度-时间曲线图)
+    - plan.json (观测计划：推荐窗口、风险、备选)
+    - claims.json (Claim Registry + registry_hash)
+    - sentence_claim_map.json (输出句子 → claim_id 映射)
+    - outreach_pack.md (科普活动包)
+    - run_outcome.json (RunOutcome：业务/验证/交付三状态 + 文件哈希)
+    - model_call_log.jsonl (Qwen 调用审计日志)
+    - validation_report.md (验证报告)
+  limitations:
+    - "当前 MVP 仅支持单晚观测（date_range 多天只计算第一晚）"
+    - "不含行星、实时天气、Stellarium/Aladin 集成"
+    - "折射策略：astropy_default (pressure=0, 无大气折射)"

@@ -206,7 +206,9 @@ class RunOutcome:
                 python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
             ),
             model=model_info,
-            constraints_applied={},
+            constraints_applied={
+                "refraction_policy": "astropy_default (pressure=0, no atmospheric refraction)",
+            },
             intermediate_files=[f.name for f in run_dir.iterdir() if f.is_file()],
             manual_overrides=[],
             validation_status=validation_status,
