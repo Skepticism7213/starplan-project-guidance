@@ -868,7 +868,7 @@ def run_starplan_chat(
         print(f"  [!] {coord_warning}")
     print(f"  [OK] 最终输出使用确定性渲染（Qwen 原文 {len(blocked_content)} chars 仅供审计）")
 
-    # Save conversation log + verification
+    # Save conversation log + verification (AUDIT ONLY — not in public return)
     with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:
         json.dump({
             "user_input": user_text,
@@ -884,16 +884,17 @@ def run_starplan_chat(
     print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
     print(f"  [OK] Run dir: {run_dir}")
 
+    # P0-E: Public return — NO model raw text, NO messages, NO blocked_content.
+    # Audit data lives only in chat_conversation.json (access-controlled).
     return {
         "run_id": run_id,
         "run_dir": str(run_dir),
         "mode": "chat",
         "final_content": final_content,
+        "model_text_accepted_for_delivery": False,  # Always: free text never delivered
+        "public_output_validation": "passed" if not untraceable else "blocked",
+        "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
         "hallucination_blocked": hallucination_blocked,
-        "blocked_content": blocked_content,
-        "tool_call_log": result.get("tool_call_log", []),
-        "messages": result.get("messages", []),
-        "hallucination_verification": verification,
     }
 
 
