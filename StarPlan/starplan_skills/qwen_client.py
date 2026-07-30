@@ -142,7 +142,7 @@ TOOL_DEFINITIONS = [
             "description": (
                 "根据已验证的目标信息和可观测性计算结果，生成科普观测活动包。"
                 "包含活动流程、讲解要点、设备清单、安全提示和人工核对项。"
-                "讲解要点中的数值必须可溯源到事实卡，不可编造。"
+                "讲解要点中的数值必须可溯源到 Claim Registry，不可编造。"
                 "必须在 target_resolve 和 observability_plan 之后调用。"
             ),
             "parameters": {

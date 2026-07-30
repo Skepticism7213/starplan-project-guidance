@@ -176,6 +176,28 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 检查每个 `runs/` 子目录是否包含完整输出文件。
 
+## 架构验收状态（2026-07-30 更新）
+
+基于 07-30 独立复查报告的 8 步修复计划（P0-A ~ P1-C），当前进度：
+
+| 步骤 | 内容 | 状态 |
+|---|---|---|
+| P0-A | Claim Registry 封存 hash + 篡改检测 | 已验证通过 |
+| P0-B | 统一渲染门禁 + 模板清理 + PROCEDURAL Claim | 已验证通过 |
+| P0-C | RunOutcome 入口创建 + 失败终态 | 已验证通过 |
+| P0-D | 复盘规则修复 + review_trace | 已验证通过 |
+| P0-E | Chat 公共返回不含模型原文 | 已验证通过 |
+| P1-A | 字段级隐私导出 + verify_export_sanitized | 已验证通过 |
+| P1-B | 离线模式 tripwire + 测试收紧 | 已验证通过 |
+| P1-C | 文档同步 | 本次 |
+
+**尚未完全闭合的项目（诚实标注）：**
+
+- `render_trace.json`（逐句 hash trace）尚未实现，当前用 `sentence_claim_map.json` 替代
+- 复盘 Qwen 归因仍返回自由文本（规则层先过滤），未实现完整 ID selection 协议
+- 运行时覆盖门禁（删除 Claim 后自动阻断渲染）未实现
+- 六类终态参数化 E2E 矩阵未完整建立
+
 ## 赛项信息
 
 - 挑战杯"揭榜挂帅"阿里云榜题
