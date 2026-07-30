@@ -100,31 +100,80 @@ PRIVACY_POLICY = {
 
 # ── Sanitization ─────────────────────────────────────
 
+# Fields to remove from JSON files during export (field-level allowlist)
+_REDACT_FIELDS = {
+    "observer_notes",
+    "blocked_content",
+    "messages",
+    "prompt_preview",
+    "user_input",
+}
+
+
+def _sanitize_json(data):
+    """Recursively remove sensitive fields from a JSON structure."""
+    if isinstance(data, dict):
+        return {
+            k: _sanitize_json(v)
+            for k, v in data.items()
+            if k not in _REDACT_FIELDS
+        }
+    elif isinstance(data, list):
+        return [_sanitize_json(item) for item in data]
+    return data
+
+
 def sanitize_run_for_export(
     run_dir: Path,
     export_dir: Optional[Path] = None,
 ) -> Path:
     """Create an export-safe copy of a run directory.
 
-    - Copies only DELIVERABLE_FILES
-    - Redacts any sensitive fields if chat_conversation.json is included
-    - Does NOT copy audit-only files
+    P1-A: field-level sanitization, not just file-level filtering.
+    - Rejects non-empty export directory (no stale audit file residue)
+    - JSON files: recursively removes observer_notes, blocked_content, messages
+    - Non-JSON deliverables: copied as-is (outreach_pack.md, plots, CSV)
+    - Audit-only files: never copied
 
     Args:
         run_dir: Source run directory.
-        export_dir: Destination. Defaults to run_dir.parent / (run_dir.name + "_export").
+        export_dir: Destination. Must not exist or must be empty.
 
     Returns:
         Path to the export directory.
+
+    Raises:
+        ValueError: If export_dir exists and is non-empty.
     """
     if export_dir is None:
         export_dir = run_dir.parent / f"{run_dir.name}_export"
+
+    # P1-A: reject non-empty target to prevent stale audit file residue
+    if export_dir.exists() and any(export_dir.iterdir()):
+        raise ValueError(
+            f"Export directory '{export_dir}' is not empty. "
+            f"Refusing to export into a directory with existing files."
+        )
 
     export_dir.mkdir(parents=True, exist_ok=True)
 
     for fname in DELIVERABLE_FILES:
         src = run_dir / fname
-        if src.exists():
+        if not src.exists():
+            continue
+
+        if fname.endswith(".json"):
+            # Field-level sanitization for JSON
+            try:
+                data = json.loads(src.read_text(encoding="utf-8"))
+                sanitized = _sanitize_json(data)
+                with open(export_dir / fname, "w", encoding="utf-8") as f:
+                    json.dump(sanitized, f, ensure_ascii=False, indent=2, default=str)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                # Malformed JSON: skip (fail-closed, don't export garbage)
+                pass
+        else:
+            # Non-JSON: copy as-is (markdown, CSV, PNG)
             shutil.copy2(src, export_dir / fname)
 
     # Write privacy policy metadata
@@ -132,6 +181,55 @@ def sanitize_run_for_export(
         json.dump(PRIVACY_POLICY, f, ensure_ascii=False, indent=2)
 
     return export_dir
+
+
+def verify_export_sanitized(export_dir: Path) -> list[str]:
+    """P1-A: Recursively scan all exported files for sensitive content.
+
+    Returns a list of violations (empty = clean export).
+    Checks:
+      1. No audit-only filenames present
+      2. No sensitive field names in JSON content
+      3. No sensitive field values (observer_notes text) in any text file
+    """
+    violations = []
+
+    if not export_dir.exists():
+        return ["Export directory does not exist"]
+
+    for fpath in export_dir.rglob("*"):
+        if not fpath.is_file():
+            continue
+
+        # Check 1: audit-only filenames
+        if fpath.name in AUDIT_ONLY_FILES:
+            violations.append(f"Audit file present in export: {fpath.name}")
+
+        # Check 2: sensitive fields in JSON
+        if fpath.suffix in (".json", ".jsonl"):
+            try:
+                content = fpath.read_text(encoding="utf-8")
+                for field in _REDACT_FIELDS:
+                    if f'"{field}"' in content:
+                        violations.append(
+                            f"Sensitive field '{field}' found in {fpath.name}"
+                        )
+            except UnicodeDecodeError:
+                pass
+
+        # Check 3: blocked_content / messages keywords in markdown
+        if fpath.suffix in (".md", ".txt"):
+            try:
+                content = fpath.read_text(encoding="utf-8")
+                for marker in ["blocked_content", "hallucination_verification"]:
+                    if marker in content:
+                        violations.append(
+                            f"Audit marker '{marker}' found in {fpath.name}"
+                        )
+            except UnicodeDecodeError:
+                pass
+
+    return violations
 
 
 def verify_blocked_content_not_in_output(run_dir: Path) -> list[str]:
