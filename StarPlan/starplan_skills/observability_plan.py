@@ -600,7 +600,9 @@ def _compute_morning_twilight(
 ) -> tuple:
     """Compute morning sunrise and astronomical twilight start with ~1 min precision.
 
-    Scans from 20:00 prev day to 32:00 (08:00 next day) with 5-minute steps.
+    Scans from 20:00 prev day to 34:00 (10:00 next day) with 5-minute steps.
+    The upper bound is extended to 34.0 (rather than 32.0) so that high-altitude
+    or western-timezone locations (e.g. Lhasa, sunrise at local_h≈32.04) are covered.
     """
     sunrise = None
     astro_start = None
@@ -609,7 +611,7 @@ def _compute_morning_twilight(
     prev_alt = None
 
     step_hours = 5.0 / 60.0
-    for local_h_float in _frange(20.0, 32.0, step_hours):
+    for local_h_float in _frange(20.0, 34.0, step_hours):
         t = _local_hour_to_utc(base_date, local_h_float, tz_hours)
         sun_alt = _sun_altitude(obs_loc, t)
 
