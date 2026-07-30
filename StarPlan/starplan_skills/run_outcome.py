@@ -40,6 +40,7 @@ from .schemas import (
 
 class BusinessStatus(str, Enum):
     """What happened astronomically."""
+    PENDING = "pending"                  # Run started but not yet resolved
     OBSERVABLE = "observable"
     NOT_OBSERVABLE = "not_observable"
     DATA_INSUFFICIENT = "data_insufficient"
@@ -53,7 +54,6 @@ class ValidationStatus(str, Enum):
     PASSED_WITH_WARNINGS = "passed_with_warnings"
     BLOCKED = "blocked"
     PENDING = "pending"
-    TARGET_NOT_OBSERVABLE = "target_not_observable"
 
 
 class DeliveryStatus(str, Enum):
@@ -61,6 +61,7 @@ class DeliveryStatus(str, Enum):
     QWEN_EXPRESSION_PLAN = "qwen_expression_plan"
     DETERMINISTIC_FALLBACK = "deterministic_fallback"
     TEMPLATE = "template"
+    NOT_DELIVERED = "not_delivered"      # Failed before any output was produced
 
 
 class RunOutcome:
@@ -68,28 +69,31 @@ class RunOutcome:
 
     All outputs (manifest, validation report, user-facing pack) are rendered
     from this object. No scattered construction.
+
+    P0-C: can be created at run entry (before target resolution) with
+    target/obs_result/location as None, then filled incrementally.
     """
 
     def __init__(
         self,
         run_id: str,
-        target: ResolvedTarget,
-        obs_result: ObservabilityResult,
-        location: dict,
-        input_data: dict,
-        state_log: list[dict],
+        target: Optional[ResolvedTarget] = None,
+        obs_result: Optional[ObservabilityResult] = None,
+        location: Optional[dict] = None,
+        input_data: Optional[dict] = None,
+        state_log: Optional[list[dict]] = None,
     ):
         self.run_id = run_id
         self.target = target
         self.obs_result = obs_result
-        self.location = location
-        self.input_data = input_data
-        self.state_log = state_log
+        self.location = location or {}
+        self.input_data = input_data or {}
+        self.state_log = state_log or []
 
-        # Derived statuses
+        # Derived statuses (P0-C: start as PENDING, updated as pipeline progresses)
         self.business_status = self._derive_business_status()
         self.validation_status = ValidationStatus.PENDING
-        self.delivery_status = DeliveryStatus.TEMPLATE
+        self.delivery_status = DeliveryStatus.NOT_DELIVERED
 
         # Evidence
         self.qwen_used = False
@@ -97,14 +101,19 @@ class RunOutcome:
         self.claims_registry_hash: Optional[str] = None
         self.validation_issues: list[str] = []
         self.file_hashes: dict[str, str] = {}
+        self.error_type: Optional[str] = None
+        self.error_message_safe: Optional[str] = None
 
     def _derive_business_status(self) -> BusinessStatus:
-        """Derive business status from observability result."""
+        """Derive business status from observability result.
+
+        P0-C: None means pipeline hasn't reached computation yet → PENDING.
+        TOOL_ERROR is set explicitly by the runner on actual failure.
+        """
         if self.obs_result is None:
-            return BusinessStatus.TOOL_ERROR
+            return BusinessStatus.PENDING
         if self.obs_result.is_observable:
             return BusinessStatus.OBSERVABLE
-        # Check if it's a data issue vs genuine not-observable
         if not self.obs_result.hourly_data:
             return BusinessStatus.DATA_INSUFFICIENT
         return BusinessStatus.NOT_OBSERVABLE
@@ -173,32 +182,32 @@ class RunOutcome:
                 called=False,
             )
 
-        # validation_status from RunOutcome (never hardcoded)
+        # validation_status from RunOutcome (never hardcoded, never overridden)
         vs_map = {
             ValidationStatus.PASSED: "passed",
             ValidationStatus.PASSED_WITH_WARNINGS: "passed_with_warnings",
             ValidationStatus.BLOCKED: "blocked",
             ValidationStatus.PENDING: "pending",
-            ValidationStatus.TARGET_NOT_OBSERVABLE: "target_not_observable",
         }
         validation_status = vs_map[self.validation_status]
 
-        # If business is not observable, override to reflect that
-        if self.business_status == BusinessStatus.NOT_OBSERVABLE:
-            validation_status = vs_map[ValidationStatus.TARGET_NOT_OBSERVABLE]
+        # P0-C: no override — not_observable is a business status, not validation.
+        # business_status and validation_status remain orthogonal.
+
+        # Handle None target (early failure before resolution)
+        target_data = {
+            "standard_name": self.target.standard_name if self.target else None,
+            "ra_deg": self.target.ra_deg if self.target else None,
+            "dec_deg": self.target.dec_deg if self.target else None,
+            "source": self.target.source if self.target else None,
+        }
 
         return CalculationManifest(
             schema_version="1.0",
             run_id=self.run_id,
             timestamp=datetime.now(tz),
             input=self.input_data,
-            target={
-                "standard_name": self.target.standard_name,
-                "ra_deg": self.target.ra_deg,
-                "dec_deg": self.target.dec_deg,
-                "source": self.target.source,
-                "confidence": self.target.confidence,
-            },
+            target=target_data,
             location=self.location,
             tools=ToolVersions(
                 astropy_version=astropy.__version__,

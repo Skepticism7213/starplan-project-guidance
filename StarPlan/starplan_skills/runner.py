@@ -94,34 +94,62 @@ def run_starplan(
 
     _transition(RunState.INPUT_VALIDATED, "StarPlanInput schema validated")
 
+    # P0-C: Create RunOutcome at entry — before any resolution/computation.
+    # This ensures every terminal state (including early failures) has a RunOutcome.
+    from .run_outcome import RunOutcome, BusinessStatus, ValidationStatus, DeliveryStatus
+    outcome = RunOutcome(
+        run_id=run_id,
+        input_data=input_data,
+        state_log=state_log,
+    )
+
     # ── Step 1: Resolve target ──
     # C-2 fix: If confirmed_target is provided, the human has already selected
     # from a previous candidates list — bypass ambiguity check.
-    if starplan_input.confirmed_target:
-        print(f"[1/4] Resolving confirmed target: {starplan_input.confirmed_target}")
-        resolved = resolve_target(starplan_input.confirmed_target, starplan_input.target_type)
-        if resolved.requires_confirmation:
-            raise ValueError(
-                f"confirmed_target '{starplan_input.confirmed_target}' is still ambiguous. "
-                f"Provide an exact standard name (e.g. 'M33', 'M31')."
-            )
-    else:
-        print(f"[1/4] Resolving target: {starplan_input.target}")
-        resolved = resolve_target(starplan_input.target, starplan_input.target_type)
+    try:
+        if starplan_input.confirmed_target:
+            print(f"[1/4] Resolving confirmed target: {starplan_input.confirmed_target}")
+            resolved = resolve_target(starplan_input.confirmed_target, starplan_input.target_type)
+            if resolved.requires_confirmation:
+                raise ValueError(
+                    f"confirmed_target '{starplan_input.confirmed_target}' is still ambiguous. "
+                    f"Provide an exact standard name (e.g. 'M33', 'M31')."
+                )
+        else:
+            print(f"[1/4] Resolving target: {starplan_input.target}")
+            resolved = resolve_target(starplan_input.target, starplan_input.target_type)
 
-        if resolved.requires_confirmation:
-            if resolved.confidence == 0:
-                raise ValueError(f"Target '{starplan_input.target}' not found in catalog")
-            # C-2 fix: ambiguous target MUST NOT proceed without human confirmation.
-            # Raise exception carrying the candidates list so the caller can present
-            # choices to the user and re-invoke with confirmed_target.
-            raise TargetConfirmationRequired(
-                f"Target '{starplan_input.target}' is ambiguous "
-                f"(best match: {resolved.standard_name}, confidence={resolved.confidence:.2f}). "
-                f"{len(resolved.candidates or [])} candidates require human selection. "
-                f"Re-invoke with confirmed_target='<chosen standard name>'.",
-                resolved=resolved,
-            )
+            if resolved.requires_confirmation:
+                if resolved.confidence == 0:
+                    raise ValueError(f"Target '{starplan_input.target}' not found in catalog")
+                # P0-C: set terminal state before raising
+                outcome.business_status = BusinessStatus.NEEDS_CONFIRMATION
+                outcome.validation_status = ValidationStatus.PASSED
+                outcome.delivery_status = DeliveryStatus.NOT_DELIVERED
+                outcome.error_message_safe = (
+                    f"Target '{starplan_input.target}' is ambiguous "
+                    f"({len(resolved.candidates or [])} candidates). "
+                    f"Re-invoke with confirmed_target."
+                )
+                _persist_outcome(outcome, run_dir)
+                raise TargetConfirmationRequired(
+                    f"Target '{starplan_input.target}' is ambiguous "
+                    f"(best match: {resolved.standard_name}, confidence={resolved.confidence:.2f}). "
+                    f"{len(resolved.candidates or [])} candidates require human selection. "
+                    f"Re-invoke with confirmed_target='<chosen standard name>'.",
+                    resolved=resolved,
+                )
+    except TargetConfirmationRequired:
+        raise  # Already persisted outcome above
+    except Exception as e:
+        # P0-C: tool/data error during target resolution
+        outcome.business_status = BusinessStatus.TOOL_ERROR
+        outcome.validation_status = ValidationStatus.PENDING
+        outcome.delivery_status = DeliveryStatus.NOT_DELIVERED
+        outcome.error_type = type(e).__name__
+        outcome.error_message_safe = str(e)[:200]
+        _persist_outcome(outcome, run_dir)
+        raise
 
     with open(run_dir / "resolved_target.json", "w", encoding="utf-8") as f:
         json.dump(resolved.model_dump(), f, ensure_ascii=False, indent=2, default=str)
@@ -218,21 +246,15 @@ def run_starplan(
     # ── Generate model call log ──
     _write_model_call_log(run_dir, starplan_input, resolved, obs_result, outreach=outreach)
 
-    # ── C-5 fix: RunOutcome as single source of truth ──
-    from .run_outcome import RunOutcome, ValidationStatus, DeliveryStatus
+    # ── P0-C: Update entry-created RunOutcome with computation results ──
+    outcome.target = resolved
+    outcome.obs_result = obs_result
+    outcome.location = location
+    outcome.business_status = outcome._derive_business_status()
 
-    outcome = RunOutcome(
-        run_id=run_id,
-        target=resolved,
-        obs_result=obs_result,
-        location=location,
-        input_data=input_data,
-        state_log=state_log,
-    )
     # Set delivery status from actual outreach generation
     if outreach.qwen_used:
         outcome.set_delivery(DeliveryStatus.QWEN_EXPRESSION_PLAN, qwen_used=True)
-        # Record model call event so manifest derives called=True from evidence
         outcome.add_model_call_event({
             "type": "model_call",
             "step": "outreach_pack",
@@ -292,6 +314,17 @@ def run_starplan(
         "review": review.model_dump() if review else None,
         "manifest": manifest.model_dump(),
     }
+
+
+def _persist_outcome(outcome, run_dir: Path):
+    """P0-C: Atomically persist RunOutcome and state log for any terminal state."""
+    try:
+        with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
+            json.dump(outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
+        with open(run_dir / "state_log.json", "w", encoding="utf-8") as f:
+            json.dump(outcome.state_log, f, ensure_ascii=False, indent=2)
+    except OSError:
+        pass  # Best-effort; don't crash pipeline for logging
 
 
 def _build_manifest(
