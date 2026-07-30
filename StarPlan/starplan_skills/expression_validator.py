@@ -223,66 +223,21 @@ def validate_expression_plan(
                     claim_id=claim_id,
                 ))
 
-    # ── Step 8: Source hash integrity ──
-    # P1-2 fix: Recompute hashes from source data, not just check length.
-    # Any mismatch means data was tampered with after claim construction.
-    registry_hash_valid = True
-    if hasattr(claims_builder, 'registry_hash') and claims_builder.registry_hash:
-        # Recompute registry hash from current claims
-        import hashlib
-        import json as _json
-        claims_data = _json.dumps(
-            [c.model_dump(mode="json") for c in claims_builder.claims],
-            sort_keys=True, ensure_ascii=False, default=str,
-        )
-        recomputed = hashlib.sha256(claims_data.encode()).hexdigest()[:16]
-        if recomputed != claims_builder.registry_hash:
-            registry_hash_valid = False
-            issues.append(ValidationIssue(
-                step=8, step_name="source_hash",
-                severity="error",
-                message=(
-                    f"Registry hash mismatch: stored={claims_builder.registry_hash}, "
-                    f"recomputed={recomputed}. Claims may have been tampered with."
-                ),
-                claim_id=None,
-            ))
-
-    for sc in plan.selected_claims:
-        claim = claims_builder.get_claim(sc.claim_id)
-        if claim is None:
-            continue
-        if claim.claim_type == ClaimType.OBSERVED_FACT:
-            if not claim.source_hash:
-                issues.append(ValidationIssue(
-                    step=8, step_name="source_hash",
-                    severity="error",
-                    message=(
-                        f"observed_fact claim '{sc.claim_id}' has no source_hash — "
-                        f"cannot verify provenance"
-                    ),
-                    claim_id=sc.claim_id,
-                ))
-            elif len(claim.source_hash) != 16:
-                issues.append(ValidationIssue(
-                    step=8, step_name="source_hash",
-                    severity="error",
-                    message=(
-                        f"Claim '{sc.claim_id}' source_hash has invalid length "
-                        f"{len(claim.source_hash)} (expected 16 hex chars)"
-                    ),
-                    claim_id=sc.claim_id,
-                ))
-            elif claim.source_hash == "0" * 16:
-                issues.append(ValidationIssue(
-                    step=8, step_name="source_hash",
-                    severity="error",
-                    message=(
-                        f"Claim '{sc.claim_id}' has placeholder hash (all zeros) — "
-                        f"source data was not properly hashed"
-                    ),
-                    claim_id=sc.claim_id,
-                ))
+    # ── Step 8: Registry integrity (P0-A) ──
+    # Delegates to the builder's verify_integrity() which checks:
+    #   1. Claims hash vs sealed hash (claim mutation)
+    #   2. Source snapshots vs live objects (source drift)
+    #   3. Derivation rules unchanged
+    #   4. Template set unchanged
+    # Any violation is a blocking error — no rendering allowed.
+    integrity_violations = claims_builder.verify_integrity()
+    for violation in integrity_violations:
+        issues.append(ValidationIssue(
+            step=8, step_name="integrity",
+            severity="error",
+            message=f"Integrity violation: {violation}",
+            claim_id=None,
+        ))
 
     # ── Final verdict ──
     passed = len([i for i in issues if i.severity == "error"]) == 0

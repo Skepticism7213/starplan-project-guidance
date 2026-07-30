@@ -263,7 +263,7 @@ class TestClaimsSave:
             path = builder.save(Path(tmpdir))
             assert Path(path).exists()
             data = json.loads(Path(path).read_text(encoding="utf-8"))
-            assert data["schema_version"] == "1.0"
+            assert data["schema_version"] == "1.1"
             assert len(data["claims"]) > 0
             assert len(data["prohibited"]) > 0
             assert "registry_hash" in data
