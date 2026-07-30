@@ -169,18 +169,30 @@ def run_starplan(
 
     # ── Step 3: Compute observability ──
     print(f"[2/4] Computing observability for {resolved.standard_name} at {location['name']}")
-    obs_result = compute_observability(
-        ra_deg=resolved.ra_deg,
-        dec_deg=resolved.dec_deg,
-        target_name=resolved.standard_name,
-        location=location,
-        date_range=[str(d) for d in starplan_input.date_range],
-        equipment=starplan_input.equipment,
-        constraints=starplan_input.constraints.model_dump() if starplan_input.constraints else None,
-        run_dir=run_dir,
-        target_magnitude=resolved.visual_magnitude,
-        target_angular_size_arcmin=resolved.angular_size_arcmin,
-    )
+    try:
+        obs_result = compute_observability(
+            ra_deg=resolved.ra_deg,
+            dec_deg=resolved.dec_deg,
+            target_name=resolved.standard_name,
+            location=location,
+            date_range=[str(d) for d in starplan_input.date_range],
+            equipment=starplan_input.equipment,
+            constraints=starplan_input.constraints.model_dump() if starplan_input.constraints else None,
+            run_dir=run_dir,
+            target_magnitude=resolved.visual_magnitude,
+            target_angular_size_arcmin=resolved.angular_size_arcmin,
+        )
+    except Exception as e:
+        # P0-C: persist RunOutcome with tool_error before propagating
+        outcome.target = resolved
+        outcome.location = location
+        outcome.business_status = BusinessStatus.TOOL_ERROR
+        outcome.validation_status = ValidationStatus.PENDING
+        outcome.delivery_status = DeliveryStatus.NOT_DELIVERED
+        outcome.error_type = type(e).__name__
+        outcome.error_message_safe = str(e)[:200]
+        _persist_outcome(outcome, run_dir)
+        raise
 
     plan_data = obs_result.model_dump(mode="json")
     with open(run_dir / "plan.json", "w", encoding="utf-8") as f:

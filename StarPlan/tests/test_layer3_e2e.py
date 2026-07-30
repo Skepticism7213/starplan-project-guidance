@@ -119,36 +119,31 @@ class TestStrongMoonlightE2E:
 # ══════════════════════════════════════════════════════
 
 class TestToolExceptionE2E:
-    """When compute_observability raises, pipeline must not crash silently.
+    """When compute_observability raises, pipeline must persist RunOutcome.
 
-    The error must be captured in state_log and the run must still produce
-    a run_outcome reflecting the failure.
+    P0-C guarantees: run_outcome.json with business=tool_error is written
+    before the exception propagates. No silent success, no wrong output.
     """
 
     INPUT = {**BASE_INPUT, "target": "M31", "date_range": ["2026-10-17", "2026-10-17"]}
 
-    def test_tool_exception_captured(self, tmp_path):
-        """Mock observability to raise; pipeline should handle gracefully."""
+    def test_tool_exception_produces_run_outcome(self, tmp_path):
+        """Mock observability to raise; run_outcome.json must exist with tool_error."""
         with patch(
             "starplan_skills.runner.compute_observability",
             side_effect=RuntimeError("Astropy coordinate transform failed"),
         ):
-            # The pipeline may raise or return an error dict — either is acceptable
-            # as long as it doesn't silently produce wrong output
-            try:
-                result = run_starplan(self.INPUT, run_id="test_p2_tool_exc")
-                # If it returns, check that error is recorded
-                run_dir = Path(result["run_dir"])
-                state_log = json.loads((run_dir / "state_log.json").read_text(encoding="utf-8"))
-                states = [s["state"] for s in state_log]
-                # Should not reach RENDERED without observability
-                assert "rendered" not in states or any(
-                    "error" in s.get("note", "").lower() or "fail" in s.get("note", "").lower()
-                    for s in state_log
-                )
-            except (RuntimeError, SystemExit, Exception) as e:
-                # Acceptable: pipeline raises with clear error
-                assert "Astropy" in str(e) or "transform" in str(e) or "RuntimeError" in type(e).__name__
+            with pytest.raises(RuntimeError, match="Astropy"):
+                run_starplan(self.INPUT, run_id="test_p1b_tool_exc")
+
+        # P0-C: RunOutcome must have been persisted before the raise
+        run_dir = Path("runs/test_p1b_tool_exc")
+        assert run_dir.exists(), "Run directory must be created"
+        outcome_path = run_dir / "run_outcome.json"
+        assert outcome_path.exists(), "run_outcome.json must exist for tool_error"
+        outcome = json.loads(outcome_path.read_text(encoding="utf-8"))
+        assert outcome["business_status"] == "tool_error"
+        assert outcome["delivery_status"] == "not_delivered"
 
 
 # ══════════════════════════════════════════════════════
@@ -339,20 +334,21 @@ class TestMarkdownMappingE2E:
         # mapping should have entries (not empty)
         assert len(mapping) > 0, "sentence_claim_map must not be empty"
 
-        # Read the outreach pack and extract talking point lines
+        # P1-B: require coverage proportional to factual content.
+        # Every mapped entry must be non-trivial; total must cover
+        # the talking points + schedule + safety + checks sections.
         pack_md = (run_dir / "outreach_pack.md").read_text(encoding="utf-8")
-        # Count lines that look like factual statements (list items with content)
+        # Count content list items, excluding bold-header summary lines (- **key**: val)
         factual_lines = [
             line.strip() for line in pack_md.split("\n")
             if line.strip().startswith("- ") and len(line.strip()) > 10
+            and not line.strip().startswith("- **")
         ]
-        # The mapping should cover the talking points section
-        # At minimum, the number of mapped sentences should be > 0
-        # and proportional to the factual content
         mapped_count = len(mapping)
-        assert mapped_count >= 5, (
-            f"Expected at least 5 mapped sentences, got {mapped_count}. "
-            f"Markdown has {len(factual_lines)} list items."
+        # Strict: mapping must cover at least as many items as factual lines
+        assert mapped_count >= len(factual_lines), (
+            f"Mapping has {mapped_count} entries but Markdown has "
+            f"{len(factual_lines)} factual list items. Coverage incomplete."
         )
 
     def test_claims_json_covers_mapped_ids(self, run_result):
@@ -366,16 +362,14 @@ class TestMarkdownMappingE2E:
         mapping = json.loads(map_path.read_text(encoding="utf-8"))
         claims_data = json.loads(claims_path.read_text(encoding="utf-8"))
         valid_ids = {c["claim_id"] for c in claims_data.get("claims", [])}
-        # Also include procedural IDs (procedural.*)
-        valid_ids.update(k for k in mapping if k.startswith("procedural."))
+        # P1-B: NO procedural.* exemption. All IDs must be in the Registry.
 
         for sentence, claim_ids in mapping.items():
             if isinstance(claim_ids, list):
                 for cid in claim_ids:
-                    if not cid.startswith("procedural."):
-                        assert cid in valid_ids, (
-                            f"Mapped claim_id '{cid}' not found in claims.json"
-                        )
+                    assert cid in valid_ids, (
+                        f"Mapped claim_id '{cid}' not found in claims.json"
+                    )
 
 
 # ══════════════════════════════════════════════════════

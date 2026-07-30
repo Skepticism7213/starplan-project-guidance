@@ -24,6 +24,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# P1-B: Explicit offline mode. When STARPLAN_MODEL_MODE=offline, all model
+# calls raise immediately — even if DASHSCOPE_API_KEY is present in .env.
+# This guarantees the offline CI cannot make real network requests.
+MODEL_MODE = os.getenv("STARPLAN_MODEL_MODE", "online")
+_OFFLINE = MODEL_MODE == "offline"
+
+
+def _assert_online():
+    """Raise if offline mode is active. Called at the top of every call function."""
+    if _OFFLINE:
+        raise RuntimeError(
+            "STARPLAN_MODEL_MODE=offline: network model call attempted. "
+            "This is a tripwire — offline CI must not reach the network."
+        )
+
 # ── Model configuration ──────────────────────────────
 
 QWEN_MODELS = {
@@ -212,6 +227,7 @@ def call_qwen(
     Returns:
         Dict with content, model, tool_calls, finish_reason.
     """
+    _assert_online()
     _check_api_key()
 
     from dashscope import Generation
@@ -250,6 +266,7 @@ def call_qwen_json(
 
     The model is instructed to return valid JSON only.
     """
+    _assert_online()
     _check_api_key()
 
     from dashscope import Generation
@@ -322,6 +339,7 @@ def call_qwen_chat(
     Returns:
         Dict with final content, full message history, and tool call log.
     """
+    _assert_online()
     _check_api_key()
 
     from dashscope import Generation
