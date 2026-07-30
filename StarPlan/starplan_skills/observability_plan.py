@@ -185,6 +185,11 @@ def compute_observability(
     max_am = am_cfg.get("max_airmass", 2.0)
     max_moon_illum = moon_cfg.get("max_illumination_fraction", 0.7)
     min_moon_sep = moon_cfg.get("min_separation_deg", 30.0)
+    # WARNING-1 fix: a slot is only observable if the sun is below the
+    # astronomical-twilight threshold. The night window is normally bounded by
+    # twilight so this is always satisfied; the explicit guard prevents polar-day
+    # false positives where the fallback night window falls in daylight.
+    sun_dark_alt = tw_cfg.get("sun_altitude_deg", -18.0)
     if constraints:
         min_alt = constraints.get("min_altitude_deg", min_alt)
         max_am = constraints.get("max_airmass", max_am)
@@ -348,6 +353,7 @@ def compute_observability(
             h.altitude_deg >= min_alt
             and (h.airmass is None or h.airmass <= max_am)
             and moon_ok
+            and h.sun_altitude_deg < sun_dark_alt  # WARNING-1: exclude daylight (polar day)
         )
 
         if is_good and not in_window:
@@ -492,8 +498,13 @@ def compute_observability(
     # Generate alternative suggestions if not observable
     alternative_suggestions: list[AlternativeSuggestion] = []
     if not is_observable:
+        # WARNING-2 fix: distinguish latitude-limited (permanent) from date-limited.
+        # If the theoretical max altitude is below min_alt, no date change helps.
+        max_alt_theory = 90.0 - abs(lat - dec_deg)
+        latitude_limited = max_alt_theory < min_alt
         alternative_suggestions = _generate_alternatives(
-            target_name, obs_date, hourly_data, min_alt
+            target_name, obs_date, hourly_data, min_alt,
+            latitude_limited=latitude_limited, max_alt_theory=max_alt_theory,
         )
 
     # Save CSV and curve if run_dir provided
@@ -755,22 +766,43 @@ def _generate_alternatives(
     obs_date: datetime,
     hourly_data: list[HourlyData],
     min_alt: float,
+    latitude_limited: bool = False,
+    max_alt_theory: Optional[float] = None,
 ) -> list[AlternativeSuggestion]:
-    """Generate alternative suggestions when target is not observable."""
+    """Generate alternative suggestions when target is not observable.
+
+    If latitude_limited is True, the target never reaches min_alt from this
+    location regardless of date, so a "wait for a better season" suggestion
+    would be misleading; suggest a lower-latitude location instead (WARNING-2).
+    """
     suggestions: list[AlternativeSuggestion] = []
 
-    # Suggest waiting for a better season
-    max_alt = max((h.altitude_deg for h in hourly_data), default=0)
-    suggestions.append(
-        AlternativeSuggestion(
-            suggestion_type="alternative_date",
-            description=(
-                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 最高高度仅 {max_alt:.1f}°，"
-                f"不满足 {min_alt}° 要求。建议等待目标进入更好观测季节。"
-            ),
-            target_name=target_name,
+    if latitude_limited:
+        # Permanently too low from this latitude — rescheduling cannot help.
+        mt = f"{max_alt_theory:.1f}" if max_alt_theory is not None else "过低"
+        suggestions.append(
+            AlternativeSuggestion(
+                suggestion_type="alternative_location",
+                description=(
+                    f"{target_name} 在本地最大高度仅 {mt}°，永远低于 {min_alt:.0f}° 要求，"
+                    f"改期无效。建议改到更低纬度地点观测，或选择其他目标。"
+                ),
+                target_name=target_name,
+            )
         )
-    )
+    else:
+        # Not observable on this date (sun/moon) — rescheduling may help.
+        max_alt = max((h.altitude_deg for h in hourly_data), default=0)
+        suggestions.append(
+            AlternativeSuggestion(
+                suggestion_type="alternative_date",
+                description=(
+                    f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 最高高度仅 {max_alt:.1f}°，"
+                    f"不满足 {min_alt}° 要求。建议等待目标进入更好观测季节。"
+                ),
+                target_name=target_name,
+            )
+        )
 
     # Suggest well-placed seasonal alternatives based on month
     month = obs_date.month

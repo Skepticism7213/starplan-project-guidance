@@ -374,9 +374,12 @@ class RiskFlag(BaseModel):
 
 
 class AlternativeSuggestion(BaseModel):
-    """Suggestion for alternative time or target."""
+    """Suggestion for alternative time, target, or location."""
 
-    suggestion_type: str = Field(description="Type: alternative_date, alternative_target")
+    suggestion_type: str = Field(
+        description="Type: alternative_date (reschedule), alternative_target (different target), "
+        "alternative_location (target permanently too low from this site; observe from lower latitude)"
+    )
     description: str
     target_name: Optional[str] = None
     suggested_date: Optional[date] = None
