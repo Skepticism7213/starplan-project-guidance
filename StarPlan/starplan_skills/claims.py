@@ -139,6 +139,7 @@ class AllowedClaimsBuilder:
         self._build_derived_visibility_claims()
         self._build_moon_claims()
         self._build_prohibited_claims()
+        self._build_procedural_claims()
 
         # P0-A: seal the hash — this is the ONLY time it is computed.
         self._sealed_registry_hash = self._compute_registry_hash()
@@ -769,6 +770,153 @@ class AllowedClaimsBuilder:
             validity_scope=self._scope,
             source_refs=[],
         ))
+
+    # ── Procedural claims (P0-B: approved no-fact operational instructions) ──
+
+    def _build_procedural_claims(self) -> None:
+        """Register procedural Claims for schedule, safety, equipment, manual checks.
+
+        P0-B: these are approved operational instructions with no factual content.
+        They still require registered claim_ids so render_trace has 100% coverage
+        without fake 'procedural.*' strings that bypass the Registry.
+        """
+        proc_hash = self._hash_source({"type": "procedural", "version": "v1"})
+
+        # Schedule (derived from observability calculation, expressed as timeline)
+        self._add_claim(Claim(
+            claim_id="schedule.observability_derived",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+            predicate="schedule_timeline",
+            text_value="derived_from_observability",
+            display_value="活动流程时间线（由可观测性计算派生）",
+            validity_scope=self._scope,
+            source_refs=["observability_plan.recommended_window", "observability_plan.twilight"],
+            source_hash=proc_hash,
+            allowed_variant_ids=["unconfirmed_v1"],
+        ))
+
+        # Safety instructions (no facts, just approved actions)
+        safety_items = [
+            ("safety.night_group", "夜间活动请注意人身安全，避免单独行动"),
+            ("safety.red_flashlight", "使用红色手电筒保护暗适应视力"),
+            ("safety.weather_clothing", "根据当地临近天气预报准备衣物"),
+            ("safety.laser_caution", "请勿使用激光笔直接指向天空有人区域"),
+        ]
+        for claim_id, text in safety_items:
+            self._add_claim(Claim(
+                claim_id=claim_id,
+                claim_type=ClaimType.PROCEDURAL,
+                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="safety_instruction",
+                text_value=text,
+                display_value=text,
+                validity_scope=self._scope,
+                source_refs=["approved_template.v1"],
+                source_hash=proc_hash,
+                allowed_variant_ids=["unconfirmed_v1"],
+            ))
+
+        # Manual check items (require human confirmation, no facts asserted)
+        check_items = [
+            ("manual_check.site_access", "确认活动地点夜间开放且安全"),
+            ("manual_check.equipment_battery", "确认设备电池充足、三脚架稳固"),
+            ("manual_check.twilight_accuracy", "确认推荐时段的天文暮光时间是否准确"),
+        ]
+        for claim_id, text in check_items:
+            self._add_claim(Claim(
+                claim_id=claim_id,
+                claim_type=ClaimType.PROCEDURAL,
+                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="manual_check",
+                text_value=text,
+                display_value=text,
+                validity_scope=self._scope,
+                source_refs=["approved_template.v1"],
+                source_hash=proc_hash,
+                allowed_variant_ids=["unconfirmed_v1"],
+            ))
+
+        # Equipment (user-requested type is a fact from input)
+        self._add_claim(Claim(
+            claim_id="equipment.requested_type",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+            predicate="equipment_type",
+            text_value=self.equipment,
+            display_value=f"用户指定设备类型: {self.equipment}",
+            validity_scope=self._scope,
+            source_refs=["input.equipment"],
+            source_hash=self._hash_source({"equipment": self.equipment}),
+            allowed_variant_ids=["unconfirmed_v1"],
+        ))
+
+        # Not-observable path Claims (P0-B: real IDs for trace coverage)
+        if not self.obs.is_observable:
+            constraints = set()
+            for ew in getattr(self.obs, 'eliminated_windows', []):
+                if getattr(ew, 'violated_constraint', None):
+                    constraints.add(ew.violated_constraint)
+            reason_text = "；".join(sorted(constraints)) if constraints else "不满足观测约束"
+            self._add_claim(Claim(
+                claim_id="blocking.reason",
+                claim_type=ClaimType.DERIVED_FACT,
+                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="blocking_reason",
+                text_value=reason_text,
+                display_value=f"{self.target.standard_name} 在 {self._scope.date} 不满足观测条件（{reason_text}）",
+                validity_scope=self._scope,
+                source_refs=["observability_plan.eliminated_windows"],
+                source_hash=self._hash_source({"constraints": sorted(constraints)}),
+                allowed_variant_ids=["target_name_not_obs_v1"],
+            ))
+            alt_names = [
+                s.target_name for s in getattr(self.obs, 'alternative_suggestions', [])
+                if getattr(s, 'target_name', None)
+            ]
+            if alt_names:
+                self._add_claim(Claim(
+                    claim_id="blocking.alternatives",
+                    claim_type=ClaimType.DERIVED_FACT,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="alternative_targets",
+                    text_value="、".join(alt_names),
+                    display_value=f"替代目标：{'、'.join(alt_names)}",
+                    validity_scope=self._scope,
+                    source_refs=["observability_plan.alternative_suggestions"],
+                    source_hash=self._hash_source({"alternatives": alt_names}),
+                    allowed_variant_ids=["unconfirmed_v1"],
+                ))
+            self._add_claim(Claim(
+                claim_id="blocking.reschedule_action",
+                claim_type=ClaimType.PROCEDURAL,
+                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="reschedule",
+                text_value="建议改期",
+                display_value="建议将活动改期到约束条件满足时再举行",
+                validity_scope=self._scope,
+                source_refs=["approved_template.v1"],
+                source_hash=proc_hash,
+                allowed_variant_ids=["unconfirmed_v1"],
+            ))
+            not_obs_checks = [
+                ("manual_check.reschedule_verify", f"确认 {self.target.standard_name} 在改期日期是否可观测"),
+                ("manual_check.alt_equipment", "确认替代目标的设备匹配度"),
+                ("manual_check.notify_members", "通知参与成员活动调整安排"),
+            ]
+            for cid, text in not_obs_checks:
+                self._add_claim(Claim(
+                    claim_id=cid,
+                    claim_type=ClaimType.PROCEDURAL,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="manual_check",
+                    text_value=text,
+                    display_value=text,
+                    validity_scope=self._scope,
+                    source_refs=["approved_template.v1"],
+                    source_hash=proc_hash,
+                    allowed_variant_ids=["unconfirmed_v1"],
+                ))
 
     # ── Helpers ──
 

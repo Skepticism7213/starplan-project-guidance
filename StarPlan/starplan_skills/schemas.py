@@ -51,6 +51,7 @@ class ClaimType(str, Enum):
 
     OBSERVED_FACT = "observed_fact"      # Direct output of catalog or deterministic tool
     DERIVED_FACT = "derived_fact"        # Deterministically derived by a versioned rule
+    PROCEDURAL = "procedural"            # Approved no-fact operational instruction (schedule, safety, action)
     HUMAN_CONFIRMED = "human_confirmed"  # Confirmed by a person (site, equipment, activity)
     UNCONFIRMED = "unconfirmed"          # Cannot be verified now; may only be stated as "待确认"
     PROHIBITED = "prohibited"            # Forbidden for this run; must not reach any user-visible fact sentence

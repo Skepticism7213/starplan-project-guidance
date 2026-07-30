@@ -92,10 +92,10 @@ SENTENCE_VARIANTS: dict[str, dict] = {
     # ── Derived visibility section ──
 
     "naked_eye_v1": {
-        "template": "这个目标{display_value}，不需要望远镜就能找到",
+        "template": "这个目标{display_value}",
         "audience": ["beginner", "general"],
         "section": "observability",
-        "note": "Naked eye visible",
+        "note": "Naked eye visible — no additional assertion about ease of finding",
     },
     "naked_eye_v2": {
         "template": "在良好的天空条件下，{display_value}",
@@ -110,16 +110,16 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "note": "Not naked eye visible",
     },
     "binoculars_v1": {
-        "template": "使用双筒望远镜可以清晰地看到它，{display_value}",
+        "template": "使用双筒望远镜，{display_value}",
         "audience": ["beginner", "general"],
         "section": "observability",
-        "note": "Binoculars visibility",
+        "note": "Binoculars visibility — no clarity promise",
     },
     "beginner_v1": {
-        "template": "这个目标{display_value}，推荐作为入门观测对象",
+        "template": "这个目标{display_value}",
         "audience": ["beginner"],
         "section": "observability",
-        "note": "Beginner friendly",
+        "note": "Beginner friendly — no extra recommendation without rule Claim",
     },
     "equipment_match_v1": {
         "template": "{display_value}",
@@ -128,10 +128,10 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "note": "Equipment suitability",
     },
     "equipment_mismatch_v1": {
-        "template": "{display_value}，建议升级设备或选择更亮的目标",
+        "template": "{display_value}",
         "audience": ["beginner", "general"],
         "section": "observability",
-        "note": "Equipment insufficient",
+        "note": "Equipment insufficient — advice is a separate procedural Claim, not embedded here",
     },
 
     # ── Observability section ──
@@ -167,16 +167,16 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "note": "Recommended window",
     },
     "window_v2": {
-        "template": "最佳观测时间是 {display_value}",
+        "template": "本次约束下的推荐观测时间是 {display_value}",
         "audience": ["beginner"],
         "section": "observability",
-        "note": "Window beginner phrasing",
+        "note": "Window beginner phrasing — not 'best', just recommended under constraints",
     },
     "twilight_v1": {
-        "template": "天文暮光于 {display_value} 结束，届时天空完全变暗",
+        "template": "天文暮光于 {display_value} 结束",
         "audience": ["beginner", "general"],
         "section": "observability",
-        "note": "Twilight end time",
+        "note": "Twilight end time — no assertion about sky darkness",
     },
 
     # ── Moon section ──

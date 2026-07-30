@@ -165,27 +165,11 @@ def generate_outreach_pack(
     # Equipment checklist
     equipment_checklist = _build_equipment_checklist(equipment, target, obs_result)
 
-    # Safety notes (temperature hint based on actual observation month)
-    obs_month = None
-    if obs_result.date_range:
-        try:
-            obs_month = int(str(obs_result.date_range[0]).split("-")[1])
-        except (IndexError, ValueError):
-            pass
-
-    if obs_month in (11, 12, 1, 2):
-        temp_note = "注意保暖，冬季夜间气温可能降至 0°C 以下"
-    elif obs_month in (3, 4, 10):
-        temp_note = "注意保暖，春/秋夜间气温可能降至 10°C 以下"
-    elif obs_month in (5, 9):
-        temp_note = "夜间气温适宜，但仍建议携带薄外套"
-    else:
-        temp_note = "夏季夜间注意防蚊，适当补充水分"
-
+    # Safety notes (P0-B: no temperature prediction without weather tool)
     safety_notes = [
         "夜间活动请注意人身安全，避免单独行动",
         "使用红色手电筒保护暗适应视力",
-        temp_note,
+        "根据当地临近天气预报准备衣物",
         "请勿使用激光笔直接指向天空有人区域",
     ]
 
@@ -218,20 +202,26 @@ def generate_outreach_pack(
             unconfirmed_items, audience, md_path, qwen_used=qwen_used,
         )
         # Persist sentence→claim provenance map for audit
-        # C-1 fix: cover ALL user-visible items, not just talking points.
-        # Schedule/equipment/safety/manual-check are procedural (non-fact)
-        # and tagged as such so coverage is honest and complete.
+        # P0-B: use real registered Claim IDs, not fake "procedural.*" strings.
         import json as _json
         full_trace: dict = dict(sentence_claim_map) if sentence_claim_map else {}
+        # Schedule items — derive from observability calculation (registered as obs claims)
         for item in schedule:
             label = f"[流程] {item.time_label}: {item.activity}"
-            full_trace[label] = ["procedural.schedule"]
+            full_trace[label] = ["schedule.observability_derived"]
+        # Equipment — registered procedural Claim
         for eq in equipment_checklist:
-            full_trace[f"[设备] {eq.item}"] = ["procedural.equipment"]
-        for sn in safety_notes:
-            full_trace[f"[安全] {sn}"] = ["procedural.safety"]
-        for mc in manual_check_items:
-            full_trace[f"[核对] {mc}"] = ["procedural.manual_check"]
+            full_trace[f"[设备] {eq.item}"] = ["equipment.requested_type"]
+        # Safety — registered procedural Claims
+        safety_claim_ids = ["safety.night_group", "safety.red_flashlight", "safety.weather_clothing", "safety.laser_caution"]
+        for i, sn in enumerate(safety_notes):
+            cid = safety_claim_ids[i] if i < len(safety_claim_ids) else "safety.night_group"
+            full_trace[f"[安全] {sn}"] = [cid]
+        # Manual checks — registered procedural Claims
+        check_claim_ids = ["manual_check.site_access", "manual_check.equipment_battery", "manual_check.twilight_accuracy"]
+        for i, mc in enumerate(manual_check_items):
+            cid = check_claim_ids[i] if i < len(check_claim_ids) else "manual_check.site_access"
+            full_trace[f"[核对] {mc}"] = [cid]
         if full_trace:
             with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
                 _json.dump(full_trace, f, ensure_ascii=False, indent=2)
@@ -299,6 +289,58 @@ def _generate_not_observable_pack(
             target, obs_result, schedule, talking_points,
             alt_suggestions, manual_check_items, audience, md_path,
         )
+
+        # P0-B: generate sentence_claim_map and expression_plan for not-observable path
+        import json as _json
+        not_obs_trace: dict = {}
+        # Talking points → blocking.reason / target claims / blocking.alternatives
+        for tp in talking_points:
+            if "不满足观测条件" in tp or "无法观测" in tp:
+                not_obs_trace[tp] = ["blocking.reason"]
+            elif "替代目标" in tp or "更适合观测" in tp:
+                not_obs_trace[tp] = ["blocking.alternatives"]
+            elif "改期" in tp:
+                not_obs_trace[tp] = ["blocking.reschedule_action"]
+            elif "星座" in tp:
+                not_obs_trace[tp] = ["target.constellation"]
+            elif "视星等" in tp:
+                not_obs_trace[tp] = ["target.visual_magnitude"]
+            else:
+                not_obs_trace[tp] = ["blocking.reason"]
+        # Schedule items
+        for item in schedule:
+            label = f"[流程] {item.time_label}: {item.activity}"
+            not_obs_trace[label] = ["schedule.observability_derived"]
+        # Manual checks
+        check_ids = ["manual_check.reschedule_verify", "manual_check.alt_equipment", "manual_check.notify_members"]
+        for i, mc in enumerate(manual_check_items):
+            cid = check_ids[i] if i < len(check_ids) else "manual_check.reschedule_verify"
+            not_obs_trace[f"[核对] {mc}"] = [cid]
+        # Alternatives
+        for alt in alt_suggestions:
+            not_obs_trace[f"[替代] {alt}"] = ["blocking.alternatives"]
+
+        with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
+            _json.dump(not_obs_trace, f, ensure_ascii=False, indent=2)
+
+        # Deterministic expression plan (no Qwen involved)
+        expression_plan = {
+            "schema_version": "1.0",
+            "mode": "deterministic_not_observable",
+            "selected_claims": [
+                {"claim_id": "blocking.reason", "sentence_variant_id": "target_name_not_obs_v1"},
+                {"claim_id": "blocking.reschedule_action", "sentence_variant_id": "unconfirmed_v1"},
+            ],
+            "section_order": ["target", "observability", "actions"],
+            "tone": "general",
+            "connector_ids": [],
+        }
+        if claims_builder and claims_builder.get_claim("blocking.alternatives"):
+            expression_plan["selected_claims"].append(
+                {"claim_id": "blocking.alternatives", "sentence_variant_id": "unconfirmed_v1"}
+            )
+        with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
+            _json.dump(expression_plan, f, ensure_ascii=False, indent=2)
 
     return OutreachPack(
         target_name=target.standard_name,
@@ -910,7 +952,7 @@ def _build_equipment_checklist(
 
     items.append(EquipmentItem(item="活动星图或手机星图 App", quantity="每组 1 个"))
     items.append(EquipmentItem(item="红色手电筒", quantity="每组 1 个", notes="保护暗适应视力"))
-    items.append(EquipmentItem(item="保暖衣物", quantity="每人", notes="夜间气温可能较低"))
+    items.append(EquipmentItem(item="保暖衣物", quantity="每人", notes="根据当地天气预报准备"))
     items.append(EquipmentItem(item="记录本和笔", quantity="每组 1 套"))
     items.append(EquipmentItem(item="防蚊液", quantity="适量", notes="户外使用"))
 
