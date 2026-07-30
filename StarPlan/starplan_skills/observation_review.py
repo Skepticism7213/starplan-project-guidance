@@ -91,14 +91,14 @@ def review_observation(
             causes.append(CauseEntry(
                 cause="团队迟到",
                 classification="evidence_based",
-                evidence=f"计划开始 {planned_start.strftime('%H:%M')}，实际开始 {actual_start.strftime('%H:%M')}，延迟 {delay_minutes:.0f} 分钟",
+                evidence=f"计划开始 {planned_start.strftime('%H:%M')}，实际开始 {actual_start.strftime('%H:%M')}，延迟 {delay_minutes:.0f} 分钟（阈值: review.delay_significance@v1 = 10 分钟活动政策）",
             ))
-            suggestions.append('下次活动增加"提前30分钟到场"步骤，确保在推荐窗口开始时已就位')
+            suggestions.append("下次活动增加到场准备步骤，确保在推荐窗口开始时已就位")
             plan_diffs.append(RevisedPlanDiff(
                 field="preparation_step",
                 original_value="无提前到场要求",
-                revised_value="提前 30 分钟到场进行设备调试和暗适应",
-                reason=f"本次迟到 {delay_minutes:.0f} 分钟，错过了早期高高度窗口",
+                revised_value="提前到场进行设备调试和暗适应",
+                reason=f"本次迟到 {delay_minutes:.0f} 分钟",
             ))
 
     # ── 2. Environment deviation ──
@@ -117,7 +117,7 @@ def review_observation(
             ),
         ))
         suggestions.append("活动前增加天气预报检查步骤，关注云量预报")
-        suggestions.append("准备备选方案：若云量 > 50%，转为室内科普讲座")
+        suggestions.append("准备备选方案：若天气不适合观测，转为室内科普讲座")
 
     # ── 3. Equipment deviation ──
     if log.observer_notes:
@@ -130,15 +130,15 @@ def review_observation(
             ))
             causes.append(CauseEntry(
                 cause="设备准备不足",
-                classification="evidence_based",
-                evidence=f"观测者备注: {log.observer_notes}",
+                classification="possible",
+                evidence=f"观测者备注提及: {log.observer_notes}（人工报告，未经独立验证）",
             ))
             suggestions.append("增加设备检查步骤：活动前测试三脚架稳定性")
             plan_diffs.append(RevisedPlanDiff(
                 field="equipment_check_step",
                 original_value="无设备预检步骤",
-                revised_value="活动前 30 分钟检查三脚架稳定性、望远镜调焦",
-                reason="本次三脚架不稳影响观测",
+                revised_value="活动前检查三脚架稳定性、望远镜调焦",
+                reason="观测者报告三脚架不稳（possible，待验证）",
             ))
 
     # ── 4. Expectation / operation issues ──
@@ -148,12 +148,12 @@ def review_observation(
             classification="undetermined",
             evidence=f"备注提到'不如预期清晰'，但无法确定是设备、目标还是期望问题",
         ))
-        suggestions.append("活动前增加'预期管理'说明：深空目标目视效果通常为模糊光斑，非照片般清晰")
+        suggestions.append("活动前增加预期管理说明（来源: 天文科普经验，非本次计算）")
         plan_diffs.append(RevisedPlanDiff(
             field="expectation_management",
             original_value="无预期管理说明",
-            revised_value="活动前发放'目视效果预期说明'，附真实目视照片对比",
-            reason="新成员对深空目标目视效果期望过高",
+            revised_value="活动前发放目视效果预期说明",
+            reason="备注提及不如预期（undetermined，具体原因待确认）",
         ))
 
     # ── 5. Seeing conditions ──
@@ -197,6 +197,33 @@ def review_observation(
             suggestions, plan_diffs, review_md_path,
         )
         _write_revised_plan(revised_plan, revised_json_path)
+
+        # P0-D: generate review trace — maps each output item to evidence
+        review_trace = {
+            "causes": [
+                {
+                    "cause": c.cause,
+                    "classification": c.classification,
+                    "evidence": c.evidence,
+                    "source": "rule_based" if c.classification == "evidence_based" else "human_report" if c.classification == "possible" else "insufficient_data",
+                }
+                for c in causes
+            ],
+            "suggestions": [
+                {"text": s, "source": "activity_policy" if "步骤" in s or "检查" in s else "general_advice"}
+                for s in suggestions
+            ],
+            "plan_diffs": [
+                {
+                    "field": d.field,
+                    "reason": d.reason,
+                    "source_cause": next((c.cause for c in causes if c.classification in ("evidence_based", "possible")), "undetermined"),
+                }
+                for d in plan_diffs
+            ],
+        }
+        with open(run_dir / "review_trace.json", "w", encoding="utf-8") as f:
+            json.dump(review_trace, f, ensure_ascii=False, indent=2)
 
     return ObservationReview(
         target_name=original_plan.target_name,
