@@ -226,6 +226,21 @@ def generate_outreach_pack(
             with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
                 _json.dump(full_trace, f, ensure_ascii=False, indent=2)
 
+        # P0-B: observable path also writes expression_plan.json
+        expr_plan = {
+            "schema_version": "1.0",
+            "mode": "qwen_expression_plan" if qwen_used else "deterministic_fallback",
+            "selected_claims": [
+                {"claim_id": cid, "sentence_variant_id": "auto"}
+                for cid in sorted(claims_builder.claim_ids) if not cid.startswith("prohibited.")
+            ] if claims_builder else [],
+            "section_order": ["target", "observability", "risk", "actions"],
+            "tone": "beginner_friendly" if "新成员" in audience else "general",
+            "connector_ids": [],
+        }
+        with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
+            _json.dump(expr_plan, f, ensure_ascii=False, indent=2)
+
     return OutreachPack(
         target_name=target.standard_name,
         audience=audience,
@@ -579,7 +594,7 @@ def _build_schedule(obs: ObservabilityResult, audience: str) -> list[ActivitySch
         schedule.append(ActivityScheduleItem(
             time_label=tw_end,
             activity="天文暮光结束，开始准备设备",
-            notes="等待天空完全变暗",
+            notes="暮光结束后开始观测准备",
         ))
 
     if obs.recommended_window:
