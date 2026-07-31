@@ -24,7 +24,6 @@ twilight:
 moon:
   max_illumination_fraction: 0.7  # Moon illumination above which deep-sky targets are affected
   min_separation_deg: 30.0        # Minimum angular separation from target (degrees)
-  bright_star_magnitude_threshold: 2.5  # Stars brighter than this ignore moonlight (point sources stay visible)
   impact_levels:
     none: { max_illumination: 0.3, min_separation_deg: 45 }
     low: { max_illumination: 0.5, min_separation_deg: 30 }
