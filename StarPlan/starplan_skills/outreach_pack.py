@@ -177,7 +177,7 @@ def generate_outreach_pack(
     unconfirmed_items: list[str] = []
     if not target.visual_magnitude:
         unconfirmed_items.append(f"目标 {target.standard_name} 的视星等数据缺失，无法确认目视难度")
-    if not target.angular_size_arcmin:
+    if not target.angular_size_arcmin and target.target_type != "star":
         unconfirmed_items.append(f"目标 {target.standard_name} 的角大小数据缺失，无法确认设备匹配度")
 
     # P7 fix: surface moon risk in unconfirmed/warning items

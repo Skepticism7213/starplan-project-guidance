@@ -155,6 +155,7 @@ def compute_observability(
     run_dir: Optional[Path] = None,
     target_magnitude: Optional[float] = None,
     target_angular_size_arcmin: Optional[list[float]] = None,
+    target_type: Optional[str] = None,
 ) -> ObservabilityResult:
     """
     Compute target observability and generate an observation plan.
@@ -195,6 +196,17 @@ def compute_observability(
         max_am = constraints.get("max_airmass", max_am)
         if constraints.get("max_moon_illumination") is not None:
             max_moon_illum = constraints["max_moon_illumination"]
+
+    # Problem 3 fix: bright point-source stars are essentially unaffected by
+    # moonlight (moonlight raises the sky background, washing out faint/extended
+    # targets, but a bright star stays visible). Relax the moonlight constraint
+    # for bright stars so they are not needlessly flagged or blocked.
+    bright_star_mag = moon_cfg.get("bright_star_magnitude_threshold", 2.5)
+    moonlight_insensitive = (
+        target_type == "star"
+        and target_magnitude is not None
+        and target_magnitude < bright_star_mag
+    )
 
     # Parse location
     lat = location["latitude"]
@@ -328,6 +340,7 @@ def compute_observability(
         impact_assessment=_assess_moon_impact(
             moon_phase, min(moon_seps) if moon_seps else 0, moon_cfg,
             moon_ever_up=any(a > 0 for a in moon_alts) if moon_alts else False,
+            moonlight_insensitive=moonlight_insensitive,
         ),
     )
 
@@ -344,11 +357,13 @@ def compute_observability(
     for i, h in enumerate(hourly_data):
         # W-6 fix: Moon only affects observation when above the horizon.
         # Eliminate slot if moon is up AND (illumination exceeds limit OR too close to target).
+        # Problem 3 fix: bright stars (moonlight_insensitive) ignore moonlight.
         moon_ok = True
-        moon_up = (h.moon_altitude_deg is not None and h.moon_altitude_deg > 0)
-        if moon_up and h.moon_separation_deg is not None:
-            if moon_phase > max_moon_illum or h.moon_separation_deg < min_moon_sep:
-                moon_ok = False
+        if not moonlight_insensitive:
+            moon_up = (h.moon_altitude_deg is not None and h.moon_altitude_deg > 0)
+            if moon_up and h.moon_separation_deg is not None:
+                if moon_phase > max_moon_illum or h.moon_separation_deg < min_moon_sep:
+                    moon_ok = False
         is_good = (
             h.altitude_deg >= min_alt
             and (h.airmass is None or h.airmass <= max_am)
@@ -479,7 +494,7 @@ def compute_observability(
         )
 
     # Generate risk flags
-    risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg)
+    risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg, recommended_window=recommended_window)
 
     # Equipment suitability check
     equip_cfg = cfg.get("equipment", {}).get(equipment, {}) if equipment else {}
@@ -706,14 +721,17 @@ def _to_local(utc_dt: datetime, tz: timezone) -> datetime:
 
 
 def _assess_moon_impact(
-    phase: float, min_separation: float, moon_cfg: dict, moon_ever_up: bool = True
+    phase: float, min_separation: float, moon_cfg: dict, moon_ever_up: bool = True,
+    moonlight_insensitive: bool = False,
 ) -> str:
     """Assess moon impact on deep-sky observation using configured thresholds.
 
     W-6 fix: if the moon never rises above the horizon during the observing
     night, its impact is 'none' regardless of phase or separation.
+    Problem 3 fix: bright stars (moonlight_insensitive) are unaffected by
+    moonlight, so their impact is 'none'.
     """
-    if not moon_ever_up:
+    if not moon_ever_up or moonlight_insensitive:
         return "none"
 
     levels = moon_cfg.get("impact_levels", {})
@@ -740,14 +758,24 @@ def _compute_risk_flags(
     moon_info: MoonInfo,
     min_alt: float,
     risk_cfg: dict,
+    recommended_window: Optional[RecommendedWindow] = None,
 ) -> list[RiskFlag]:
     """Compute risk flags based on observed data and risk rules."""
     flags: list[RiskFlag] = []
     alt_cfg = risk_cfg.get("low_altitude", {})
     moon_cfg = risk_cfg.get("moonlight", {})
 
-    # Check if target ever drops below warning altitude
-    min_observed_alt = min((h.altitude_deg for h in hourly_data), default=999)
+    # Problem 2 fix: scope the low-altitude check to the recommended window when
+    # there is one, so a target that is high during the recommended window is not
+    # flagged just because it dips low at the night edges (outside the window).
+    if recommended_window is not None:
+        scope = [
+            h for h in hourly_data
+            if recommended_window.window.start <= h.time <= recommended_window.window.end
+        ]
+    else:
+        scope = hourly_data
+    min_observed_alt = min((h.altitude_deg for h in scope), default=999)
     if min_observed_alt < alt_cfg.get("critical_threshold_deg", 15):
         flags.append(RiskFlag(
             risk_type="low_altitude",
