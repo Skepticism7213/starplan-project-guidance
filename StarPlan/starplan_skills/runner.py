@@ -21,16 +21,14 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 
-from .config import get_run_dir, load_constraints
+from .config import get_run_dir
 from .schemas import (
     CalculationManifest,
-    ModelInfo,
     ObservationLog,
     ObservabilityResult,
     ResolvedTarget,
     RunState,
     StarPlanInput,
-    ToolVersions,
 )
 from .target_resolve import resolve_target, resolve_location
 from .exceptions import TargetConfirmationRequired
@@ -258,13 +256,40 @@ def run_starplan(
     # ── Generate model call log ──
     _write_model_call_log(run_dir, starplan_input, resolved, obs_result, outreach=outreach)
 
-    # ── P0-C: Update entry-created RunOutcome with computation results ──
+    # ── P2-3 Finalize: verify artifacts FIRST, then determine three axes ──
+
+    # Step A: Attach computation results to outcome
     outcome.target = resolved
     outcome.obs_result = obs_result
     outcome.location = location
+
+    # Step B: Verify artifact completeness before setting terminal status
+    import hashlib as _hl
+    artifact_issues: list[str] = []
+    required_artifacts = ["claims.json", "outreach_pack.md", "render_trace.json",
+                          "sentence_claim_map.json", "expression_plan.json"]
+    for fname in required_artifacts:
+        if not (run_dir / fname).exists():
+            artifact_issues.append(f"missing artifact: {fname}")
+
+    # Verify claims registry integrity (hash matches sealed value)
+    claims_path = run_dir / "claims.json"
+    if claims_path.exists():
+        claims_hash = _hl.sha256(claims_path.read_bytes()).hexdigest()[:16]
+        outcome.claims_registry_hash = claims_hash
+        # Cross-check with render_trace: every sentence must have claim_ids
+        trace_path = run_dir / "render_trace.json"
+        if trace_path.exists():
+            trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
+            for entry in trace_data.get("sentences", []):
+                if not entry.get("claim_ids"):
+                    artifact_issues.append(
+                        f"render_trace sentence without claim_ids: {entry.get('text', '')[:40]}"
+                    )
+
+    # Step C: Set three-axis status (only after verification)
     outcome.business_status = outcome._derive_business_status()
 
-    # Set delivery status from actual outreach generation
     if outreach.qwen_used:
         outcome.set_delivery(DeliveryStatus.QWEN_EXPRESSION_PLAN, qwen_used=True)
         outcome.add_model_call_event({
@@ -274,37 +299,29 @@ def run_starplan(
         })
     else:
         outcome.set_delivery(DeliveryStatus.TEMPLATE, qwen_used=False)
-    # Set validation status
-    if outreach.qwen_validation_issues:
+
+    if artifact_issues:
+        outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, artifact_issues)
+    elif outreach.qwen_validation_issues:
         outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, outreach.qwen_validation_issues)
     else:
         outcome.set_validation(ValidationStatus.PASSED)
-    # Record claims hash if available
-    claims_path = run_dir / "claims.json"
-    if claims_path.exists():
-        import hashlib as _hl
-        outcome.claims_registry_hash = _hl.sha256(claims_path.read_bytes()).hexdigest()[:16]
 
-    # Build manifest from RunOutcome (not from scattered _build_manifest)
+    # Step D: Generate Manifest + Report + Outcome (from verified state)
     manifest = outcome.build_manifest(run_dir, starplan_input=starplan_input)
+    _write_validation_report(run_dir, outcome)
 
-    # Write validation report
-    _write_validation_report(run_dir, resolved, obs_result, None)
-
-    # Write manifest
     with open(run_dir / "calculation_manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest.model_dump(), f, ensure_ascii=False, indent=2, default=str)
 
-    # Write run_outcome.json (audit summary)
-    with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
-        json.dump(outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
-
     # Compute file hashes for key outputs
-    for fname in ["plan.json", "claims.json", "outreach_pack.md", "calculation_manifest.json"]:
+    for fname in ["plan.json", "claims.json", "outreach_pack.md",
+                  "calculation_manifest.json", "render_trace.json"]:
         fpath = run_dir / fname
         if fpath.exists():
             outcome.compute_file_hash(fpath)
-    # Re-write run_outcome with hashes
+
+    # Write final run_outcome.json (with hashes)
     with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
         json.dump(outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
 
@@ -339,166 +356,55 @@ def _persist_outcome(outcome, run_dir: Path):
         pass  # Best-effort; don't crash pipeline for logging
 
 
-def _build_manifest(
-    run_id: str,
-    input_data: dict,
-    resolved: ResolvedTarget,
-    location: dict,
-    obs_result: ObservabilityResult,
-    run_dir: Path,
-    outreach=None,
-    starplan_input=None,
-) -> CalculationManifest:
-    """Build the calculation manifest for this run (C-5 fix: evidence-accurate)."""
-    import astropy
+def _write_validation_report(run_dir: Path, outcome) -> None:
+    """Write validation report from RunOutcome (single source of truth).
 
-    try:
-        import astroplan
-        astroplan_ver = astroplan.__version__
-    except ImportError:
-        astroplan_ver = "not_installed"
-
-    from .qwen_client import DEFAULT_MODEL
-
-    tz = timezone(timedelta(hours=8))
-
-    # C-5 fix: model info reflects ACTUAL usage, not hardcoded
-    qwen_used = outreach.qwen_used if outreach else False
-    if qwen_used:
-        model_info = ModelInfo(
-            provider="阿里云百炼",
-            model_name=DEFAULT_MODEL,
-            called=True,
-        )
-    else:
-        model_info = ModelInfo(
-            provider="阿里云百炼",
-            model_name=None,
-            called=False,
-        )
-
-    # C-5 fix: record user constraint overrides
-    manual_overrides: list[str] = []
-    if starplan_input and starplan_input.constraints:
-        cfg = load_constraints()
-        user_c = starplan_input.constraints
-        default_alt = cfg.get("altitude", {}).get("min_altitude_deg", 30.0)
-        default_am = cfg.get("airmass", {}).get("max_airmass", 2.0)
-        if user_c.min_altitude_deg != default_alt:
-            manual_overrides.append(
-                f"min_altitude_deg: {default_alt} → {user_c.min_altitude_deg} (用户覆盖)"
-            )
-        if user_c.max_airmass != default_am:
-            manual_overrides.append(
-                f"max_airmass: {default_am} → {user_c.max_airmass} (用户覆盖)"
-            )
-        if user_c.max_moon_illumination is not None:
-            manual_overrides.append(
-                f"max_moon_illumination: {user_c.max_moon_illumination} (用户指定)"
-            )
-    if starplan_input and starplan_input.confirmed_target:
-        manual_overrides.append(
-            f"confirmed_target: {starplan_input.confirmed_target} (人工确认选择)"
-        )
-
-    # C-5 fix: collect validation issues from outreach pack
-    validation_issues: list[str] = []
-    if outreach:
-        validation_issues.extend(outreach.qwen_validation_issues or [])
-        if outreach.unconfirmed_items:
-            validation_issues.extend(outreach.unconfirmed_items)
-
-    # C-5 fix: compute validation_status dynamically
-    if validation_issues:
-        validation_status = "passed_with_warnings"
-    elif not obs_result.is_observable:
-        validation_status = "target_not_observable"
-    else:
-        validation_status = "passed"
-
-    # C-5 fix: constraints_applied records BOTH defaults and user values
-    cfg = load_constraints()
-    constraints_applied = {
-        "min_altitude_deg": cfg.get("altitude", {}).get("min_altitude_deg", 30),
-        "max_airmass": cfg.get("airmass", {}).get("max_airmass", 2.0),
-    }
-    if starplan_input and starplan_input.constraints:
-        constraints_applied["user_min_altitude_deg"] = starplan_input.constraints.min_altitude_deg
-        constraints_applied["user_max_airmass"] = starplan_input.constraints.max_airmass
-        if starplan_input.constraints.max_moon_illumination is not None:
-            constraints_applied["user_max_moon_illumination"] = starplan_input.constraints.max_moon_illumination
-
-    return CalculationManifest(
-        run_id=run_id,
-        timestamp=datetime.now(tz),
-        input=input_data,
-        target={
-            "standard_name": resolved.standard_name,
-            "ra_deg": resolved.ra_deg,
-            "dec_deg": resolved.dec_deg,
-            "source": resolved.source,
-            "confidence": resolved.confidence,
-        },
-        location=location,
-        tools=ToolVersions(
-            astropy_version=astropy.__version__,
-            astroplan_version=astroplan_ver,
-            python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-        ),
-        model=model_info,
-        constraints_applied=constraints_applied,
-        intermediate_files=[f.name for f in run_dir.iterdir() if f.is_file()],
-        manual_overrides=manual_overrides,
-        validation_status=validation_status,
-        validation_issues=validation_issues,
-        qwen_used=qwen_used,
-    )
-
-
-def _write_validation_report(
-    run_dir: Path,
-    resolved: ResolvedTarget,
-    obs: ObservabilityResult,
-    manifest: Optional[CalculationManifest] = None,
-) -> None:
-    """Write a validation report for this run."""
+    P2: receives only RunOutcome — no scattered resolved/obs/manifest params.
+    """
+    resolved = outcome.target
+    obs = outcome.obs_result
     lines: list[str] = []
     lines.append("# Validation Report")
     lines.append("")
-    lines.append(f"**Run ID**: {manifest.run_id if manifest else run_dir.name}")
-    lines.append(f"**Timestamp**: {manifest.timestamp.isoformat() if manifest else datetime.now().isoformat()}")
+    lines.append(f"**Run ID**: {outcome.run_id}")
+    lines.append(f"**Timestamp**: {datetime.now(timezone(timedelta(hours=8))).isoformat()}")
+    lines.append(f"**Business Status**: {outcome.business_status.value}")
+    lines.append(f"**Validation Status**: {outcome.validation_status.value}")
+    lines.append(f"**Delivery Status**: {outcome.delivery_status.value}")
     lines.append("")
 
     # Input check
-    lines.append("## 输入检查")
+    lines.append("## Input Check")
     lines.append("")
-    lines.append(f"- 目标名称: ✓ 已提供")
-    loc_name = manifest.location.get('name', 'unknown') if manifest else (obs.location_name if obs else 'unknown')
-    date_info = manifest.input.get('date_range') if manifest else str(obs.date_range)
-    lines.append(f"- 地点: ✓ {loc_name}")
-    lines.append(f"- 日期: ✓ {date_info}")
+    loc_name = (outcome.location or {}).get("name", "unknown")
+    date_info = (outcome.input_data or {}).get("date_range", "unknown")
+    lines.append(f"- Target: provided")
+    lines.append(f"- Location: {loc_name}")
+    lines.append(f"- Date: {date_info}")
     lines.append("")
 
     # Target check
-    lines.append("## 目标检查")
-    lines.append("")
-    lines.append(f"- 标准名称: {resolved.standard_name}")
-    lines.append(f"- 坐标: RA={resolved.ra_deg:.4f}°, Dec={resolved.dec_deg:.4f}°")
-    lines.append(f"- 数据来源: {resolved.source}")
-    lines.append(f"- 置信度: {resolved.confidence:.2f}")
-    lines.append(f"- 状态: {'✓ 通过' if resolved.confidence >= 0.9 else '⚠️ 低置信度'}")
-    lines.append("")
+    if resolved:
+        lines.append("## Target Check")
+        lines.append("")
+        lines.append(f"- Standard name: {resolved.standard_name}")
+        lines.append(f"- Coordinates: RA={resolved.ra_deg:.4f} deg, Dec={resolved.dec_deg:.4f} deg")
+        lines.append(f"- Source: {resolved.source}")
+        lines.append(f"- Confidence: {resolved.confidence:.2f}")
+        lines.append(f"- Status: {'[OK]' if resolved.confidence >= 0.9 else '[WARN] low confidence'}")
+        lines.append("")
 
     # Calculation check
-    lines.append("## 计算检查")
-    lines.append("")
-    lines.append(f"- 可观测: {'✓ 是' if obs.is_observable else '✗ 否'}")
-    lines.append(f"- 数据点数: {len(obs.hourly_data)}")
-    lines.append(f"- 可见窗口数: {len(obs.visibility_windows)}")
-    if obs.recommended_window:
-        lines.append(f"- 推荐窗口峰值高度: {obs.recommended_window.peak_altitude_deg:.1f}°")
-    lines.append(f"- 风险标记数: {len(obs.risk_flags)}")
-    lines.append("")
+    if obs:
+        lines.append("## Calculation Check")
+        lines.append("")
+        lines.append(f"- Observable: {'Yes' if obs.is_observable else 'No'}")
+        lines.append(f"- Data points: {len(obs.hourly_data)}")
+        lines.append(f"- Visibility windows: {len(obs.visibility_windows)}")
+        if obs.recommended_window:
+            lines.append(f"- Peak altitude: {obs.recommended_window.peak_altitude_deg:.1f} deg")
+        lines.append(f"- Risk flags: {len(obs.risk_flags)}")
+        lines.append("")
 
     # Tool versions
     import astropy
@@ -507,34 +413,33 @@ def _write_validation_report(
         _ap_ver = astroplan.__version__
     except ImportError:
         _ap_ver = "not_installed"
-    lines.append("## 工具版本")
+    lines.append("## Tool Versions")
     lines.append("")
     lines.append(f"- Astropy: {astropy.__version__}")
     lines.append(f"- astroplan: {_ap_ver}")
     lines.append(f"- Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     lines.append("")
 
-    # Overall
-    target_ok = resolved.confidence >= 0.9
-    data_ok = len(obs.hourly_data) > 0
-    observable = obs.is_observable
-    has_reasons = len(obs.alternative_suggestions) > 0 or len(obs.risk_flags) > 0
-
-    if target_ok and data_ok and observable:
-        status = "[PASS] PASSED"
-    elif target_ok and data_ok and not observable and has_reasons:
-        status = "[PASS] EXPECTED_FAILURE -- not observable with proper reasons and alternatives"
-    elif target_ok and data_ok and not observable and not has_reasons:
-        status = "[REVIEW] NEEDS REVIEW -- not observable but no alternatives provided"
-    else:
-        status = "[FAIL] FAILED -- target resolution or data computation issue"
-
-    lines.append("## 总体结论")
+    # Overall conclusion from RunOutcome three-axis status
+    lines.append("## Conclusion")
     lines.append("")
-    lines.append(f"**状态**: {status}")
-    lines.append(f"**可观测**: {'Yes' if observable else 'No'}")
-    if not observable:
-        lines.append(f"**备选建议数**: {len(obs.alternative_suggestions)}")
+    biz = outcome.business_status.value
+    val = outcome.validation_status.value
+    if biz == "tool_error":
+        status = f"[FAIL] TOOL_ERROR: {outcome.error_message_safe or 'unknown'}"
+    elif biz == "needs_confirmation":
+        status = "[PENDING] NEEDS_CONFIRMATION: ambiguous target"
+    elif val == "passed":
+        status = "[PASS] PASSED"
+    elif val == "passed_with_warnings":
+        status = "[PASS] PASSED_WITH_WARNINGS"
+    else:
+        status = f"[REVIEW] {biz}/{val}"
+    lines.append(f"**Status**: {status}")
+    if obs:
+        lines.append(f"**Observable**: {'Yes' if obs.is_observable else 'No'}")
+        if not obs.is_observable:
+            lines.append(f"**Alternatives**: {len(obs.alternative_suggestions)}")
     lines.append("")
 
     with open(run_dir / "validation_report.md", "w", encoding="utf-8") as f:

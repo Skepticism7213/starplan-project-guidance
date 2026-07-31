@@ -68,4 +68,3 @@ Do not claim work is finished until this report exists and the relevant cases pa
 - Use concrete acceptance criteria instead of vague wording such as “improve” or “make complete”.
 - Separate confirmed facts, assumptions, proposed work, and items awaiting team confirmation.
 - Keep examples reproducible and label simulated or placeholder data clearly.
-
