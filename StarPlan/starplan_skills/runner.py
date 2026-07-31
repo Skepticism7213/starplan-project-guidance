@@ -179,6 +179,7 @@ def run_starplan(
             run_dir=run_dir,
             target_magnitude=resolved.visual_magnitude,
             target_angular_size_arcmin=resolved.angular_size_arcmin,
+            target_type=resolved.target_type,
         )
     except Exception as e:
         # P0-C: persist RunOutcome with tool_error before propagating

@@ -155,6 +155,7 @@ def compute_observability(
     run_dir: Optional[Path] = None,
     target_magnitude: Optional[float] = None,
     target_angular_size_arcmin: Optional[list[float]] = None,
+    target_type: Optional[str] = None,
 ) -> ObservabilityResult:
     """
     Compute target observability and generate an observation plan.
@@ -190,6 +191,21 @@ def compute_observability(
         max_am = constraints.get("max_airmass", max_am)
         if constraints.get("max_moon_illumination") is not None:
             max_moon_illum = constraints["max_moon_illumination"]
+
+    # WARNING-1 fix (hfzr): a slot is only observable if the sun is below the
+    # astronomical-twilight threshold. Prevents polar-day false positives where
+    # the fallback night window falls in daylight.
+    sun_dark_alt = tw_cfg.get("sun_altitude_deg", -18.0)
+
+    # Problem 3 fix (hfzr 5dbb8ea): bright point-source stars are essentially
+    # unaffected by moonlight (moonlight raises sky background, washing out
+    # faint/extended targets, but a bright star stays visible).
+    bright_star_mag = moon_cfg.get("bright_star_magnitude_threshold", 2.5)
+    moonlight_insensitive = (
+        target_type == "star"
+        and target_magnitude is not None
+        and target_magnitude < bright_star_mag
+    )
 
     # Parse location
     lat = location["latitude"]
@@ -323,6 +339,7 @@ def compute_observability(
         impact_assessment=_assess_moon_impact(
             moon_phase, min(moon_seps) if moon_seps else 0, moon_cfg,
             moon_ever_up=any(a > 0 for a in moon_alts) if moon_alts else False,
+            moonlight_insensitive=moonlight_insensitive,
         ),
     )
 
@@ -339,15 +356,18 @@ def compute_observability(
     for i, h in enumerate(hourly_data):
         # W-6 fix: Moon only affects observation when above the horizon.
         # Eliminate slot if moon is up AND (illumination exceeds limit OR too close to target).
+        # Problem 3 fix (hfzr 5dbb8ea): bright stars (moonlight_insensitive) ignore moonlight.
         moon_ok = True
-        moon_up = (h.moon_altitude_deg is not None and h.moon_altitude_deg > 0)
-        if moon_up and h.moon_separation_deg is not None:
-            if moon_phase > max_moon_illum or h.moon_separation_deg < min_moon_sep:
-                moon_ok = False
+        if not moonlight_insensitive:
+            moon_up = (h.moon_altitude_deg is not None and h.moon_altitude_deg > 0)
+            if moon_up and h.moon_separation_deg is not None:
+                if moon_phase > max_moon_illum or h.moon_separation_deg < min_moon_sep:
+                    moon_ok = False
         is_good = (
             h.altitude_deg >= min_alt
             and (h.airmass is None or h.airmass <= max_am)
             and moon_ok
+            and h.sun_altitude_deg < sun_dark_alt  # WARNING-1: exclude daylight (polar day)
         )
 
         if is_good and not in_window:
@@ -423,6 +443,24 @@ def compute_observability(
     # Determine if target is observable
     is_observable = len(visibility_windows) > 0
 
+    # Determine WHY the target is not observable (hfzr 8b5f804 + 8d93cf0).
+    # Distinguish latitude-limited (permanent), moonlight-blocked (target high
+    # enough but moon interferes), and altitude/sun-bound (too low this night).
+    max_alt_theory = 90.0 - abs(lat - dec_deg)
+    latitude_limited = (not is_observable) and (max_alt_theory < min_alt)
+    not_observable_reason: Optional[str] = None
+    if not is_observable:
+        if latitude_limited:
+            not_observable_reason = "latitude"
+        else:
+            # Target can reach min_alt in principle; does it do so during this
+            # night (ignoring the moon)? If yes, the moon must be the blocker.
+            alt_ok = any(
+                h.altitude_deg >= min_alt and (h.airmass is None or h.airmass <= max_am)
+                for h in hourly_data
+            )
+            not_observable_reason = "moonlight" if alt_ok else "altitude"
+
     # Find recommended window
     prefer_early = bool(constraints.get("prefer_early_night", False)) if constraints else False
     recommended_window: Optional[RecommendedWindow] = None
@@ -455,7 +493,7 @@ def compute_observability(
         )
 
     # Generate risk flags
-    risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg)
+    risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg, recommended_window=recommended_window)
 
     # Equipment suitability check
     equip_cfg = cfg.get("equipment", {}).get(equipment, {}) if equipment else {}
@@ -493,7 +531,9 @@ def compute_observability(
     alternative_suggestions: list[AlternativeSuggestion] = []
     if not is_observable:
         alternative_suggestions = _generate_alternatives(
-            target_name, obs_date, hourly_data, min_alt
+            target_name, obs_date, hourly_data, min_alt,
+            latitude_limited=latitude_limited, max_alt_theory=max_alt_theory,
+            not_observable_reason=not_observable_reason,
         )
 
     # Save CSV and curve if run_dir provided
@@ -518,6 +558,7 @@ def compute_observability(
         moon_info=moon_info,
         alternative_suggestions=alternative_suggestions,
         risk_flags=risk_flags,
+        not_observable_reason=not_observable_reason,
         observability_csv_path=csv_path,
         visibility_curve_path=curve_path,
     )
@@ -677,14 +718,17 @@ def _to_local(utc_dt: datetime, tz: timezone) -> datetime:
 
 
 def _assess_moon_impact(
-    phase: float, min_separation: float, moon_cfg: dict, moon_ever_up: bool = True
+    phase: float, min_separation: float, moon_cfg: dict, moon_ever_up: bool = True,
+    moonlight_insensitive: bool = False,
 ) -> str:
     """Assess moon impact on deep-sky observation using configured thresholds.
 
     W-6 fix: if the moon never rises above the horizon during the observing
     night, its impact is 'none' regardless of phase or separation.
+    Problem 3 fix (hfzr 5dbb8ea): bright stars (moonlight_insensitive) are
+    unaffected by moonlight, so their impact is 'none'.
     """
-    if not moon_ever_up:
+    if not moon_ever_up or moonlight_insensitive:
         return "none"
 
     levels = moon_cfg.get("impact_levels", {})
@@ -711,14 +755,25 @@ def _compute_risk_flags(
     moon_info: MoonInfo,
     min_alt: float,
     risk_cfg: dict,
+    recommended_window: Optional[RecommendedWindow] = None,
 ) -> list[RiskFlag]:
     """Compute risk flags based on observed data and risk rules."""
     flags: list[RiskFlag] = []
     alt_cfg = risk_cfg.get("low_altitude", {})
     moon_cfg = risk_cfg.get("moonlight", {})
 
-    # Check if target ever drops below warning altitude
-    min_observed_alt = min((h.altitude_deg for h in hourly_data), default=999)
+    # Problem 2 fix (hfzr 5dbb8ea): scope the low-altitude check to the
+    # recommended window when there is one, so a target that is high during
+    # the recommended window is not flagged just because it dips low at the
+    # night edges (outside the window).
+    if recommended_window is not None:
+        scope = [
+            h for h in hourly_data
+            if recommended_window.window.start <= h.time <= recommended_window.window.end
+        ]
+    else:
+        scope = hourly_data
+    min_observed_alt = min((h.altitude_deg for h in scope), default=999)
     if min_observed_alt < alt_cfg.get("critical_threshold_deg", 15):
         flags.append(RiskFlag(
             risk_type="low_altitude",
@@ -755,22 +810,53 @@ def _generate_alternatives(
     obs_date: datetime,
     hourly_data: list[HourlyData],
     min_alt: float,
+    latitude_limited: bool = False,
+    max_alt_theory: Optional[float] = None,
+    not_observable_reason: Optional[str] = None,
 ) -> list[AlternativeSuggestion]:
-    """Generate alternative suggestions when target is not observable."""
-    suggestions: list[AlternativeSuggestion] = []
+    """Generate alternative suggestions when target is not observable.
 
-    # Suggest waiting for a better season
+    If latitude_limited, the target never reaches min_alt from this location
+    regardless of date — suggest a lower-latitude location instead of the
+    misleading "wait for a better season" (WARNING-2 fix, hfzr 8d93cf0).
+    """
+    suggestions: list[AlternativeSuggestion] = []
     max_alt = max((h.altitude_deg for h in hourly_data), default=0)
-    suggestions.append(
-        AlternativeSuggestion(
-            suggestion_type="alternative_date",
-            description=(
-                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 最高高度仅 {max_alt:.1f}°，"
-                f"不满足 {min_alt}° 要求。建议等待目标进入更好观测季节。"
-            ),
-            target_name=target_name,
+
+    if latitude_limited:
+        # Permanently too low from this latitude — rescheduling cannot help.
+        mt = f"{max_alt_theory:.1f}" if max_alt_theory is not None else "过低"
+        suggestions.append(
+            AlternativeSuggestion(
+                suggestion_type="alternative_location",
+                description=(
+                    f"{target_name} 在本地最大高度仅 {mt}°，永远低于 {min_alt:.0f}° 要求，"
+                    f"改期无效。建议改到更低纬度地点观测，或选择其他目标。"
+                ),
+                target_name=target_name,
+            )
         )
-    )
+    else:
+        # Not observable on this date — word the message by the true blocking
+        # cause so we never blame altitude when the moon is the actual reason
+        # (fixes the "88.7° 不满足 30°" contradiction, hfzr 8b5f804).
+        if not_observable_reason == "moonlight":
+            description = (
+                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 高度角合适（最高 {max_alt:.1f}°），"
+                f"但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。"
+            )
+        else:
+            description = (
+                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 夜间最高高度仅 {max_alt:.1f}°，"
+                f"低于 {min_alt:.0f}° 要求。建议等待目标进入更好观测季节。"
+            )
+        suggestions.append(
+            AlternativeSuggestion(
+                suggestion_type="alternative_date",
+                description=description,
+                target_name=target_name,
+            )
+        )
 
     # Suggest well-placed seasonal alternatives based on month
     month = obs_date.month

@@ -320,7 +320,7 @@ class AllowedClaimsBuilder:
             subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
             predicate="target_type",
             text_value=t.target_type,
-            display_value=self._display_target_type(t.target_type),
+            display_value=self._display_target_type(t.target_type, t.standard_name),
             validity_scope=self._scope,
             source_refs=[src],
             source_hash=src_hash,
@@ -866,10 +866,20 @@ class AllowedClaimsBuilder:
             ))
 
         # ── Safety Claims (approved operational instructions, no facts) ──
+        # Fasy1123 P3/P4 fix: season-aware temperature safety note
+        obs_month = int(self._scope.date.split("-")[1]) if self._scope.date else 6
+        if obs_month in (12, 1, 2):
+            weather_note = "注意防寒保暖，冬季夜间气温可能降至 0°C 以下，请穿戴厚外套、帽子和手套"
+        elif obs_month in (3, 4, 5):
+            weather_note = "春季夜间气温仍较低（约 5-15°C），建议携带外套"
+        elif obs_month in (6, 7, 8):
+            weather_note = "夏季夜间较为温暖，但仍建议携带薄外套；注意防蚊虫"
+        else:
+            weather_note = "注意保暖，秋季夜间气温可能降至 10°C 以下，建议携带外套"
         safety_items = [
             ("safety.night_group", "夜间活动请注意人身安全，避免单独行动"),
             ("safety.red_flashlight", "使用红色手电筒保护暗适应视力"),
-            ("safety.weather_clothing", "根据当地临近天气预报准备衣物"),
+            ("safety.weather_clothing", weather_note),
             ("safety.laser_caution", "请勿使用激光笔直接指向天空有人区域"),
         ]
         for claim_id, text in safety_items:
@@ -932,8 +942,26 @@ class AllowedClaimsBuilder:
             "moon_separation": "月球与目标角距过近",
         }
 
-        # Primary blocking reason
-        if constraints:
+        # Primary blocking reason — prefer not_observable_reason from
+        # compute_observability (hfzr 8b5f804: accurate cause attribution).
+        reason_code = getattr(obs, 'not_observable_reason', None)
+        max_alt = max(
+            (h.altitude_deg for h in getattr(obs, 'hourly_data', [])),
+            default=None,
+        )
+
+        if reason_code == "latitude":
+            reason_sentence = (
+                f"{t.standard_name} 在本地最大高度角永远低于最低要求"
+                f"（纬度受限），改期无效，建议更换观测地点或目标"
+            )
+        elif reason_code == "moonlight":
+            alt_str = f"（最高 {max_alt:.1f}°）" if max_alt is not None else ""
+            reason_sentence = (
+                f"{t.standard_name} 在 {self._scope.date} 当晚高度角合适{alt_str}，"
+                f"但月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期"
+            )
+        elif constraints:
             reasons_text = "；".join(
                 constraint_labels.get(c, c) for c in sorted(constraints)
             )
@@ -943,10 +971,6 @@ class AllowedClaimsBuilder:
             )
         else:
             # Fallback: check if target is below horizon
-            max_alt = max(
-                (h.altitude_deg for h in getattr(obs, 'hourly_data', [])),
-                default=None,
-            )
             if max_alt is not None and max_alt < 0:
                 reason_sentence = (
                     f"{t.standard_name} 在 {self._scope.date} 当晚位于地平线以下"
@@ -1098,7 +1122,9 @@ class AllowedClaimsBuilder:
                 allowed_variant_ids=["unconfirmed_mag_v1"],
             ))
 
-        if not t.angular_size_arcmin:
+        if not t.angular_size_arcmin and t.target_type != "star":
+            # Problem 4 fix (hfzr 5dbb8ea): stars are point sources with no
+            # angular size, so the "角大小数据缺失" warning is noise for them.
             self._add_claim(Claim(
                 claim_id="unconfirmed.angular_size_missing",
                 claim_type=ClaimType.UNCONFIRMED,
@@ -1121,8 +1147,25 @@ class AllowedClaimsBuilder:
         return hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]
 
     @staticmethod
-    def _display_target_type(t: str) -> str:
-        """Map target_type enum to Chinese display."""
+    def _display_target_type(t: str, target_name: str = "") -> str:
+        """Map target_type enum to Chinese display.
+
+        Fasy1123 P8 fix: for deep_sky targets, use precise type labels
+        (星系/星云/球状星团/疏散星团) when the target is in the lookup table.
+        """
+        if t == "deep_sky" and target_name:
+            _DEEP_SKY_TYPES = {
+                "M31": "星系", "M33": "星系", "M51": "星系", "M81": "星系", "M101": "星系",
+                "M42": "星云", "M8": "星云", "M17": "星云", "M27": "星云", "M57": "星云",
+                "NGC 7000": "星云", "NGC 6960": "星云",
+                "M13": "球状星团", "M3": "球状星团", "M5": "球状星团", "M22": "球状星团",
+                "M45": "疏散星团", "M44": "疏散星团", "M67": "疏散星团",
+            }
+            name_upper = target_name.upper().replace(" ", " ")
+            for key, label in _DEEP_SKY_TYPES.items():
+                if key.upper() == name_upper:
+                    return label
+            return "深空天体"
         mapping = {
             "deep_sky": "深空天体",
             "star": "恒星",

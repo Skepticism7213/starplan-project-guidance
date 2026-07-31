@@ -374,9 +374,12 @@ class RiskFlag(BaseModel):
 
 
 class AlternativeSuggestion(BaseModel):
-    """Suggestion for alternative time or target."""
+    """Suggestion for alternative time, target, or location."""
 
-    suggestion_type: str = Field(description="Type: alternative_date, alternative_target")
+    suggestion_type: str = Field(
+        description="Type: alternative_date (reschedule), alternative_target (different target), "
+        "alternative_location (target permanently too low from this site; observe from lower latitude)"
+    )
     description: str
     target_name: Optional[str] = None
     suggested_date: Optional[date] = None
@@ -397,6 +400,12 @@ class ObservabilityResult(BaseModel):
     moon_info: MoonInfo
     alternative_suggestions: list[AlternativeSuggestion] = Field(default_factory=list)
     risk_flags: list[RiskFlag] = Field(default_factory=list)
+    not_observable_reason: Optional[str] = Field(
+        default=None,
+        description="Why the target is not observable: 'latitude' (permanently too low), "
+        "'moonlight' (target reaches good altitude but moon blocks it), "
+        "'altitude' (too low this night / sun-bound). None when observable.",
+    )
     nights_computed: int = Field(default=1, description="Number of nights actually computed (MVP computes first night only for multi-day ranges)")
     observability_csv_path: Optional[str] = None
     visibility_curve_path: Optional[str] = None
