@@ -210,6 +210,19 @@ def run_starplan(
             print(f"    Suggestion: {s.description}")
         _transition(RunState.COMPUTED_NOT_OBSERVABLE, "target below constraints")
 
+    # ── R1: Build and save Claim Registry (both paths) ──
+    from .claims import AllowedClaimsBuilder
+    claims_builder = AllowedClaimsBuilder(
+        target=resolved,
+        obs_result=obs_result,
+        location_id=starplan_input.location,
+        audience=starplan_input.audience,
+        equipment=starplan_input.equipment,
+        timezone_name=location.get("timezone", "Asia/Shanghai"),
+    )
+    claims_builder.build()
+    claims_builder.save(run_dir)
+
     # ── Step 4: Generate outreach pack ──
     print(f"[3/4] Generating outreach pack for audience: {starplan_input.audience}")
     log_path = str(run_dir / "model_call_log.jsonl")
@@ -222,6 +235,7 @@ def run_starplan(
         run_dir=run_dir,
         use_qwen=True,
         log_path=log_path,
+        claims_builder=claims_builder,
     )
     qwen_tag = " [Qwen]" if outreach.qwen_used else " [template]"
     if outreach.pack_type == "not_observable":

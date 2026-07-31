@@ -117,6 +117,7 @@ def generate_outreach_pack(
     run_dir: Optional[Path] = None,
     use_qwen: bool = True,
     log_path: Optional[str] = None,
+    claims_builder=None,
 ) -> OutreachPack:
     """
     Generate an outreach activity pack based on verified facts.
@@ -130,6 +131,7 @@ def generate_outreach_pack(
             equipment=equipment,
             goal=goal,
             run_dir=run_dir,
+            claims_builder=claims_builder,
         )
 
     # Build fact cards from target + obs_result
@@ -161,7 +163,7 @@ def generate_outreach_pack(
     safety_notes = [
         "夜间活动请注意人身安全，避免单独行动",
         "使用红色手电筒保护暗适应视力",
-        _season_safety_note(obs_date),
+        "根据当地临近天气预报准备衣物",
         "请勿使用激光笔直接指向天空有人区域",
     ]
 
@@ -203,6 +205,60 @@ def generate_outreach_pack(
             unconfirmed_items, audience, md_path, qwen_used=qwen_used,
         )
 
+        # R1: generate sentence_claim_map and expression_plan for observable path
+        import json as _json
+        obs_trace: dict = {}
+        # Map talking points to their source claims
+        for tp in talking_points:
+            if "视星等" in tp:
+                obs_trace[tp] = ["target.visual_magnitude"]
+            elif "角大小" in tp or "角尺寸" in tp:
+                obs_trace[tp] = ["target.angular_size"]
+            elif "星座" in tp:
+                obs_trace[tp] = ["target.constellation"]
+            elif "高度角" in tp or "峰值" in tp:
+                obs_trace[tp] = ["obs.peak_altitude"]
+            elif "推荐观测" in tp or "时段" in tp:
+                obs_trace[tp] = ["obs.recommended_window"]
+            elif "月" in tp:
+                obs_trace[tp] = ["moon.impact"]
+            elif "肉眼" in tp:
+                obs_trace[tp] = ["derived.visibility.naked_eye"]
+            elif "双筒" in tp:
+                obs_trace[tp] = ["derived.visibility.binoculars"]
+            elif "新手" in tp:
+                obs_trace[tp] = ["derived.visibility.beginner_friendly"]
+            else:
+                obs_trace[tp] = ["target.standard_name"]
+        # Schedule, equipment, safety, checks
+        for item in schedule:
+            obs_trace[f"[流程] {item.time_label}: {item.activity}"] = ["schedule.observability_derived"]
+        for eq in equipment_checklist:
+            obs_trace[f"[设备] {eq.item}"] = ["equipment.requested_type"]
+        safety_ids = ["safety.night_group", "safety.red_flashlight", "safety.weather_clothing", "safety.laser_caution"]
+        for i, sn in enumerate(safety_notes):
+            obs_trace[f"[安全] {sn}"] = [safety_ids[i] if i < len(safety_ids) else "safety.night_group"]
+        check_ids = ["manual_check.site_access", "manual_check.equipment_battery", "manual_check.twilight_accuracy"]
+        for i, mc in enumerate(manual_check_items):
+            obs_trace[f"[核对] {mc}"] = [check_ids[i] if i < len(check_ids) else "manual_check.site_access"]
+        with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
+            _json.dump(obs_trace, f, ensure_ascii=False, indent=2)
+
+        expr_plan = {
+            "schema_version": "1.0",
+            "mode": "qwen_expression_plan" if qwen_used else "deterministic_fallback",
+            "selected_claims": [
+                {"claim_id": cid, "sentence_variant_id": "auto"}
+                for cid in sorted(claims_builder.claim_ids)
+                if not cid.startswith("prohibited.") and not cid.startswith("blocking.")
+            ] if claims_builder else [],
+            "section_order": ["target", "observability", "risk", "actions"],
+            "tone": "beginner_friendly" if "新成员" in audience else "general",
+            "connector_ids": [],
+        }
+        with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
+            _json.dump(expr_plan, f, ensure_ascii=False, indent=2)
+
     return OutreachPack(
         target_name=target.standard_name,
         audience=audience,
@@ -225,6 +281,7 @@ def _generate_not_observable_pack(
     equipment: str,
     goal: str,
     run_dir: Optional[Path] = None,
+    claims_builder=None,
 ) -> OutreachPack:
     """C-3 fix: Generate a cancellation/reschedule/alternative pack."""
     talking_points = _build_not_observable_talking_points(target, obs_result, audience)
@@ -244,6 +301,45 @@ def _generate_not_observable_pack(
             target, obs_result, schedule, talking_points,
             alt_suggestions, manual_check_items, audience, md_path,
         )
+
+        # R1: generate sentence_claim_map and expression_plan for not-observable path
+        import json as _json
+        not_obs_trace: dict = {}
+        for tp in talking_points:
+            if "不满足观测条件" in tp or "无法观测" in tp or "取消" in tp:
+                not_obs_trace[tp] = ["blocking.reason"]
+            elif "替代" in tp or "更适合" in tp:
+                not_obs_trace[tp] = ["blocking.alternatives"]
+            elif "改期" in tp:
+                not_obs_trace[tp] = ["blocking.reschedule_action"]
+            elif "星座" in tp:
+                not_obs_trace[tp] = ["target.constellation"]
+            elif "视星等" in tp:
+                not_obs_trace[tp] = ["target.visual_magnitude"]
+            else:
+                not_obs_trace[tp] = ["blocking.reason"]
+        for item in schedule:
+            not_obs_trace[f"[流程] {item.time_label}: {item.activity}"] = ["schedule.observability_derived"]
+        for mc in manual_check_items:
+            not_obs_trace[f"[核对] {mc}"] = ["manual_check.reschedule_verify"]
+        for alt in alt_suggestions:
+            not_obs_trace[f"[替代] {alt}"] = ["blocking.alternatives"]
+        with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
+            _json.dump(not_obs_trace, f, ensure_ascii=False, indent=2)
+
+        expr_plan = {
+            "schema_version": "1.0",
+            "mode": "deterministic_not_observable",
+            "selected_claims": [
+                {"claim_id": "blocking.reason", "sentence_variant_id": "target_name_not_obs_v1"},
+                {"claim_id": "blocking.reschedule_action", "sentence_variant_id": "unconfirmed_v1"},
+            ],
+            "section_order": ["target", "observability", "actions"],
+            "tone": "general",
+            "connector_ids": [],
+        }
+        with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
+            _json.dump(expr_plan, f, ensure_ascii=False, indent=2)
 
     return OutreachPack(
         target_name=target.standard_name,
@@ -437,7 +533,7 @@ def _build_schedule(obs: ObservabilityResult, audience: str) -> list[ActivitySch
         schedule.append(ActivityScheduleItem(
             time_label=tw_end,
             activity="天文暮光结束，开始准备设备",
-            notes="等待天空完全变暗",
+            notes="暮光结束后开始观测准备",
         ))
 
     if obs.recommended_window:
