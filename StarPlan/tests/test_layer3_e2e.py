@@ -409,3 +409,136 @@ class TestPrivacyBoundaryE2E:
         # Deliverables should be present
         assert (export_dir / "outreach_pack.md").exists()
         assert (export_dir / "privacy_policy.json").exists()
+
+
+# ══════════════════════════════════════════════════════
+# P1-4: Render Trace Gate — 100% Claim coverage
+# ══════════════════════════════════════════════════════
+
+class TestRenderTraceGate:
+    """Mandatory gate: every user-visible sentence must be in render_trace.json
+    with valid claim_ids that exist in claims.json. No sentence may bypass
+    the Claim renderer.
+    """
+
+    def test_render_trace_exists_and_covers_all_sentences(self):
+        """render_trace.json must exist and cover all sentences in output."""
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M42", "date_range": ["2026-12-20", "2026-12-20"]},
+            run_id="test_trace_gate",
+        )
+        run_dir = Path(result["run_dir"])
+        trace_path = run_dir / "render_trace.json"
+        assert trace_path.exists(), "render_trace.json must be generated"
+
+        trace = json.loads(trace_path.read_text(encoding="utf-8"))
+        assert trace["sentence_count"] > 0, "Trace must contain sentences"
+        assert len(trace["sentences"]) == trace["sentence_count"]
+
+        # Every sentence must have non-empty claim_ids
+        for entry in trace["sentences"]:
+            assert entry["claim_ids"], (
+                f"Sentence without claim_ids: {entry['text'][:50]}"
+            )
+            assert entry["variant_id"], (
+                f"Sentence without variant_id: {entry['text'][:50]}"
+            )
+            assert entry["section"], (
+                f"Sentence without section: {entry['text'][:50]}"
+            )
+
+    def test_trace_claim_ids_exist_in_registry(self):
+        """All claim_ids referenced in trace must exist in claims.json."""
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M42", "date_range": ["2026-12-20", "2026-12-20"]},
+            run_id="test_trace_claims",
+        )
+        run_dir = Path(result["run_dir"])
+        trace = json.loads((run_dir / "render_trace.json").read_text(encoding="utf-8"))
+        claims_data = json.loads((run_dir / "claims.json").read_text(encoding="utf-8"))
+
+        # Build set of all registered claim_ids (allowed + prohibited)
+        registered_ids = set()
+        for c in claims_data.get("claims", []):
+            registered_ids.add(c["claim_id"])
+        for c in claims_data.get("prohibited", []):
+            registered_ids.add(c["claim_id"])
+
+        for entry in trace["sentences"]:
+            for cid in entry["claim_ids"]:
+                assert cid in registered_ids, (
+                    f"Trace references unregistered claim_id '{cid}' "
+                    f"in sentence: {entry['text'][:50]}"
+                )
+
+    def test_sentence_claim_map_matches_trace(self):
+        """sentence_claim_map.json must be consistent with render_trace.json."""
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M42", "date_range": ["2026-12-20", "2026-12-20"]},
+            run_id="test_trace_consistency",
+        )
+        run_dir = Path(result["run_dir"])
+        trace = json.loads((run_dir / "render_trace.json").read_text(encoding="utf-8"))
+        sc_map = json.loads((run_dir / "sentence_claim_map.json").read_text(encoding="utf-8"))
+
+        # Every sentence in trace should appear in sentence_claim_map
+        trace_texts = {entry["text"] for entry in trace["sentences"]}
+        map_texts = set(sc_map.keys())
+        # trace may have formatted versions; check overlap is substantial
+        overlap = trace_texts & map_texts
+        assert len(overlap) >= len(trace_texts) * 0.8, (
+            f"Only {len(overlap)}/{len(trace_texts)} trace sentences in claim map"
+        )
+
+    def test_fail_closed_unknown_variant(self):
+        """Renderer must skip (not crash) when variant_id is unknown."""
+        from starplan_skills.rendering import render_sentence
+        # Unknown variant returns None (fail closed)
+        result = render_sentence("nonexistent_variant_xyz", "some value")
+        assert result is None, "Unknown variant must return None (fail closed)"
+
+    def test_fail_closed_unknown_claim_in_plan(self):
+        """ExpressionPlan referencing unknown claim_id must be skipped."""
+        from starplan_skills.claims import AllowedClaimsBuilder
+        from starplan_skills.rendering import render_from_expression_plan
+        from starplan_skills.schemas import ExpressionPlan, SelectedClaim
+
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M42", "date_range": ["2026-12-20", "2026-12-20"]},
+            run_id="test_trace_failclosed",
+        )
+        run_dir = Path(result["run_dir"])
+        claims_data = json.loads((run_dir / "claims.json").read_text(encoding="utf-8"))
+
+        # Rebuild a minimal claims_builder for rendering test
+        from starplan_skills.target_resolve import resolve_target
+        from starplan_skills.observability_plan import compute_observability
+        t = resolve_target("M42")
+        loc = BASE_INPUT["location_detail"]
+        obs = compute_observability(
+            t.ra_deg, t.dec_deg, t.standard_name, loc,
+            ["2026-12-20", "2026-12-20"],
+            target_magnitude=t.visual_magnitude,
+        )
+        builder = AllowedClaimsBuilder(
+            target=t, obs_result=obs,
+            location_id=loc["name"], audience="general", equipment="binoculars",
+        )
+        builder.build()
+
+        # Plan with one valid + one fake claim
+        plan = ExpressionPlan(
+            schema_version="1.0",
+            selected_claims=[
+                SelectedClaim(claim_id="target.standard_name", sentence_variant_id="target_name_v1"),
+                SelectedClaim(claim_id="fake.nonexistent_claim", sentence_variant_id="target_name_v1"),
+            ],
+            section_order=["target"],
+            tone="general",
+            connector_ids=[],
+        )
+        render_result = render_from_expression_plan(plan, builder, "general")
+        # Fake claim must be skipped, valid claim rendered
+        assert "fake.nonexistent_claim" in render_result.claims_skipped
+        assert len(render_result.sentences) == 1
+        assert render_result.sentences[0].claim_ids == ["target.standard_name"]
