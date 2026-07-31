@@ -429,6 +429,24 @@ def compute_observability(
     # Determine if target is observable
     is_observable = len(visibility_windows) > 0
 
+    # Determine WHY the target is not observable (for accurate downstream messaging).
+    # Distinguish latitude-limited (permanent), moonlight-blocked (target high enough
+    # but the moon interferes), and altitude/sun-bound (target too low this night).
+    max_alt_theory = 90.0 - abs(lat - dec_deg)
+    latitude_limited = (not is_observable) and (max_alt_theory < min_alt)
+    not_observable_reason: Optional[str] = None
+    if not is_observable:
+        if latitude_limited:
+            not_observable_reason = "latitude"
+        else:
+            # Target can reach min_alt in principle; does it do so during this night
+            # (ignoring the moon)? If yes, the moon must be the blocker.
+            alt_ok = any(
+                h.altitude_deg >= min_alt and (h.airmass is None or h.airmass <= max_am)
+                for h in hourly_data
+            )
+            not_observable_reason = "moonlight" if alt_ok else "altitude"
+
     # Find recommended window
     prefer_early = bool(constraints.get("prefer_early_night", False)) if constraints else False
     recommended_window: Optional[RecommendedWindow] = None
@@ -498,13 +516,12 @@ def compute_observability(
     # Generate alternative suggestions if not observable
     alternative_suggestions: list[AlternativeSuggestion] = []
     if not is_observable:
-        # WARNING-2 fix: distinguish latitude-limited (permanent) from date-limited.
-        # If the theoretical max altitude is below min_alt, no date change helps.
-        max_alt_theory = 90.0 - abs(lat - dec_deg)
-        latitude_limited = max_alt_theory < min_alt
+        # max_alt_theory, latitude_limited and not_observable_reason are computed
+        # above (right after is_observable).
         alternative_suggestions = _generate_alternatives(
             target_name, obs_date, hourly_data, min_alt,
             latitude_limited=latitude_limited, max_alt_theory=max_alt_theory,
+            not_observable_reason=not_observable_reason,
         )
 
     # Save CSV and curve if run_dir provided
@@ -529,6 +546,7 @@ def compute_observability(
         moon_info=moon_info,
         alternative_suggestions=alternative_suggestions,
         risk_flags=risk_flags,
+        not_observable_reason=not_observable_reason,
         observability_csv_path=csv_path,
         visibility_curve_path=curve_path,
     )
@@ -768,6 +786,7 @@ def _generate_alternatives(
     min_alt: float,
     latitude_limited: bool = False,
     max_alt_theory: Optional[float] = None,
+    not_observable_reason: Optional[str] = None,
 ) -> list[AlternativeSuggestion]:
     """Generate alternative suggestions when target is not observable.
 
@@ -791,15 +810,24 @@ def _generate_alternatives(
             )
         )
     else:
-        # Not observable on this date (sun/moon) — rescheduling may help.
+        # Not observable on this date — rescheduling may help. Word the message by
+        # the true blocking cause so we never blame altitude when the moon is the
+        # actual reason (fixes the "88.7° 不满足 30°" contradiction).
         max_alt = max((h.altitude_deg for h in hourly_data), default=0)
+        if not_observable_reason == "moonlight":
+            description = (
+                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 高度角合适（最高 {max_alt:.1f}°），"
+                f"但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。"
+            )
+        else:
+            description = (
+                f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 夜间最高高度仅 {max_alt:.1f}°，"
+                f"低于 {min_alt:.0f}° 要求。建议等待目标进入更好观测季节。"
+            )
         suggestions.append(
             AlternativeSuggestion(
                 suggestion_type="alternative_date",
-                description=(
-                    f"{target_name} 在 {obs_date.strftime('%Y-%m-%d')} 最高高度仅 {max_alt:.1f}°，"
-                    f"不满足 {min_alt}° 要求。建议等待目标进入更好观测季节。"
-                ),
+                description=description,
                 target_name=target_name,
             )
         )

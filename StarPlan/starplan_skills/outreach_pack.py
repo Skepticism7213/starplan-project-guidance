@@ -262,6 +262,15 @@ def _generate_not_observable_pack(
     )
 
 
+def _not_observable_reason_text(reason: Optional[str]) -> str:
+    """Human-readable phrase for why the target is not observable."""
+    return {
+        "latitude": "在本地高度角永远不足（纬度受限，改期无效）",
+        "moonlight": "当晚月光影响严重，遮挡了观测窗口",
+        "altitude": "夜间最高高度角过低",
+    }.get(reason or "altitude", "夜间最高高度角过低")
+
+
 def _build_not_observable_talking_points(
     target: ResolvedTarget,
     obs: ObservabilityResult,
@@ -269,9 +278,10 @@ def _build_not_observable_talking_points(
 ) -> list[str]:
     """Build talking points for a not-observable target."""
     points: list[str] = []
+    reason = getattr(obs, "not_observable_reason", None)
     points.append(
         f"{target.standard_name} 在 {obs.date_range[0]} 当晚不满足观测条件"
-        f"（最高高度角过低），本次观测活动取消或改期"
+        f"（{_not_observable_reason_text(reason)}），本次观测活动取消或改期"
     )
 
     if target.target_type == "deep_sky":
@@ -279,7 +289,10 @@ def _build_not_observable_talking_points(
             points.append(f"{target.standard_name} 位于 {target.constellation} 星座方向")
         if target.visual_magnitude is not None:
             points.append(f"它的视星等约为 {target.visual_magnitude:.1f}，属于深空天体")
-        points.append("该目标在当前季节处于太阳方向附近/地平线以下，无法在夜间观测")
+        if reason == "moonlight":
+            points.append("该目标本身高度角合适，但当晚月光过强，不适合观测")
+        else:
+            points.append("该目标在当前季节处于太阳方向附近/地平线以下，无法在夜间观测")
     elif target.target_type == "star":
         if target.constellation:
             points.append(f"{target.standard_name} 是 {target.constellation} 座的恒星")
@@ -292,7 +305,10 @@ def _build_not_observable_talking_points(
         ]
         if alt_names:
             points.append(f"当季更适合观测的替代目标：{'、'.join(alt_names)}")
-        points.append("建议将活动改期到目标进入最佳观测季节时再举行")
+        if reason == "moonlight":
+            points.append("建议将活动改期到月光较弱的日期（如新月前后）再举行")
+        else:
+            points.append("建议将活动改期到目标进入最佳观测季节时再举行")
 
     if "新成员" in audience or "新手" in audience:
         points.append("可以利用本次集会时间进行室内天文知识讲座或星图认读练习")
@@ -341,7 +357,10 @@ def _write_not_observable_markdown(
     lines.append("")
     lines.append("## 不可观测原因")
     lines.append("")
-    lines.append(f"- {target.standard_name} 在 {obs.date_range[0]} 当晚最高高度角过低，不满足最低观测条件")
+    lines.append(
+        f"- {target.standard_name} 在 {obs.date_range[0]} 当晚不满足最低观测条件："
+        f"{_not_observable_reason_text(getattr(obs, 'not_observable_reason', None))}"
+    )
     if obs.risk_flags:
         for rf in obs.risk_flags:
             lines.append(f"- 风险: {rf.description}")
