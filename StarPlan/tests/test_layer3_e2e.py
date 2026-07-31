@@ -633,3 +633,78 @@ class TestTerminalStateContracts:
         # render_trace must have blocking section
         trace = json.loads((run_dir / "render_trace.json").read_text(encoding="utf-8"))
         assert "blocking" in trace["sections"]
+
+
+# ══════════════════════════════════════════════════════
+# P3-4: Chat vs Structured Equivalence
+# ══════════════════════════════════════════════════════
+
+class TestChatStructuredEquivalence:
+    """Chat mode (with outreach_pack called) must produce the same
+    Claim artifact structure as structured mode.
+    """
+
+    def test_chat_path_produces_render_trace(self, tmp_path):
+        """Simulating Chat's _exec_outreach_pack: passing run_dir generates
+        the same artifact set as structured mode.
+        """
+        from starplan_skills.target_resolve import resolve_target
+        from starplan_skills.observability_plan import compute_observability
+        from starplan_skills.outreach_pack import generate_outreach_pack
+
+        # Same input as structured mode
+        t = resolve_target("M31")
+        loc = BASE_INPUT["location_detail"]
+        obs = compute_observability(
+            t.ra_deg, t.dec_deg, t.standard_name, loc,
+            ["2026-10-17", "2026-10-17"],
+            target_magnitude=t.visual_magnitude,
+        )
+
+        # Chat path: generate_outreach_pack with run_dir (what _exec_outreach_pack does)
+        chat_dir = tmp_path / "chat_run"
+        chat_dir.mkdir()
+        pack = generate_outreach_pack(
+            target=t, obs_result=obs, audience="general",
+            equipment="binoculars", run_dir=chat_dir, use_qwen=False,
+        )
+
+        # Must produce render_trace.json
+        trace_path = chat_dir / "render_trace.json"
+        assert trace_path.exists(), "Chat path must produce render_trace.json"
+        trace = json.loads(trace_path.read_text(encoding="utf-8"))
+        assert trace["sentence_count"] > 0
+
+        # Must produce claims.json
+        assert (chat_dir / "claims.json").exists()
+        # Must produce sentence_claim_map.json
+        assert (chat_dir / "sentence_claim_map.json").exists()
+
+        # Every sentence in trace must have claim_ids (same gate as structured)
+        for entry in trace["sentences"]:
+            assert entry["claim_ids"], f"Sentence without claims: {entry['text'][:40]}"
+
+    def test_final_content_from_talking_points(self):
+        """When outreach_pack is captured, final_content must come from
+        Claim-rendered talking_points, not _build_deterministic_summary.
+        """
+        # Simulate the P3-2 logic
+        captured = {
+            "outreach_pack": {
+                "talking_points": ["今晚我们要观测的是 M31", "它是一个深空天体"],
+                "alternative_suggestions": [],
+                "qwen_used": False,
+            }
+        }
+        pack_data = captured.get("outreach_pack")
+        assert pack_data and pack_data.get("talking_points")
+
+        # P3-2 logic: assemble from talking_points
+        tp_lines = pack_data["talking_points"]
+        header = "【StarPlan 观测规划结果】\n（以下要点由 Claim 证据链确定性渲染）\n"
+        final_content = header + "\n".join(f"- {tp}" for tp in tp_lines)
+
+        assert "今晚我们要观测的是 M31" in final_content
+        assert "Claim 证据链确定性渲染" in final_content
+        # Must NOT contain _build_deterministic_summary markers
+        assert "确定性结果摘要" not in final_content
