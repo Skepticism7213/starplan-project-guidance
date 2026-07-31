@@ -208,6 +208,123 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "section": "actions",
         "note": "Unconfirmed item marker",
     },
+    "unconfirmed_mag_v1": {
+        "template": "目标 {display_value} 的视星等数据缺失，无法确认目视难度",
+        "audience": ["beginner", "general"],
+        "section": "actions",
+        "note": "Missing magnitude warning; display_value = target name",
+    },
+    "unconfirmed_size_v1": {
+        "template": "目标 {display_value} 的角大小数据缺失，无法确认设备匹配度",
+        "audience": ["beginner", "general"],
+        "section": "actions",
+        "note": "Missing angular size warning; display_value = target name",
+    },
+
+    # ── Schedule section (procedural timeline items) ──
+
+    "schedule_proc_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Procedural schedule item passthrough; text approved at Claim registration",
+    },
+    "schedule_prep_v1": {
+        "template": "{display_value} 天文暮光结束，开始准备设备",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Twilight end triggers prep; display_value = twilight end time from obs Claim",
+    },
+    "schedule_obs_start_v1": {
+        "template": "开始观测 {display_value}",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Observation start; display_value = target name",
+    },
+    "schedule_obs_peak_v1": {
+        "template": "推荐观测时段，峰值高度角 {display_value}",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Peak altitude note; display_value = altitude with unit from obs Claim",
+    },
+    "schedule_twilight_end_v1": {
+        "template": "{display_value} 天文暮光开始，活动结束",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Twilight start triggers cleanup; display_value = twilight start time",
+    },
+
+    # ── Equipment section ──
+
+    "equipment_item_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "equipment",
+        "note": "Equipment item passthrough; text approved at Claim registration",
+    },
+
+    # ── Safety section ──
+
+    "safety_instruction_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "safety",
+        "note": "Safety instruction passthrough; text approved at Claim registration",
+    },
+
+    # ── Manual check section ──
+
+    "manual_check_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "manual_check",
+        "note": "Manual check item passthrough; text approved at Claim registration",
+    },
+    "manual_check_source_v1": {
+        "template": "确认目标坐标来源: {display_value}",
+        "audience": ["beginner", "general"],
+        "section": "manual_check",
+        "note": "Coordinate source verification; display_value = source identifier",
+    },
+
+    # ── Blocking / not-observable section ──
+
+    "blocking_reason_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "blocking",
+        "note": "Primary blocking reason; display_value = full reason sentence from Claim",
+    },
+    "blocking_constraint_v1": {
+        "template": "具体约束: {display_value}",
+        "audience": ["general"],
+        "section": "blocking",
+        "note": "Constraint detail from eliminated window reason text",
+    },
+    "blocking_below_horizon_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "blocking",
+        "note": "Target below horizon; display_value = full sentence with max altitude",
+    },
+    "blocking_alt_v1": {
+        "template": "当季更适合观测的替代目标：{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "blocking",
+        "note": "Alternative targets; display_value = comma-separated target names",
+    },
+    "blocking_reschedule_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "blocking",
+        "note": "Reschedule suggestion passthrough",
+    },
+    "blocking_indoor_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner"],
+        "section": "blocking",
+        "note": "Indoor activity suggestion for beginner audiences; procedural passthrough",
+    },
 }
 
 

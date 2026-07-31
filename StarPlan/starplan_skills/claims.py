@@ -140,6 +140,7 @@ class AllowedClaimsBuilder:
         self._build_moon_claims()
         self._build_prohibited_claims()
         self._build_procedural_claims()
+        self._build_unconfirmed_claims()
 
         # P0-A: seal the hash — this is the ONLY time it is computed.
         self._sealed_registry_hash = self._compute_registry_hash()
@@ -309,7 +310,7 @@ class AllowedClaimsBuilder:
             validity_scope=self._scope,
             source_refs=[src],
             source_hash=src_hash,
-            allowed_variant_ids=["target_name_v1", "target_name_v2"],
+            allowed_variant_ids=["target_name_v1", "target_name_v2", "schedule_obs_start_v1"],
         ))
 
         # Target type
@@ -455,7 +456,7 @@ class AllowedClaimsBuilder:
                 validity_scope=self._scope,
                 source_refs=[src],
                 source_hash=src_hash,
-                allowed_variant_ids=["peak_altitude_v1", "peak_altitude_v2"],
+                allowed_variant_ids=["peak_altitude_v1", "peak_altitude_v2", "schedule_obs_peak_v1"],
             ))
 
             # Peak airmass
@@ -502,7 +503,7 @@ class AllowedClaimsBuilder:
                 validity_scope=self._scope,
                 source_refs=[src],
                 source_hash=src_hash,
-                allowed_variant_ids=["twilight_v1"],
+                allowed_variant_ids=["twilight_v1", "schedule_prep_v1", "schedule_twilight_end_v1"],
             ))
 
     # ── Derived visibility claims (versioned rules) ──
@@ -771,32 +772,85 @@ class AllowedClaimsBuilder:
             source_refs=[],
         ))
 
-    # ── Procedural claims (P0-B: approved no-fact operational instructions) ──
+    # ── Procedural claims (P1: fine-grained, one Claim per sentence) ──
 
     def _build_procedural_claims(self) -> None:
-        """Register procedural Claims for schedule, safety, equipment, manual checks.
+        """Register fine-grained procedural Claims for every user-visible sentence.
 
-        P0-B: these are approved operational instructions with no factual content.
-        They still require registered claim_ids so render_trace has 100% coverage
-        without fake 'procedural.*' strings that bypass the Registry.
+        P1: each distinct sentence gets its own claim_id. No single generic ID
+        may cover multiple different sentences. Variants are section-specific
+        passthrough or framing templates registered in templates.py.
         """
-        proc_hash = self._hash_source({"type": "procedural", "version": "v1"})
+        proc_hash = self._hash_source({"type": "procedural", "version": "v2"})
+        obs = self.obs
 
-        # Schedule (derived from observability calculation, expressed as timeline)
-        self._add_claim(Claim(
-            claim_id="schedule.observability_derived",
-            claim_type=ClaimType.PROCEDURAL,
-            subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-            predicate="schedule_timeline",
-            text_value="derived_from_observability",
-            display_value="活动流程时间线（由可观测性计算派生）",
-            validity_scope=self._scope,
-            source_refs=["observability_plan.recommended_window", "observability_plan.twilight"],
-            source_hash=proc_hash,
-            allowed_variant_ids=["unconfirmed_v1"],
-        ))
+        # ── Schedule Claims (observable path) ──
+        # Time-bearing items use obs Claims (twilight_end, peak_altitude) at render
+        # time via their extended allowed_variant_ids. Here we register the
+        # procedural activity texts that have no data dependency.
+        if obs.is_observable:
+            schedule_items = [
+                ("schedule.obs_progress", "观测进行中"),
+                ("schedule.obs_guide", "引导成员使用星桥法寻找目标"),
+                ("schedule.obs_end", "推荐时段结束"),
+                ("schedule.obs_descend", "目标高度角逐渐降低"),
+                ("schedule.cleanup", "收拾设备，合影留念"),
+            ]
+            for claim_id, text in schedule_items:
+                self._add_claim(Claim(
+                    claim_id=claim_id,
+                    claim_type=ClaimType.PROCEDURAL,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="schedule_activity",
+                    text_value=text,
+                    display_value=text,
+                    validity_scope=self._scope,
+                    source_refs=["approved_template.v2"],
+                    source_hash=proc_hash,
+                    allowed_variant_ids=["schedule_proc_v1"],
+                ))
 
-        # Safety instructions (no facts, just approved actions)
+        # ── Equipment Claims (conditional on equipment type) ──
+        equip = self.equipment
+        equip_hash = self._hash_source({"equipment": equip, "version": "v2"})
+        equipment_items: list[tuple[str, str]] = []
+        if equip == "binoculars":
+            equipment_items = [
+                ("equipment.binoculars", "双筒望远镜（7×50 或 10×50 推荐）"),
+                ("equipment.tripod", "三脚架或望远镜支架"),
+            ]
+        elif equip == "small_telescope":
+            equipment_items = [
+                ("equipment.small_telescope", "小型天文望远镜（口径 ≥ 80mm）"),
+                ("equipment.eyepiece", "目镜（低倍率广角推荐）"),
+            ]
+        elif equip == "naked_eye":
+            equipment_items = [
+                ("equipment.none_needed", "无需特殊设备"),
+            ]
+        # Common items for all equipment types
+        equipment_items.extend([
+            ("equipment.star_chart", "活动星图或手机星图 App"),
+            ("equipment.red_flashlight", "红色手电筒"),
+            ("equipment.warm_clothes", "保暖衣物"),
+            ("equipment.notebook", "记录本和笔"),
+            ("equipment.repellent", "防蚊液"),
+        ])
+        for claim_id, text in equipment_items:
+            self._add_claim(Claim(
+                claim_id=claim_id,
+                claim_type=ClaimType.PROCEDURAL,
+                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="equipment_item",
+                text_value=text,
+                display_value=text,
+                validity_scope=self._scope,
+                source_refs=["approved_template.v2"],
+                source_hash=equip_hash,
+                allowed_variant_ids=["equipment_item_v1"],
+            ))
+
+        # ── Safety Claims (approved operational instructions, no facts) ──
         safety_items = [
             ("safety.night_group", "夜间活动请注意人身安全，避免单独行动"),
             ("safety.red_flashlight", "使用红色手电筒保护暗适应视力"),
@@ -812,111 +866,236 @@ class AllowedClaimsBuilder:
                 text_value=text,
                 display_value=text,
                 validity_scope=self._scope,
-                source_refs=["approved_template.v1"],
+                source_refs=["approved_template.v2"],
                 source_hash=proc_hash,
-                allowed_variant_ids=["unconfirmed_v1"],
+                allowed_variant_ids=["safety_instruction_v1"],
             ))
 
-        # Manual check items (require human confirmation, no facts asserted)
+        # ── Manual check Claims ──
         check_items = [
-            ("manual_check.site_access", "确认活动地点夜间开放且安全"),
-            ("manual_check.equipment_battery", "确认设备电池充足、三脚架稳固"),
-            ("manual_check.twilight_accuracy", "确认推荐时段的天文暮光时间是否准确"),
+            ("manual_check.coordinate_source", "manual_check_source_v1", self.target.source),
+            ("manual_check.twilight_accuracy", "manual_check_v1", "确认推荐时段的天文暮光时间是否准确"),
+            ("manual_check.site_access", "manual_check_v1", "确认活动地点夜间开放且安全"),
+            ("manual_check.equipment_battery", "manual_check_v1", "确认设备电池充足、三脚架稳固"),
         ]
-        for claim_id, text in check_items:
+        for claim_id, variant_id, display in check_items:
             self._add_claim(Claim(
                 claim_id=claim_id,
                 claim_type=ClaimType.PROCEDURAL,
                 subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
                 predicate="manual_check",
+                text_value=display,
+                display_value=display,
+                validity_scope=self._scope,
+                source_refs=["approved_template.v2"],
+                source_hash=proc_hash,
+                allowed_variant_ids=[variant_id],
+            ))
+
+        # ── Not-observable path Claims ──
+        if not obs.is_observable:
+            self._build_blocking_claims(proc_hash)
+
+    def _build_blocking_claims(self, proc_hash: str) -> None:
+        """Register fine-grained Claims for the not-observable branch."""
+        obs = self.obs
+        t = self.target
+
+        # Derive structured blocking reasons from eliminated windows
+        constraints: set[str] = set()
+        reason_details: list[str] = []
+        for ew in getattr(obs, 'eliminated_windows', []):
+            vc = getattr(ew, 'violated_constraint', None)
+            if vc and vc not in constraints:
+                constraints.add(vc)
+                reason_details.append(getattr(ew, 'reason', vc))
+
+        constraint_labels = {
+            "min_altitude": "目标高度角低于最低要求",
+            "max_airmass": "大气质量超过允许上限",
+            "moon_illumination": "月光照明超过设定上限",
+            "moon_separation": "月球与目标角距过近",
+        }
+
+        # Primary blocking reason
+        if constraints:
+            reasons_text = "；".join(
+                constraint_labels.get(c, c) for c in sorted(constraints)
+            )
+            reason_sentence = (
+                f"{t.standard_name} 在 {self._scope.date} 当晚不满足观测条件"
+                f"（{reasons_text}），本次观测活动取消或改期"
+            )
+        else:
+            # Fallback: check if target is below horizon
+            max_alt = max(
+                (h.altitude_deg for h in getattr(obs, 'hourly_data', [])),
+                default=None,
+            )
+            if max_alt is not None and max_alt < 0:
+                reason_sentence = (
+                    f"{t.standard_name} 在 {self._scope.date} 当晚位于地平线以下"
+                    f"（最高 {max_alt:.1f}°），无法观测"
+                )
+            else:
+                reason_sentence = (
+                    f"{t.standard_name} 在 {self._scope.date} 当晚不满足观测约束，"
+                    f"本次观测活动取消或改期"
+                )
+
+        self._add_claim(Claim(
+            claim_id="blocking.reason",
+            claim_type=ClaimType.DERIVED_FACT,
+            subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+            predicate="blocking_reason",
+            text_value=reason_sentence,
+            display_value=reason_sentence,
+            validity_scope=self._scope,
+            source_refs=["observability_plan.eliminated_windows"],
+            source_hash=self._hash_source({"constraints": sorted(constraints)}),
+            allowed_variant_ids=["blocking_reason_v1", "target_name_not_obs_v1"],
+        ))
+
+        # Constraint detail (first eliminated window reason)
+        if reason_details:
+            self._add_claim(Claim(
+                claim_id="blocking.constraint_detail",
+                claim_type=ClaimType.DERIVED_FACT,
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="constraint_detail",
+                text_value=reason_details[0],
+                display_value=reason_details[0],
+                validity_scope=self._scope,
+                source_refs=["observability_plan.eliminated_windows"],
+                source_hash=self._hash_source({"detail": reason_details[0]}),
+                allowed_variant_ids=["blocking_constraint_v1"],
+            ))
+
+        # Alternative suggestions
+        alt_names = [
+            s.target_name for s in getattr(obs, 'alternative_suggestions', [])
+            if getattr(s, 'target_name', None) and s.target_name != t.standard_name
+        ]
+        if alt_names:
+            self._add_claim(Claim(
+                claim_id="blocking.alternatives",
+                claim_type=ClaimType.DERIVED_FACT,
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="alternative_targets",
+                text_value="、".join(alt_names),
+                display_value="、".join(alt_names),
+                validity_scope=self._scope,
+                source_refs=["observability_plan.alternative_suggestions"],
+                source_hash=self._hash_source({"alternatives": alt_names}),
+                allowed_variant_ids=["blocking_alt_v1"],
+            ))
+
+        # Reschedule suggestion (procedural)
+        self._add_claim(Claim(
+            claim_id="blocking.reschedule_action",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+            predicate="reschedule",
+            text_value="建议将活动改期到约束条件满足时再举行",
+            display_value="建议将活动改期到约束条件满足时再举行",
+            validity_scope=self._scope,
+            source_refs=["approved_template.v2"],
+            source_hash=proc_hash,
+            allowed_variant_ids=["blocking_reschedule_v1"],
+        ))
+
+        # Indoor activity suggestion (procedural, beginner-oriented)
+        self._add_claim(Claim(
+            claim_id="blocking.indoor_activity",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+            predicate="indoor_alternative",
+            text_value="可以利用本次集会时间进行室内天文知识讲座或星图认读练习",
+            display_value="可以利用本次集会时间进行室内天文知识讲座或星图认读练习",
+            validity_scope=self._scope,
+            source_refs=["approved_template.v2"],
+            source_hash=proc_hash,
+            allowed_variant_ids=["blocking_indoor_v1"],
+        ))
+
+        # Not-observable schedule items (procedural)
+        not_obs_schedule = [
+            ("schedule.cancel", "原定观测活动取消/改期"),
+            ("schedule.alt_consider", "考虑替代目标或改期"),
+            ("schedule.indoor", "室内替代活动：天文讲座 / 星图认读 / 观测计划讨论"),
+        ]
+        for claim_id, text in not_obs_schedule:
+            self._add_claim(Claim(
+                claim_id=claim_id,
+                claim_type=ClaimType.PROCEDURAL,
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="schedule_activity",
                 text_value=text,
                 display_value=text,
                 validity_scope=self._scope,
-                source_refs=["approved_template.v1"],
+                source_refs=["approved_template.v2"],
                 source_hash=proc_hash,
-                allowed_variant_ids=["unconfirmed_v1"],
+                allowed_variant_ids=["schedule_proc_v1"],
             ))
 
-        # Equipment (user-requested type is a fact from input)
-        self._add_claim(Claim(
-            claim_id="equipment.requested_type",
-            claim_type=ClaimType.PROCEDURAL,
-            subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-            predicate="equipment_type",
-            text_value=self.equipment,
-            display_value=f"用户指定设备类型: {self.equipment}",
-            validity_scope=self._scope,
-            source_refs=["input.equipment"],
-            source_hash=self._hash_source({"equipment": self.equipment}),
-            allowed_variant_ids=["unconfirmed_v1"],
-        ))
-
-        # Not-observable path Claims (P0-B: real IDs for trace coverage)
-        if not self.obs.is_observable:
-            constraints = set()
-            for ew in getattr(self.obs, 'eliminated_windows', []):
-                if getattr(ew, 'violated_constraint', None):
-                    constraints.add(ew.violated_constraint)
-            reason_text = "；".join(sorted(constraints)) if constraints else "不满足观测约束"
+        # Not-observable manual checks
+        not_obs_checks = [
+            ("manual_check.reschedule_verify", f"确认 {t.standard_name} 在改期日期是否可观测（重新运行 StarPlan）"),
+            ("manual_check.alt_equipment", "确认替代目标的设备匹配度"),
+            ("manual_check.notify_members", "通知参与成员活动调整安排"),
+        ]
+        for cid, text in not_obs_checks:
             self._add_claim(Claim(
-                claim_id="blocking.reason",
-                claim_type=ClaimType.DERIVED_FACT,
-                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-                predicate="blocking_reason",
-                text_value=reason_text,
-                display_value=f"{self.target.standard_name} 在 {self._scope.date} 不满足观测条件（{reason_text}）",
-                validity_scope=self._scope,
-                source_refs=["observability_plan.eliminated_windows"],
-                source_hash=self._hash_source({"constraints": sorted(constraints)}),
-                allowed_variant_ids=["target_name_not_obs_v1"],
-            ))
-            alt_names = [
-                s.target_name for s in getattr(self.obs, 'alternative_suggestions', [])
-                if getattr(s, 'target_name', None)
-            ]
-            if alt_names:
-                self._add_claim(Claim(
-                    claim_id="blocking.alternatives",
-                    claim_type=ClaimType.DERIVED_FACT,
-                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-                    predicate="alternative_targets",
-                    text_value="、".join(alt_names),
-                    display_value=f"替代目标：{'、'.join(alt_names)}",
-                    validity_scope=self._scope,
-                    source_refs=["observability_plan.alternative_suggestions"],
-                    source_hash=self._hash_source({"alternatives": alt_names}),
-                    allowed_variant_ids=["unconfirmed_v1"],
-                ))
-            self._add_claim(Claim(
-                claim_id="blocking.reschedule_action",
+                claim_id=cid,
                 claim_type=ClaimType.PROCEDURAL,
-                subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-                predicate="reschedule",
-                text_value="建议改期",
-                display_value="建议将活动改期到约束条件满足时再举行",
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="manual_check",
+                text_value=text,
+                display_value=text,
                 validity_scope=self._scope,
-                source_refs=["approved_template.v1"],
+                source_refs=["approved_template.v2"],
                 source_hash=proc_hash,
-                allowed_variant_ids=["unconfirmed_v1"],
+                allowed_variant_ids=["manual_check_v1"],
             ))
-            not_obs_checks = [
-                ("manual_check.reschedule_verify", f"确认 {self.target.standard_name} 在改期日期是否可观测"),
-                ("manual_check.alt_equipment", "确认替代目标的设备匹配度"),
-                ("manual_check.notify_members", "通知参与成员活动调整安排"),
-            ]
-            for cid, text in not_obs_checks:
-                self._add_claim(Claim(
-                    claim_id=cid,
-                    claim_type=ClaimType.PROCEDURAL,
-                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
-                    predicate="manual_check",
-                    text_value=text,
-                    display_value=text,
-                    validity_scope=self._scope,
-                    source_refs=["approved_template.v1"],
-                    source_hash=proc_hash,
-                    allowed_variant_ids=["unconfirmed_v1"],
-                ))
+
+    # ── Unconfirmed data warnings (conditional) ──
+
+    def _build_unconfirmed_claims(self) -> None:
+        """Register Claims for missing-data warnings shown in unconfirmed_items.
+
+        Only registered when the data is actually missing. The display_value
+        is the target name so the variant template can render the full sentence.
+        """
+        t = self.target
+        proc_hash = self._hash_source({"type": "unconfirmed_warning", "version": "v1"})
+
+        if t.visual_magnitude is None:
+            self._add_claim(Claim(
+                claim_id="unconfirmed.magnitude_missing",
+                claim_type=ClaimType.UNCONFIRMED,
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="magnitude_missing_warning",
+                text_value=t.standard_name,
+                display_value=t.standard_name,
+                validity_scope=self._scope,
+                source_refs=["target_resolve.visual_magnitude"],
+                source_hash=proc_hash,
+                allowed_variant_ids=["unconfirmed_mag_v1"],
+            ))
+
+        if not t.angular_size_arcmin:
+            self._add_claim(Claim(
+                claim_id="unconfirmed.angular_size_missing",
+                claim_type=ClaimType.UNCONFIRMED,
+                subject=f"{t.standard_name}@{self.location_id}@{self._scope.date}",
+                predicate="angular_size_missing_warning",
+                text_value=t.standard_name,
+                display_value=t.standard_name,
+                validity_scope=self._scope,
+                source_refs=["target_resolve.angular_size"],
+                source_hash=proc_hash,
+                allowed_variant_ids=["unconfirmed_size_v1"],
+            ))
 
     # ── Helpers ──
 
