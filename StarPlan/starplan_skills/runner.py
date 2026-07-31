@@ -667,6 +667,7 @@ def run_starplan_chat(
             audience=audience,
             equipment=equipment,
             goal=goal,
+            run_dir=run_dir,
             use_qwen=True,
             log_path=log_path,
         )
@@ -761,13 +762,23 @@ def run_starplan_chat(
     # Guardrail 3b: detect if Qwen guessed coordinates instead of using resolve_location
     coord_warning = _check_coordinate_source(captured)
 
-    # C-4 + C-2 fix: FAIL CLOSED BY DESIGN — Qwen free text is NEVER the
-    # final user output. Always render from deterministic tool results.
-    # This closes the pure-text hallucination gap (false claims without numbers
-    # like "肉眼清晰可见" would pass the number-only regex check).
-    # The Qwen text is preserved in blocked_content for audit only.
+    # C-4 + C-2 + P3: FAIL CLOSED BY DESIGN — Qwen free text is NEVER the
+    # final user output. Use Claim-rendered talking_points from outreach_pack
+    # (same architecture as structured mode). Fallback to deterministic summary
+    # only if outreach_pack was never called.
     blocked_content = final_content
-    final_content = _build_deterministic_summary(captured)
+    pack_data = captured.get("outreach_pack")
+    if pack_data and pack_data.get("talking_points"):
+        # P3: final_content from Claim-rendered talking_points (in render_trace)
+        tp_lines = pack_data["talking_points"]
+        header = "【StarPlan 观测规划结果】\n（以下要点由 Claim 证据链确定性渲染）\n"
+        final_content = header + "\n".join(f"- {tp}" for tp in tp_lines)
+        if pack_data.get("alternative_suggestions"):
+            final_content += "\n\n替代建议：\n"
+            final_content += "\n".join(f"- {s}" for s in pack_data["alternative_suggestions"])
+    else:
+        # Fallback: outreach_pack not called, use deterministic summary
+        final_content = _build_deterministic_summary(captured)
     hallucination_blocked = True  # Always: free text never reaches user
 
     verification = {
@@ -796,6 +807,31 @@ def run_starplan_chat(
             "hallucination_verification": verification,
             "hallucination_blocked": hallucination_blocked,
         }, f, ensure_ascii=False, indent=2, default=str)
+
+    # P3-3: Write run_outcome.json (same contract as structured mode)
+    from .run_outcome import RunOutcome, BusinessStatus, ValidationStatus, DeliveryStatus
+    chat_outcome = RunOutcome(run_id=run_id, input_data={"user_text": user_text, "mode": "chat"})
+    obs_data = captured.get("observability_plan")
+    if obs_data:
+        chat_outcome.business_status = (
+            BusinessStatus.OBSERVABLE if obs_data.get("is_observable")
+            else BusinessStatus.NOT_OBSERVABLE
+        )
+    elif captured.get("target_resolve"):
+        chat_outcome.business_status = BusinessStatus.OBSERVABLE  # resolved but no obs computed
+    else:
+        chat_outcome.business_status = BusinessStatus.TOOL_ERROR
+    chat_outcome.set_delivery(
+        DeliveryStatus.QWEN_EXPRESSION_PLAN if pack_data and pack_data.get("qwen_used")
+        else DeliveryStatus.TEMPLATE,
+        qwen_used=bool(pack_data and pack_data.get("qwen_used")),
+    )
+    chat_outcome.set_validation(
+        ValidationStatus.PASSED if verification["passed"] else ValidationStatus.PASSED_WITH_WARNINGS,
+        issues=untraceable if untraceable else None,
+    )
+    with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
+        json.dump(chat_outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
 
     print(f"  [OK] Final response ({len(final_content)} chars, blocked={hallucination_blocked})")
     print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
