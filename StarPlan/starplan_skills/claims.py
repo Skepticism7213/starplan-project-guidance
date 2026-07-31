@@ -506,6 +506,21 @@ class AllowedClaimsBuilder:
                 allowed_variant_ids=["twilight_v1", "schedule_prep_v1", "schedule_twilight_end_v1"],
             ))
 
+        if obs.twilight.astronomical_twilight_start:
+            tw_s = obs.twilight.astronomical_twilight_start.strftime("%H:%M")
+            self._add_claim(Claim(
+                claim_id="obs.twilight_start",
+                claim_type=ClaimType.OBSERVED_FACT,
+                subject=f"{obs.target_name}@{self.location_id}@{self._scope.date}",
+                predicate="astronomical_twilight_start",
+                text_value=tw_s,
+                display_value=tw_s,
+                validity_scope=self._scope,
+                source_refs=[src],
+                source_hash=src_hash,
+                allowed_variant_ids=["schedule_twilight_end_v1"],
+            ))
+
     # ── Derived visibility claims (versioned rules) ──
 
     def _build_derived_visibility_claims(self) -> None:
