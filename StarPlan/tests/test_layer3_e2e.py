@@ -542,3 +542,94 @@ class TestRenderTraceGate:
         assert "fake.nonexistent_claim" in render_result.claims_skipped
         assert len(render_result.sentences) == 1
         assert render_result.sentences[0].claim_ids == ["target.standard_name"]
+
+
+# ══════════════════════════════════════════════════════
+# P2-4: Terminal State Artifact Contracts
+# ══════════════════════════════════════════════════════
+
+class TestTerminalStateContracts:
+    """Each terminal state must produce the correct artifact set and
+    three-axis values in run_outcome.json.
+    """
+
+    def test_needs_confirmation_artifacts(self):
+        """Ambiguous target -> NEEDS_CONFIRMATION, no outreach pack."""
+        from starplan_skills.exceptions import TargetConfirmationRequired
+        with pytest.raises(TargetConfirmationRequired):
+            run_starplan(
+                {**BASE_INPUT, "target": "星云", "date_range": ["2026-10-17", "2026-10-17"]},
+                run_id="test_contract_confirm",
+            )
+        run_dir = Path("runs") / "test_contract_confirm"
+        assert run_dir.exists()
+        # run_outcome.json must exist with correct axes
+        outcome_path = run_dir / "run_outcome.json"
+        assert outcome_path.exists(), "run_outcome.json must exist for early exit"
+        oc = json.loads(outcome_path.read_text(encoding="utf-8"))
+        assert oc["business_status"] == "needs_confirmation"
+        assert oc["delivery_status"] == "not_delivered"
+        # state_log.json must exist
+        assert (run_dir / "state_log.json").exists()
+        # Outreach pack must NOT exist (early exit before generation)
+        assert not (run_dir / "outreach_pack.md").exists()
+
+    def test_tool_error_artifacts(self):
+        """Observability computation failure -> TOOL_ERROR."""
+        from unittest.mock import patch as _patch
+        with _patch(
+            "starplan_skills.runner.compute_observability",
+            side_effect=RuntimeError("simulated astropy crash"),
+        ):
+            with pytest.raises(RuntimeError, match="simulated astropy crash"):
+                run_starplan(
+                    {**BASE_INPUT, "target": "M31", "date_range": ["2026-10-17", "2026-10-17"]},
+                    run_id="test_contract_toolerr",
+                )
+        run_dir = Path("runs") / "test_contract_toolerr"
+        assert run_dir.exists()
+        outcome_path = run_dir / "run_outcome.json"
+        assert outcome_path.exists(), "run_outcome.json must exist for tool error"
+        oc = json.loads(outcome_path.read_text(encoding="utf-8"))
+        assert oc["business_status"] == "tool_error"
+        assert oc["validation_status"] == "pending"
+        assert oc["delivery_status"] == "not_delivered"
+        # resolved_target.json should exist (target was resolved before crash)
+        assert (run_dir / "resolved_target.json").exists()
+
+    def test_observable_full_artifacts(self):
+        """Successful observable run -> full artifact set."""
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M31", "date_range": ["2026-10-17", "2026-10-17"]},
+            run_id="test_contract_observable",
+        )
+        run_dir = Path(result["run_dir"])
+        oc = json.loads((run_dir / "run_outcome.json").read_text(encoding="utf-8"))
+        assert oc["business_status"] == "observable"
+        assert oc["validation_status"] in ("passed", "passed_with_warnings")
+        assert oc["delivery_status"] in ("template", "qwen_expression_plan")
+        # Full artifact set
+        for fname in ["claims.json", "outreach_pack.md", "render_trace.json",
+                      "sentence_claim_map.json", "expression_plan.json",
+                      "calculation_manifest.json", "validation_report.md",
+                      "state_log.json", "plan.json"]:
+            assert (run_dir / fname).exists(), f"Missing artifact: {fname}"
+
+    def test_not_observable_full_artifacts(self):
+        """Not-observable run -> full artifact set with blocking claims."""
+        result = run_starplan(
+            {**BASE_INPUT, "target": "M42", "date_range": ["2026-12-20", "2026-12-20"]},
+            run_id="test_contract_notobs",
+        )
+        run_dir = Path(result["run_dir"])
+        oc = json.loads((run_dir / "run_outcome.json").read_text(encoding="utf-8"))
+        assert oc["business_status"] == "not_observable"
+        assert oc["validation_status"] in ("passed", "passed_with_warnings")
+        # Full artifact set (same as observable)
+        for fname in ["claims.json", "outreach_pack.md", "render_trace.json",
+                      "sentence_claim_map.json", "calculation_manifest.json",
+                      "validation_report.md", "state_log.json"]:
+            assert (run_dir / fname).exists(), f"Missing artifact: {fname}"
+        # render_trace must have blocking section
+        trace = json.loads((run_dir / "render_trace.json").read_text(encoding="utf-8"))
+        assert "blocking" in trace["sections"]
