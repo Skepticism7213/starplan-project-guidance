@@ -254,6 +254,7 @@ def run_starplan(
             run_dir=run_dir,
             timezone_name=location.get("timezone", "Asia/Shanghai"),
             log_path=str(run_dir / "model_call_log.jsonl"),
+            use_qwen=False,  # Batch B: deterministic-only until ID-only protocol (P1)
         )
         print(f"  [OK] Deviations found: {len(review.deviation_summary)}")
         print(f"  [OK] Review report: {review.review_report_md_path}")
@@ -383,14 +384,23 @@ def run_starplan(
     with open(run_dir / "state_log.json", "w", encoding="utf-8") as f:
         json.dump(state_log, f, ensure_ascii=False, indent=2)
 
+    # Batch B: BLOCKED public return must not contain outreach_pack facts.
+    # RunOutcome is the single source of truth for what the caller may see.
+    if outcome.validation_status == ValidationStatus.BLOCKED:
+        public_outreach = None
+    else:
+        public_outreach = outreach.model_dump()
+
     return {
         "run_id": run_id,
         "run_dir": str(run_dir),
         "target": resolved.model_dump(),
         "plan": plan_data,
-        "outreach_pack": outreach.model_dump(),
+        "outreach_pack": public_outreach,
         "review": review.model_dump() if review else None,
         "manifest": manifest.model_dump(),
+        "validation_status": outcome.validation_status.value,
+        "delivery_status": outcome.delivery_status.value,
     }
 
 
@@ -966,12 +976,14 @@ def run_starplan_chat(
                         [e.message for e in _contract.errors],
                     )
             except Exception as e:
+                # Batch B: contract check exception = fail-closed BLOCKED
                 chat_outcome.set_validation(
-                    ValidationStatus.PASSED_WITH_WARNINGS,
+                    ValidationStatus.BLOCKED,
                     [f"Delivery contract check error: {e}"],
                 )
         else:
-            chat_outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, ["rendered_document.json missing"])
+            # Batch B: missing rendered_document.json = fail-closed BLOCKED
+            chat_outcome.set_validation(ValidationStatus.BLOCKED, ["rendered_document.json missing"])
     else:
         chat_outcome.set_validation(
             ValidationStatus.PASSED_WITH_WARNINGS if verification["passed"] else ValidationStatus.BLOCKED,
@@ -986,6 +998,14 @@ def run_starplan_chat(
             "stages": model_stages,
             "source": "model_call_log.jsonl",
         })
+
+    # Batch B: BLOCKED → replace final_content with fixed no-fact message.
+    # No talking points, no alternative suggestions, no model text may leak.
+    if chat_outcome.validation_status == ValidationStatus.BLOCKED:
+        final_content = (
+            "【StarPlan】本次输出未通过证据校验，已阻断交付。"
+            "请查看运行目录中的 validation_report.md 了解详情，或重试。"
+        )
 
     with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
         json.dump(chat_outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
@@ -1003,7 +1023,7 @@ def run_starplan_chat(
         "mode": "chat",
         "final_content": final_content,
         "model_text_accepted_for_delivery": False,  # Always: free text never delivered
-        "public_output_validation": "passed" if not untraceable else "blocked",
+        "public_output_validation": chat_outcome.validation_status.value,  # Batch B: from RunOutcome
         "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
         "hallucination_blocked": hallucination_blocked,
         "model_call_count": model_call_count,

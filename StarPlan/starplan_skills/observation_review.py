@@ -187,8 +187,9 @@ def review_observation(
 
     # ── 6. Qwen-assisted attribution (optional enhancement) ──
     # Phase C (C-04 + W-04): structured error handling, ID-based attribution
+    # Batch B: when use_qwen=False, record explicit disable reason for audit
     qwen_used = False
-    qwen_status = "not_called"  # not_called / success / failed / rejected
+    qwen_status = "disabled_pending_id_only" if not use_qwen else "not_called"
     if use_qwen and deviations and _qwen_available():
         try:
             qwen_causes, qwen_suggestions = _qwen_assisted_attribution(
