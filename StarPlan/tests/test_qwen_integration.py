@@ -145,10 +145,13 @@ class TestOutreachQwenMode:
 
 @requires_qwen
 class TestChatHallucinationGuard:
-    """Verify chat mode runs tools and applies hallucination check."""
+    """Verify chat mode runs tools and applies hallucination check.
+
+    Phase B (W-02): updated to current public API contract.
+    """
 
     def test_chat_reaches_final_summary(self):
-        """Chat mode calls tools and produces a verified summary."""
+        """Chat mode calls tools and produces a Claim-rendered summary."""
         from starplan_skills.runner import run_starplan_chat
 
         result = run_starplan_chat(
@@ -156,11 +159,18 @@ class TestChatHallucinationGuard:
             run_id="test_chat_integration",
         )
         assert result.get("final_content"), "Should have final content"
-        assert len(result.get("tool_call_log", [])) >= 2, "Should call at least 2 tools"
+        # Phase B: public API uses tools_called (list of strings)
+        tools = result.get("tools_called", [])
+        assert len(tools) >= 2, f"Should call at least 2 tools, got {tools}"
 
-        # Hallucination verification should exist
-        verification = result.get("hallucination_verification", {})
-        assert "passed" in verification
+        # Phase B: model text is NEVER accepted for delivery
+        assert result.get("model_text_accepted_for_delivery") is False
+
+        # Phase B: model_call_count should be > 0 (W-01)
+        assert result.get("model_call_count", 0) > 0, "Should record model calls"
+
+        # Phase B: public output validation
+        assert result.get("public_output_validation") in ("passed", "blocked")
 
     def test_chat_tools_include_resolve_and_plan(self):
         """Chat mode calls target_resolve and observability_plan."""
@@ -170,6 +180,45 @@ class TestChatHallucinationGuard:
             "我想看仙女座星系，在济南四门塔，10月17号",
             run_id="test_chat_tools",
         )
-        tools_called = [tc["tool"] for tc in result.get("tool_call_log", [])]
+        # Phase B: use tools_called from public return
+        tools_called = result.get("tools_called", [])
         assert "target_resolve" in tools_called
         assert "observability_plan" in tools_called
+
+    def test_chat_produces_claim_artifacts(self):
+        """Phase B: Chat run produces full Claim artifacts (same as structured)."""
+        from pathlib import Path
+        from starplan_skills.runner import run_starplan_chat
+
+        result = run_starplan_chat(
+            "帮我规划10月17号在济南四门塔观测M31",
+            run_id="test_chat_artifacts",
+        )
+        run_dir = Path(result["run_dir"])
+        # Phase B: Chat must produce same artifacts as structured mode
+        assert (run_dir / "claims.json").exists(), "Chat must produce claims.json"
+        assert (run_dir / "render_trace.json").exists(), "Chat must produce render_trace.json"
+        assert (run_dir / "rendered_document.json").exists(), "Chat must produce rendered_document.json"
+        assert (run_dir / "run_outcome.json").exists(), "Chat must produce run_outcome.json"
+        assert (run_dir / "outreach_pack.md").exists(), "Chat must produce outreach_pack.md"
+
+    def test_chat_blocked_content_not_in_output(self):
+        """Phase B: Qwen raw text (blocked_content) must not leak into final_content."""
+        from pathlib import Path
+        import json
+        from starplan_skills.runner import run_starplan_chat
+
+        result = run_starplan_chat(
+            "帮我规划10月17号在济南四门塔观测M31",
+            run_id="test_chat_leak",
+        )
+        run_dir = Path(result["run_dir"])
+        # Read blocked_content from audit log
+        conv = json.loads((run_dir / "chat_conversation.json").read_text(encoding="utf-8"))
+        blocked = conv.get("blocked_content", "")
+        final = result["final_content"]
+        # If blocked content is substantial, verify no 20-char substring leaks
+        if len(blocked) > 40:
+            for i in range(0, min(len(blocked), 100) - 20, 10):
+                snippet = blocked[i:i + 20]
+                assert snippet not in final, f"Blocked content leaked: '{snippet}'"

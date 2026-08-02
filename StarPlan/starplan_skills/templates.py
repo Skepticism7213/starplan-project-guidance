@@ -325,6 +325,36 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "section": "blocking",
         "note": "Indoor activity suggestion for beginner audiences; procedural passthrough",
     },
+
+    # ── Phase A: Meta / document-level variants ──
+
+    "meta_passthrough_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "metadata",
+        "note": "Document metadata passthrough; text from meta Claims",
+    },
+
+    # ── Phase A: Recommended window variants ──
+
+    "recommended_window_time_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "recommended_window",
+        "note": "Recommended observation window time range",
+    },
+    "recommended_window_peak_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "recommended_window",
+        "note": "Peak altitude during recommended window",
+    },
+    "recommended_window_reason_v1": {
+        "template": "{display_value}",
+        "audience": ["beginner", "general"],
+        "section": "recommended_window",
+        "note": "Reason for recommending this window",
+    },
 }
 
 

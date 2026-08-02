@@ -242,3 +242,268 @@ def validate_expression_plan(
     # ── Final verdict ──
     passed = len([i for i in issues if i.severity == "error"]) == 0
     return ValidationResult(passed=passed, issues=issues, warnings=warnings)
+
+
+# ── Phase A: Post-render Delivery Contract Validation ──
+# Closes C-01 (#4 bidirectional acceptance) and C-02 (#1 #2 fail-closed gate).
+# Called by runner.py finalize BEFORE setting terminal status.
+
+
+def validate_delivery_contract(
+    run_dir,
+    rendered_document,
+    claims_builder,
+    final_markdown: str | None = None,
+    blocked_content: str | None = None,
+) -> ValidationResult:
+    """Validate the delivery contract for a completed render.
+
+    This is the POST-render gate: verifies that the final delivered document
+    is fully traced to Claims with bidirectional coverage. Any failure means
+    the run must be BLOCKED (not delivered).
+
+    Checks (Phase A):
+      D1. Required artifacts exist (claims.json, outreach_pack.md,
+          render_trace.json, sentence_claim_map.json, expression_plan.json)
+      D2. render_trace.json is valid JSON with expected schema
+      D3. Every block's claim_ids exist in registry and are not PROHIBITED;
+          variant_id is in the claim's allowed_variant_ids
+      D4. Every block's text_hash matches sha256[:12] of final_text
+      D5. Bidirectional coverage: every trace entry appears in final Markdown;
+          every atomic fact line in Markdown appears in trace
+      D6. Blocked content (Qwen raw text) does not leak into final Markdown
+      D7. sentence_claim_map.json is consistent with trace
+
+    Args:
+        run_dir: Path to the run directory.
+        rendered_document: The RenderedDocument that was serialized.
+        claims_builder: The run's Claim Registry.
+        final_markdown: The actual Markdown string written to file.
+            If None, reads from run_dir/outreach_pack.md.
+        blocked_content: Qwen's raw free text (must NOT appear in output).
+
+    Returns:
+        ValidationResult. If passed=False, caller MUST set BLOCKED.
+    """
+    import hashlib
+    import json
+    from pathlib import Path
+
+    from .schemas import ClaimType
+
+    run_dir = Path(run_dir)
+    issues: list[ValidationIssue] = []
+    warnings: list[ValidationIssue] = []
+
+    # ── D1: Required artifacts exist ──
+    required_artifacts = [
+        "claims.json", "outreach_pack.md", "render_trace.json",
+        "sentence_claim_map.json", "expression_plan.json",
+    ]
+    for fname in required_artifacts:
+        if not (run_dir / fname).exists():
+            issues.append(ValidationIssue(
+                step=1, step_name="artifact_exists",
+                severity="error",
+                message=f"Required artifact missing: {fname}",
+            ))
+
+    # If critical artifacts missing, cannot proceed with further checks
+    if issues:
+        return ValidationResult(passed=False, issues=issues, warnings=warnings)
+
+    # ── D2: render_trace.json is valid JSON ──
+    trace_path = run_dir / "render_trace.json"
+    try:
+        trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        issues.append(ValidationIssue(
+            step=2, step_name="trace_valid_json",
+            severity="error",
+            message=f"render_trace.json is not valid JSON: {e}",
+        ))
+        return ValidationResult(passed=False, issues=issues, warnings=warnings)
+
+    trace_sentences = trace_data.get("sentences", [])
+    if not trace_sentences:
+        issues.append(ValidationIssue(
+            step=2, step_name="trace_valid_json",
+            severity="error",
+            message="render_trace.json contains no sentences",
+        ))
+
+    # ── D3: Claim IDs exist and variants are allowed ──
+    for block in rendered_document.all_blocks:
+        for cid in block.claim_ids:
+            claim = claims_builder.get_claim(cid)
+            if claim is None:
+                issues.append(ValidationIssue(
+                    step=3, step_name="claim_exists",
+                    severity="error",
+                    message=f"Block '{block.block_id}' references unknown claim_id '{cid}'",
+                    claim_id=cid,
+                ))
+            elif claim.claim_type == ClaimType.PROHIBITED:
+                issues.append(ValidationIssue(
+                    step=3, step_name="claim_not_prohibited",
+                    severity="error",
+                    message=f"Block '{block.block_id}' references PROHIBITED claim '{cid}'",
+                    claim_id=cid,
+                ))
+            elif block.variant_id and block.variant_id not in claim.allowed_variant_ids:
+                # Only check if variant is non-empty and claim has specific allowlist
+                if claim.allowed_variant_ids and block.variant_id not in claim.allowed_variant_ids:
+                    issues.append(ValidationIssue(
+                        step=3, step_name="variant_allowed",
+                        severity="error",
+                        message=(
+                            f"Block '{block.block_id}' uses variant '{block.variant_id}' "
+                            f"not in claim '{cid}' allowed_variant_ids"
+                        ),
+                        claim_id=cid,
+                        variant_id=block.variant_id,
+                    ))
+
+    # ── D4: Hash integrity ──
+    for block in rendered_document.all_blocks:
+        expected_hash = hashlib.sha256(block.final_text.encode("utf-8")).hexdigest()[:12]
+        if block.text_hash != expected_hash:
+            issues.append(ValidationIssue(
+                step=4, step_name="hash_integrity",
+                severity="error",
+                message=(
+                    f"Block '{block.block_id}' hash mismatch: "
+                    f"stored={block.text_hash}, computed={expected_hash}"
+                ),
+            ))
+
+    # Also verify trace entries match document blocks
+    doc_hashes = {b.text_hash for b in rendered_document.all_blocks}
+    for entry in trace_sentences:
+        if entry.get("text_hash") not in doc_hashes:
+            issues.append(ValidationIssue(
+                step=4, step_name="trace_hash_consistency",
+                severity="error",
+                message=(
+                    f"Trace entry '{entry.get('sentence_id')}' hash "
+                    f"'{entry.get('text_hash')}' not in RenderedDocument"
+                ),
+            ))
+
+    # ── D5: Bidirectional coverage ──
+    if final_markdown is None:
+        md_path = run_dir / "outreach_pack.md"
+        if md_path.exists():
+            final_markdown = md_path.read_text(encoding="utf-8")
+        else:
+            final_markdown = ""
+
+    if final_markdown:
+        # Extract atomic fact lines from Markdown (strip formatting markers)
+        md_facts = _extract_atomic_facts(final_markdown)
+        trace_texts = {entry.get("text", "") for entry in trace_sentences}
+
+        # Forward: every trace text must appear in Markdown facts
+        for entry in trace_sentences:
+            text = entry.get("text", "")
+            if text and text not in md_facts:
+                issues.append(ValidationIssue(
+                    step=5, step_name="bidirectional_trace_to_md",
+                    severity="error",
+                    message=(
+                        f"Trace entry '{entry.get('sentence_id')}' text not found "
+                        f"in final Markdown: '{text[:60]}...'"
+                    ),
+                ))
+
+        # Backward: every Markdown fact must appear in trace
+        for fact in md_facts:
+            if fact not in trace_texts:
+                issues.append(ValidationIssue(
+                    step=5, step_name="bidirectional_md_to_trace",
+                    severity="error",
+                    message=f"Markdown fact not in trace: '{fact[:60]}...'",
+                ))
+
+    # ── D6: Blocked content leakage ──
+    if blocked_content and final_markdown:
+        # Check if any substantial substring of blocked content appears
+        # Use 20-char windows to detect leakage
+        check_len = min(len(blocked_content), 200)
+        for i in range(0, check_len - 20, 10):
+            snippet = blocked_content[i:i + 20]
+            if snippet in final_markdown:
+                issues.append(ValidationIssue(
+                    step=6, step_name="blocked_leakage",
+                    severity="error",
+                    message=f"Blocked Qwen content leaked into final Markdown: '{snippet}...'",
+                ))
+                break  # One leak is enough to block
+
+    # ── D7: sentence_claim_map consistency ──
+    sc_map_path = run_dir / "sentence_claim_map.json"
+    if sc_map_path.exists():
+        try:
+            sc_map = json.loads(sc_map_path.read_text(encoding="utf-8"))
+            for block in rendered_document.all_blocks:
+                if block.final_text in sc_map:
+                    if sc_map[block.final_text] != block.claim_ids:
+                        warnings.append(ValidationIssue(
+                            step=7, step_name="sc_map_consistency",
+                            severity="warning",
+                            message=(
+                                f"sentence_claim_map mismatch for block '{block.block_id}': "
+                                f"map={sc_map[block.final_text]}, doc={block.claim_ids}"
+                            ),
+                        ))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            warnings.append(ValidationIssue(
+                step=7, step_name="sc_map_consistency",
+                severity="warning",
+                message="sentence_claim_map.json is not valid JSON (non-blocking)",
+            ))
+
+    # ── Final verdict ──
+    passed = len([i for i in issues if i.severity == "error"]) == 0
+    return ValidationResult(passed=passed, issues=issues, warnings=warnings)
+
+
+def _extract_atomic_facts(markdown: str) -> set[str]:
+    """Extract atomic fact texts from Markdown, stripping formatting markers.
+
+    Removes: # headers, ** bold markers, - list markers, [ ] checkboxes,
+    empty lines, and pure section headers (## ...).
+    Returns the set of atomic fact strings that should match trace entries.
+    """
+    facts: set[str] = set()
+    for line in markdown.split("\n"):
+        stripped = line.strip()
+        # Skip empty lines
+        if not stripped:
+            continue
+        # Skip pure section headers (## ...) but keep title (# ...)
+        if stripped.startswith("## "):
+            continue
+        # Title line: strip "# "
+        if stripped.startswith("# "):
+            facts.add(stripped[2:].strip())
+            continue
+        # List items: strip "- " or "- [ ] "
+        if stripped.startswith("- [ ] "):
+            facts.add(stripped[6:].strip())
+            continue
+        if stripped.startswith("- "):
+            content = stripped[2:].strip()
+            # Strip bold markers for metadata lines: **key**: value
+            if content.startswith("**") and "**:" in content:
+                # e.g. "**受众**: 天文社团" -> "受众: 天文社团"
+                content = content.replace("**", "")
+            facts.add(content)
+            continue
+        # Metadata lines without list marker: **key**: value
+        if stripped.startswith("**") and "**" in stripped[2:]:
+            facts.add(stripped.replace("**", "").strip())
+            continue
+        # Fallback: add as-is
+        facts.add(stripped)
+    return facts

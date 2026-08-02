@@ -637,3 +637,399 @@ def render_all_sections(
         )
 
     return result
+
+
+# ── Phase A: RenderedDocument — final document-level structure ──
+# Every user-visible atomic text is a RenderedBlock with full provenance.
+# The Markdown serializer ONLY accepts RenderedDocument; it never touches
+# target/obs objects directly. This closes C-01 (100% Claim-to-render mapping).
+
+import hashlib as _hashlib
+
+
+@dataclass
+class RenderedBlock:
+    """A single atomic unit of user-visible text with full claim provenance.
+
+    final_text is the EXACT text the user sees (without Markdown formatting
+    markers like #, **, -). text_hash is sha256[:12] of final_text.
+    """
+
+    block_id: str
+    section: str
+    final_text: str
+    claim_ids: list[str]
+    variant_id: str
+    render_mode: str = "claim_variant"
+
+    @property
+    def text_hash(self) -> str:
+        return _hashlib.sha256(self.final_text.encode("utf-8")).hexdigest()[:12]
+
+
+@dataclass
+class RenderedDocument:
+    """Complete rendered document with every atomic text traced to Claims.
+
+    This is the ONLY structure from which the final Markdown and render_trace
+    are generated. No fact text may bypass this structure.
+    """
+
+    title_block: RenderedBlock
+    metadata_blocks: list[RenderedBlock] = field(default_factory=list)
+    body_blocks: list[RenderedBlock] = field(default_factory=list)
+
+    @property
+    def all_blocks(self) -> list[RenderedBlock]:
+        """All blocks in document order (title + metadata + body)."""
+        return [self.title_block] + self.metadata_blocks + self.body_blocks
+
+    @property
+    def sections_ordered(self) -> list[str]:
+        """Unique section names in stable document order."""
+        seen: list[str] = []
+        for b in self.all_blocks:
+            if b.section not in seen:
+                seen.append(b.section)
+        return seen
+
+    def to_dict(self) -> dict:
+        """Serialize to a JSON-compatible dict."""
+        def _block_dict(b: RenderedBlock) -> dict:
+            return {
+                "block_id": b.block_id,
+                "section": b.section,
+                "final_text": b.final_text,
+                "claim_ids": b.claim_ids,
+                "variant_id": b.variant_id,
+                "render_mode": b.render_mode,
+                "text_hash": b.text_hash,
+            }
+        return {
+            "schema_version": "2.0",
+            "title_block": _block_dict(self.title_block),
+            "metadata_blocks": [_block_dict(b) for b in self.metadata_blocks],
+            "body_blocks": [_block_dict(b) for b in self.body_blocks],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "RenderedDocument":
+        """Reconstruct from a serialized dict."""
+        def _block_from_dict(d: dict) -> RenderedBlock:
+            return RenderedBlock(
+                block_id=d["block_id"],
+                section=d["section"],
+                final_text=d["final_text"],
+                claim_ids=d["claim_ids"],
+                variant_id=d["variant_id"],
+                render_mode=d.get("render_mode", "claim_variant"),
+            )
+        return cls(
+            title_block=_block_from_dict(data["title_block"]),
+            metadata_blocks=[_block_from_dict(b) for b in data.get("metadata_blocks", [])],
+            body_blocks=[_block_from_dict(b) for b in data.get("body_blocks", [])],
+        )
+
+
+# Fixed section ordering for deterministic output (closes W-03)
+_SECTION_ORDER = [
+    "metadata", "recommended_window", "schedule", "talking_points",
+    "equipment", "safety", "manual_check", "unconfirmed",
+    "blocking", "alternatives", "actions",
+]
+
+
+def _make_block(
+    block_id: str, section: str, final_text: str,
+    claim_ids: list[str], variant_id: str,
+    render_mode: str = "claim_variant",
+) -> RenderedBlock:
+    """Helper to create a RenderedBlock."""
+    return RenderedBlock(
+        block_id=block_id, section=section, final_text=final_text,
+        claim_ids=claim_ids, variant_id=variant_id, render_mode=render_mode,
+    )
+
+
+def render_document(
+    claims_builder: AllowedClaimsBuilder,
+    sections: FullSectionRenderResult,
+    audience: str = "general",
+    equipment: str = "binoculars",
+    qwen_used: bool = False,
+) -> RenderedDocument:
+    """Assemble the final RenderedDocument from Claim-rendered sections.
+
+    This is the SINGLE document-level entry point. It wraps the section
+    render results into RenderedBlocks with full provenance, including
+    metadata blocks that were previously hard-coded in Markdown writers.
+
+    Args:
+        claims_builder: The run's Claim Registry (for meta Claims).
+        sections: Pre-rendered section results from render_all_sections().
+        audience: Audience description.
+        equipment: Equipment type.
+        qwen_used: Whether Qwen ExpressionPlan was accepted.
+
+    Returns:
+        RenderedDocument ready for serialization and trace generation.
+    """
+    obs = claims_builder.obs
+    is_observable = obs.is_observable
+
+    # ── Title block ──
+    title_claim = claims_builder.get_claim("meta.title")
+    if title_claim:
+        title_text = title_claim.display_value
+        title_claims = ["meta.title"]
+    else:
+        # Defensive fallback (should not happen after claims.py update)
+        name = claims_builder.target.standard_name
+        title_text = f"{name} 观测活动包" if is_observable else f"{name} 观测取消/改期通知"
+        title_claims = ["target.standard_name"]
+    title_block = _make_block("meta.title", "metadata", title_text, title_claims, "meta_passthrough_v1")
+
+    # ── Metadata blocks ──
+    metadata_blocks: list[RenderedBlock] = []
+
+    meta_items = [
+        ("meta.audience", f"受众: {audience}", "meta_passthrough_v1"),
+        ("meta.date", f"日期: {obs.date_range[0]}" if obs.date_range else "日期: 未指定", "meta_passthrough_v1"),
+        ("meta.location", f"地点: {obs.location_name}", "meta_passthrough_v1"),
+        ("meta.observable_status", f"可观测: {'是' if is_observable else '否'}", "meta_passthrough_v1"),
+    ]
+    # Generation method depends on qwen_used (determined after Qwen phase)
+    if qwen_used:
+        gen_text = "讲解生成: Qwen 模型（经 Claim 验证）"
+        gen_claim = "meta.generation_method.qwen"
+    else:
+        gen_text = "讲解生成: 确定性模板"
+        gen_claim = "meta.generation_method.template"
+    meta_items.append((gen_claim, gen_text, "meta_passthrough_v1"))
+
+    for claim_id, text, variant in meta_items:
+        # Verify claim exists in registry; use it if so
+        claim = claims_builder.get_claim(claim_id)
+        cids = [claim_id] if claim else [claim_id]  # ID recorded even if late-added
+        metadata_blocks.append(_make_block(claim_id, "metadata", text, cids, variant))
+
+    # ── Body blocks ──
+    body_blocks: list[RenderedBlock] = []
+
+    if is_observable:
+        # Recommended window
+        if obs.recommended_window:
+            w = obs.recommended_window.window
+            rw_time = f"时间: {w.start.strftime('%H:%M')} ~ {w.end.strftime('%H:%M')}"
+            rw_peak = f"峰值高度角: {obs.recommended_window.peak_altitude_deg:.1f}°"
+            rw_reason = f"理由: {obs.recommended_window.reason}"
+            body_blocks.append(_make_block(
+                "obs.recommended_window_time", "recommended_window", rw_time,
+                ["obs.recommended_window"], "recommended_window_time_v1",
+            ))
+            body_blocks.append(_make_block(
+                "obs.peak_altitude", "recommended_window", rw_peak,
+                ["obs.peak_altitude"], "recommended_window_peak_v1",
+            ))
+            body_blocks.append(_make_block(
+                "obs.recommended_window_reason", "recommended_window", rw_reason,
+                ["obs.recommended_window"], "recommended_window_reason_v1",
+            ))
+
+        # Schedule
+        for i, si in enumerate(sections.schedule):
+            text = f"{si.time_label}: {si.activity}" if si.time_label else si.activity
+            if si.notes:
+                text += f"（{si.notes}）"
+            body_blocks.append(_make_block(
+                f"schedule.{i}", "schedule", text,
+                si.claim_ids, si.variant_ids[0] if si.variant_ids else "schedule_proc_v1",
+            ))
+
+        # Talking points
+        for i, s in enumerate(sections.talking_points):
+            body_blocks.append(_make_block(
+                f"talking_points.{i}", "talking_points", s.text,
+                s.claim_ids, s.variant_id,
+            ))
+
+        # Equipment (quantity + notes included in final_text)
+        for i, ei in enumerate(sections.equipment):
+            text = f"{ei.item} x {ei.quantity}"
+            if ei.notes:
+                text += f"（{ei.notes}）"
+            body_blocks.append(_make_block(
+                f"equipment.{i}", "equipment", text,
+                ei.claim_ids, ei.variant_ids[0] if ei.variant_ids else "equipment_item_v1",
+            ))
+
+        # Safety
+        for i, s in enumerate(sections.safety):
+            body_blocks.append(_make_block(
+                f"safety.{i}", "safety", s.text, s.claim_ids, s.variant_id,
+            ))
+
+        # Manual checks
+        for i, s in enumerate(sections.manual_checks):
+            body_blocks.append(_make_block(
+                f"manual_check.{i}", "manual_check", s.text, s.claim_ids, s.variant_id,
+            ))
+
+        # Unconfirmed
+        for i, s in enumerate(sections.unconfirmed):
+            body_blocks.append(_make_block(
+                f"unconfirmed.{i}", "unconfirmed", s.text, s.claim_ids, s.variant_id,
+            ))
+
+    else:
+        # Not-observable: blocking + alternatives + schedule + manual checks
+        for i, s in enumerate(sections.blocking):
+            body_blocks.append(_make_block(
+                f"blocking.{i}", "blocking", s.text, s.claim_ids, s.variant_id,
+            ))
+        for i, s in enumerate(sections.alternatives):
+            body_blocks.append(_make_block(
+                f"alternatives.{i}", "alternatives", s.text, s.claim_ids, s.variant_id,
+            ))
+        for i, si in enumerate(sections.schedule):
+            text = f"{si.time_label}: {si.activity}" if si.time_label else si.activity
+            if si.notes:
+                text += f"（{si.notes}）"
+            body_blocks.append(_make_block(
+                f"schedule.{i}", "schedule", text,
+                si.claim_ids, si.variant_ids[0] if si.variant_ids else "schedule_proc_v1",
+            ))
+        for i, s in enumerate(sections.manual_checks):
+            body_blocks.append(_make_block(
+                f"manual_check.{i}", "manual_check", s.text, s.claim_ids, s.variant_id,
+            ))
+
+    return RenderedDocument(
+        title_block=title_block,
+        metadata_blocks=metadata_blocks,
+        body_blocks=body_blocks,
+    )
+
+
+def serialize_document_md(doc: RenderedDocument, is_observable: bool = True) -> str:
+    """Serialize a RenderedDocument to Markdown.
+
+    This function ONLY reads from RenderedDocument blocks. It NEVER accesses
+    target, obs_result, or any schema object directly. All fact text is already
+    in the blocks' final_text fields.
+
+    The Markdown formatting markers (#, **, -) are layout, not facts. The
+    atomic fact content is block.final_text.
+    """
+    lines: list[str] = []
+
+    # Title
+    lines.append(f"# {doc.title_block.final_text}")
+    lines.append("")
+
+    # Metadata
+    for block in doc.metadata_blocks:
+        lines.append(f"**{block.final_text.split(':')[0]}**: {block.final_text.split(':', 1)[1].strip()}  "
+                     if ":" in block.final_text else f"**{block.final_text}**  ")
+    lines.append("")
+
+    if is_observable:
+        # Recommended window
+        rw_blocks = [b for b in doc.body_blocks if b.section == "recommended_window"]
+        if rw_blocks:
+            lines.append("## 推荐观测时段")
+            lines.append("")
+            for b in rw_blocks:
+                lines.append(f"- **{b.final_text.split(':')[0]}**: {b.final_text.split(':', 1)[1].strip()}")
+            lines.append("")
+
+        # Schedule
+        sched_blocks = [b for b in doc.body_blocks if b.section == "schedule"]
+        if sched_blocks:
+            lines.append("## 活动流程")
+            lines.append("")
+            for b in sched_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        # Talking points
+        tp_blocks = [b for b in doc.body_blocks if b.section == "talking_points"]
+        if tp_blocks:
+            lines.append("## 讲解要点")
+            lines.append("")
+            for b in tp_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        # Equipment
+        eq_blocks = [b for b in doc.body_blocks if b.section == "equipment"]
+        if eq_blocks:
+            lines.append("## 设备清单")
+            lines.append("")
+            for b in eq_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        # Safety
+        safety_blocks = [b for b in doc.body_blocks if b.section == "safety"]
+        if safety_blocks:
+            lines.append("## 安全提示")
+            lines.append("")
+            for b in safety_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        # Manual checks
+        mc_blocks = [b for b in doc.body_blocks if b.section == "manual_check"]
+        if mc_blocks:
+            lines.append("## 人工核对项")
+            lines.append("")
+            for b in mc_blocks:
+                lines.append(f"- [ ] {b.final_text}")
+            lines.append("")
+
+        # Unconfirmed
+        uc_blocks = [b for b in doc.body_blocks if b.section == "unconfirmed"]
+        if uc_blocks:
+            lines.append("## 待确认项")
+            lines.append("")
+            for b in uc_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+    else:
+        # Not-observable layout
+        blocking_blocks = [b for b in doc.body_blocks if b.section == "blocking"]
+        alt_blocks = [b for b in doc.body_blocks if b.section == "alternatives"]
+        sched_blocks = [b for b in doc.body_blocks if b.section == "schedule"]
+        mc_blocks = [b for b in doc.body_blocks if b.section == "manual_check"]
+
+        if blocking_blocks:
+            lines.append("## 说明要点")
+            lines.append("")
+            for b in blocking_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        if alt_blocks:
+            lines.append("## 替代建议")
+            lines.append("")
+            for b in alt_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        if sched_blocks:
+            lines.append("## 建议安排")
+            lines.append("")
+            for b in sched_blocks:
+                lines.append(f"- {b.final_text}")
+            lines.append("")
+
+        if mc_blocks:
+            lines.append("## 人工核对项")
+            lines.append("")
+            for b in mc_blocks:
+                lines.append(f"- [ ] {b.final_text}")
+            lines.append("")
+
+    return "\n".join(lines)

@@ -486,6 +486,7 @@ class ObservationLog(BaseModel):
 class Deviation(BaseModel):
     """A single deviation between plan and actual."""
 
+    deviation_id: str = Field(default="", description="Phase C: stable ID (e.g. dev.time.0)")
     deviation_type: str = Field(description="time, environment, equipment, operation")
     description: str
     plan_reference: str = Field(description="What the plan said")
@@ -495,9 +496,12 @@ class Deviation(BaseModel):
 class CauseEntry(BaseModel):
     """A classified cause for a deviation."""
 
+    cause_id: str = Field(default="", description="Phase C: stable ID (e.g. cause.late)")
     cause: str
     classification: str = Field(description="evidence_based, possible, undetermined")
     evidence: str = Field(description="Evidence citation from plan or log")
+    source_deviation_ids: list[str] = Field(default_factory=list, description="Phase C: which deviations this cause explains")
+    source: str = Field(default="rule_based", description="Phase C: rule_based / qwen_assisted / human_report")
 
 
 class RevisedPlanDiff(BaseModel):
@@ -507,6 +511,7 @@ class RevisedPlanDiff(BaseModel):
     original_value: str
     revised_value: str
     reason: str
+    source_cause_ids: list[str] = Field(default_factory=list, description="Phase C: explicit cause IDs driving this revision")
 
 
 class ObservationReview(BaseModel):

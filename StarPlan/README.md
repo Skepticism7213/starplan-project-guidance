@@ -51,6 +51,8 @@ python scripts/run_case.py examples/case_03_observation_review.json
 | `visibility_curve.png` | 高度-时间曲线图 |
 | `plan.json` | 观测计划（推荐窗口、风险、备选方案） |
 | `claims.json` | Claim Registry（所有事实声明 + registry_hash） |
+| `render_trace.json` | 逐句 provenance trace（schema 2.0，text_hash 对应最终文本） |
+| `rendered_document.json` | RenderedDocument 序列化（双向覆盖门禁输入） |
 | `sentence_claim_map.json` | 输出句子 → claim_id 映射（覆盖审计） |
 | `outreach_pack.md` | 科普活动包（流程、讲解词、设备清单） |
 | `run_outcome.json` | RunOutcome（业务/验证/交付三状态 + 文件哈希） |
@@ -130,11 +132,12 @@ StarPlan/
 
 自 v0.2.0 起，所有用户可见的事实性输出均经过 Claim 证据链门禁：
 
-1. **Claim 构建**：`AllowedClaimsBuilder` 从确定性计算结果（Astropy/astroplan）生成带来源引用的 Claim，每个 Claim 有唯一 ID、作用域、来源哈希和允许的变体列表。
+1. **Claim 构建**：`AllowedClaimsBuilder` 从确定性计算结果（Astropy/astroplan）生成带来源引用的 Claim，每个 Claim 有唯一 ID、作用域、来源哈希和允许的变体列表。文档元数据（标题、受众、日期、地点、状态）也是 Claim。
 2. **表达计划**：Qwen 仅返回 `ExpressionPlan`（选择 claim_id + sentence_variant_id），不返回自由文本。`ExpressionPlan` 设为 `extra=forbid`，拒绝协议外字段。
 3. **8 步验证**：`expression_validator` 对 ExpressionPlan 做 schema/版本/claim 存在性/变体合法性/作用域/禁用检查/重复冲突/哈希完整性验证。任何错误触发 fail-closed 回退。
-4. **确定性渲染**：最终句子由模板库（`templates.py`）从 Claim 的 `display_value` 填充，Qwen 无法注入未经来源支持的事实。
-5. **RunOutcome 落盘**：每次运行生成 `run_outcome.json`，包含业务状态、验证状态、交付状态（三者正交）、文件哈希和约束记录。
+4. **确定性渲染**：`render_document()` 从 Claim Registry 生成 `RenderedDocument`（唯一文档出口），每个原子文本为 `RenderedBlock`（claim_ids + variant_id + text_hash）。`serialize_document_md()` 只接受 RenderedDocument，禁止接触原始计算对象。
+5. **交付合同门禁**：`validate_delivery_contract()` 在 finalize 前做 7 步 post-render 验证（产物存在/JSON 合法/Claim 存在/variant allowlist/hash 一致/双向覆盖/泄漏检查）。任何失败 → `BLOCKED` + `NOT_DELIVERED`，删除已写 Markdown。
+6. **RunOutcome 落盘**：每次运行生成 `run_outcome.json`，包含业务状态、验证状态、交付状态（三者正交）、文件哈希和约束记录。Chat 与结构化入口共享相同合同。
 
 派生规则（肉眼可见性、双筒可见性、新手友好度）显式标注适用范围和缺失输入。深空天体在角径不足或天空背景数据缺失时标记为 `UNCONFIRMED`，不做过度承诺。
 
@@ -176,26 +179,31 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 检查每个 `runs/` 子目录是否包含完整输出文件。
 
-## 架构验收状态（2026-07-30 更新）
+## 架构验收状态（2026-08-02 更新）
 
-基于 07-30 独立复查报告的 8 步修复计划（P0-A ~ P1-C），当前进度：
+基于 2026-08-01 独立审计报告（6 CRITICAL + 4 WARNING），Phase A-D 修复已完成：
 
-| 步骤 | 内容 | 状态 |
+| Phase | 关闭项 | 状态 |
 |---|---|---|
-| P0-A | Claim Registry 封存 hash + 篡改检测 | 已验证通过 |
-| P0-B | 统一渲染门禁 + 模板清理 + PROCEDURAL Claim | 已验证通过 |
-| P0-C | RunOutcome 入口创建 + 失败终态 | 已验证通过 |
-| P0-D | 复盘规则修复 + review_trace | 已验证通过 |
-| P0-E | Chat 公共返回不含模型原文 | 已验证通过 |
-| P1-A | 字段级隐私导出 + verify_export_sanitized | 已验证通过 |
-| P1-B | 离线模式 tripwire + 测试收紧 | 已验证通过 |
-| P1-C | 文档同步 | 本次 |
+| A | C-01（100% Claim-to-render 映射 + RenderedDocument）、C-02（fail-closed 运行时门禁）、W-03（trace 排序） | 已验证通过 |
+| B | C-03（Chat 统一 Claim 出口）、W-01（model-call 聚合）、W-02（测试契约） | 已验证通过 |
+| C | C-04（复盘 Evidence Claim ID + 精确因果链）、W-04（异常审计） | 已验证通过 |
+| D | C-05（无天气源禁止具体温度）、C-06（极昼 no_astronomical_night 原因码） | 已验证通过 |
+
+离线测试：153 passed, 0 failed（排除需要真实百炼 API 的 11 条在线测试）。
+
+**关键架构组件：**
+
+- `RenderedDocument`：最终文档级结构，每个原子文本为 `RenderedBlock`（claim_ids + variant_id + text_hash）
+- `validate_delivery_contract()`：7 步 post-render 门禁（产物存在/JSON 合法/Claim 存在/variant allowlist/hash 一致/双向覆盖/泄漏检查），失败 → BLOCKED + NOT_DELIVERED
+- `not_observable_reason` 优先级：latitude → no_astronomical_night → altitude → moonlight
+- 复盘 trace schema 2.0：所有条目使用稳定 ID（cause_id/deviation_id/source_cause_ids）
 
 **尚未完全闭合的项目（诚实标注）：**
 
-- `render_trace.json`（逐句 hash trace）尚未实现，当前用 `sentence_claim_map.json` 替代
-- 复盘 Qwen 归因仍返回自由文本（规则层先过滤），未实现完整 ID selection 协议
-- 运行时覆盖门禁（删除 Claim 后自动阻断渲染）未实现
+- 复盘 Qwen 完整 ID-only 协议（候选原因模板库 + 建议模板库）未实现，当前 Qwen 仍返回自由文本（经数字验证和分类约束）
+- review report 未使用 RenderedDocument + 双向覆盖门禁（outreach 已实现）
+- 天气 Claim 接入后需恢复具体温度显示（当前为非事实化操作指令）
 - 六类终态参数化 E2E 矩阵未完整建立
 
 ## 赛项信息

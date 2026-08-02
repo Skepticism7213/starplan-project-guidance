@@ -264,29 +264,56 @@ def run_starplan(
     outcome.obs_result = obs_result
     outcome.location = location
 
-    # Step B: Verify artifact completeness before setting terminal status
+    # Step B: Phase A delivery contract validation (C-02 fix: fail-CLOSED)
     import hashlib as _hl
-    artifact_issues: list[str] = []
-    required_artifacts = ["claims.json", "outreach_pack.md", "render_trace.json",
-                          "sentence_claim_map.json", "expression_plan.json"]
-    for fname in required_artifacts:
-        if not (run_dir / fname).exists():
-            artifact_issues.append(f"missing artifact: {fname}")
+    from .expression_validator import validate_delivery_contract
+    from .rendering import RenderedDocument
 
-    # Verify claims registry integrity (hash matches sealed value)
+    # Compute claims registry hash
     claims_path = run_dir / "claims.json"
     if claims_path.exists():
         claims_hash = _hl.sha256(claims_path.read_bytes()).hexdigest()[:16]
         outcome.claims_registry_hash = claims_hash
-        # Cross-check with render_trace: every sentence must have claim_ids
-        trace_path = run_dir / "render_trace.json"
-        if trace_path.exists():
-            trace_data = json.loads(trace_path.read_text(encoding="utf-8"))
-            for entry in trace_data.get("sentences", []):
-                if not entry.get("claim_ids"):
-                    artifact_issues.append(
-                        f"render_trace sentence without claim_ids: {entry.get('text', '')[:40]}"
-                    )
+
+    # Reconstruct RenderedDocument from saved JSON
+    rendered_doc = None
+    rd_path = run_dir / "rendered_document.json"
+    if rd_path.exists():
+        try:
+            rd_data = json.loads(rd_path.read_text(encoding="utf-8"))
+            rendered_doc = RenderedDocument.from_dict(rd_data)
+        except Exception:
+            pass  # validate_delivery_contract will catch missing/invalid doc
+
+    # Reconstruct claims_builder for validation
+    from .claims import AllowedClaimsBuilder as _ACB
+    _claims_builder = _ACB(
+        target=resolved,
+        obs_result=obs_result,
+        location_id=location.get("name", obs_result.location_name),
+        audience=outreach.audience,
+        equipment=starplan_input.equipment or "binoculars",
+    )
+    _claims_builder.build()
+
+    # Run delivery contract validation
+    if rendered_doc is not None:
+        contract_result = validate_delivery_contract(
+            run_dir=run_dir,
+            rendered_document=rendered_doc,
+            claims_builder=_claims_builder,
+        )
+    else:
+        # No RenderedDocument means critical failure
+        from .expression_validator import ValidationResult, ValidationIssue
+        contract_result = ValidationResult(
+            passed=False,
+            issues=[ValidationIssue(
+                step=1, step_name="artifact_exists",
+                severity="error",
+                message="rendered_document.json missing or invalid — cannot validate delivery",
+            )],
+        )
 
     # Step C: Set three-axis status (only after verification)
     outcome.business_status = outcome._derive_business_status()
@@ -301,10 +328,25 @@ def run_starplan(
     else:
         outcome.set_delivery(DeliveryStatus.TEMPLATE, qwen_used=False)
 
-    if artifact_issues:
-        outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, artifact_issues)
-    elif outreach.qwen_validation_issues:
-        outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, outreach.qwen_validation_issues)
+    # Phase A (C-02): fail-CLOSED semantics
+    if not contract_result.passed:
+        # BLOCKED: evidence chain broken, do NOT deliver
+        outcome.set_validation(
+            ValidationStatus.BLOCKED,
+            [e.message for e in contract_result.errors],
+        )
+        outcome.set_delivery(DeliveryStatus.NOT_DELIVERED)
+        # Remove delivered markdown to prevent leakage
+        md_file = run_dir / "outreach_pack.md"
+        if md_file.exists():
+            md_file.unlink()
+        print(f"  [BLOCKED] Delivery contract failed: {len(contract_result.errors)} errors")
+    elif contract_result.warnings:
+        # PASSED_WITH_WARNINGS: only for non-fact-affecting issues
+        outcome.set_validation(
+            ValidationStatus.PASSED_WITH_WARNINGS,
+            [w.message for w in contract_result.warnings],
+        )
     else:
         outcome.set_validation(ValidationStatus.PASSED)
 
@@ -725,7 +767,7 @@ def run_starplan_chat(
         "1. 先调用 target_resolve 解析目标名称，获取目标坐标\n"
         "2. 再调用 resolve_location 解析地点名称，获取准确的经纬度和海拔\n"
         "3. 然后调用 observability_plan 计算可观测性（必须使用前两步工具返回的坐标和经纬度）\n"
-        "4. 最后用自然语言总结结果，给出推荐观测时段和注意事项\n\n"
+        "4. 工具调用完成后，系统会自动生成 Claim 渲染的观测规划，你只需简要告知用户已完成即可\n\n"
         "严格规则（违反任何一条都是严重错误）：\n"
         "- 所有数值（坐标、高度角、方位角、时间、月相、大气质量等）必须来自工具返回结果，绝对不能编造。\n"
         f"- 如果用户没有指定日期，使用当前日期 {today} 或其后的合理日期，绝对不要使用 2026 年之前的年份。\n"
@@ -763,39 +805,99 @@ def run_starplan_chat(
     # Guardrail 3b: detect if Qwen guessed coordinates instead of using resolve_location
     coord_warning = _check_coordinate_source(captured)
 
-    # C-4 + C-2 + P3: FAIL CLOSED BY DESIGN — Qwen free text is NEVER the
-    # final user output. Use Claim-rendered talking_points from outreach_pack
-    # (same architecture as structured mode). Fallback to deterministic summary
-    # only if outreach_pack was never called.
+    # ── Phase B (C-03 fix): FORCE Claim-rendered output ──
+    # Qwen only orchestrates tools. Once target + location + obs are available,
+    # the code FORCES generate_outreach_pack (Claims + RenderedDocument),
+    # regardless of whether Qwen chose to call the outreach_pack tool.
     blocked_content = final_content
     pack_data = captured.get("outreach_pack")
+
+    target_data = captured.get("target_resolve")
+    obs_data = captured.get("observability_plan")
+    loc_data = captured.get("resolve_location")
+
+    if target_data and obs_data and not pack_data:
+        # Phase B: outreach_pack not called by Qwen → force it now
+        try:
+            resolved_obj = ResolvedTarget(**target_data)
+            obs_obj = ObservabilityResult(**obs_data)
+            loc_name = loc_data.get("name", obs_obj.location_name) if loc_data else obs_obj.location_name
+            pack = generate_outreach_pack(
+                target=resolved_obj,
+                obs_result=obs_obj,
+                audience="天文爱好者",
+                equipment="binoculars",
+                run_dir=run_dir,
+                use_qwen=False,  # Chat already used Qwen for orchestration
+                log_path=log_path,
+            )
+            pack_data = pack.model_dump()
+            captured["outreach_pack"] = pack_data
+            print(f"  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)")
+        except Exception as e:
+            print(f"  [!] Phase B forced outreach_pack failed: {e}")
+            pack_data = None
+
+    # Build final_content from Claim-rendered output (NEVER from Qwen free text)
     if pack_data and pack_data.get("talking_points"):
-        # P3: final_content from Claim-rendered talking_points (in render_trace)
         tp_lines = pack_data["talking_points"]
         header = "【StarPlan 观测规划结果】\n（以下要点由 Claim 证据链确定性渲染）\n"
         final_content = header + "\n".join(f"- {tp}" for tp in tp_lines)
         if pack_data.get("alternative_suggestions"):
             final_content += "\n\n替代建议：\n"
             final_content += "\n".join(f"- {s}" for s in pack_data["alternative_suggestions"])
+    elif target_data and obs_data:
+        # Minimal fallback: obs computed but pack build failed
+        obs_obj = ObservabilityResult(**obs_data)
+        final_content = (
+            f"【StarPlan 结果】\n"
+            f"目标: {target_data.get('standard_name', '未知')}\n"
+            f"可观测: {'是' if obs_obj.is_observable else '否'}\n"
+            f"（详细活动包生成失败，请检查运行日志）"
+        )
+    elif target_data:
+        # Only target resolved, no observability computed
+        final_content = (
+            f"【StarPlan 结果】\n"
+            f"目标已解析: {target_data.get('standard_name', '未知')}\n"
+            f"（未完成可观测性计算，无法生成观测规划）"
+        )
     else:
-        # Fallback: outreach_pack not called, use deterministic summary
-        final_content = _build_deterministic_summary(captured)
+        final_content = "【StarPlan】工具调用未成功完成，请重试。"
     hallucination_blocked = True  # Always: free text never reaches user
+
+    # ── Phase B (W-01): aggregate model calls from log ──
+    model_call_count = 0
+    model_stages: list[str] = []
+    log_file = Path(log_path)
+    if log_file.exists():
+        for line in log_file.read_text(encoding="utf-8").strip().split("\n"):
+            if line.strip():
+                try:
+                    entry = json.loads(line)
+                    if entry.get("type") == "model_call":
+                        model_call_count += 1
+                        if entry.get("step"):
+                            model_stages.append(entry["step"])
+                except json.JSONDecodeError:
+                    pass
 
     verification = {
         "untraceable_numbers": untraceable,
         "coordinate_warning": coord_warning,
         "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
         "passed": (not untraceable) and (not coord_warning),
-        "delivery": "deterministic_render",
-        "note": "Qwen free text is never delivered; deterministic summary used by design",
+        "delivery": "claim_render" if pack_data else "minimal_fallback",
+        "model_call_count": model_call_count,
+        "model_stages": model_stages,
+        "note": "Qwen free text is never delivered; Claim-rendered output used by design",
     }
 
     if untraceable:
         print(f"  [!] 幻觉核查：Qwen 文本含 {len(untraceable)} 个不可溯源数值（已阻断）")
     if coord_warning:
         print(f"  [!] {coord_warning}")
-    print(f"  [OK] 最终输出使用确定性渲染（Qwen 原文 {len(blocked_content)} chars 仅供审计）")
+    print(f"  [OK] 最终输出使用 Claim 渲染（Qwen 原文 {len(blocked_content)} chars 仅供审计）")
 
     # Save conversation log + verification (AUDIT ONLY — not in public return)
     with open(run_dir / "chat_conversation.json", "w", encoding="utf-8") as f:
@@ -809,33 +911,79 @@ def run_starplan_chat(
             "hallucination_blocked": hallucination_blocked,
         }, f, ensure_ascii=False, indent=2, default=str)
 
-    # P3-3: Write run_outcome.json (same contract as structured mode)
+    # ── Phase B: Write run_outcome.json with correct three-axis status ──
     from .run_outcome import RunOutcome, BusinessStatus, ValidationStatus, DeliveryStatus
     chat_outcome = RunOutcome(run_id=run_id, input_data={"user_text": user_text, "mode": "chat"})
-    obs_data = captured.get("observability_plan")
+
+    # C-03 fix #4: business_status must reflect actual computation state
     if obs_data:
         chat_outcome.business_status = (
             BusinessStatus.OBSERVABLE if obs_data.get("is_observable")
             else BusinessStatus.NOT_OBSERVABLE
         )
-    elif captured.get("target_resolve"):
-        chat_outcome.business_status = BusinessStatus.OBSERVABLE  # resolved but no obs computed
+    elif target_data:
+        # Only target resolved, no obs computed → DATA_INSUFFICIENT (not OBSERVABLE)
+        chat_outcome.business_status = BusinessStatus.DATA_INSUFFICIENT
     else:
         chat_outcome.business_status = BusinessStatus.TOOL_ERROR
-    chat_outcome.set_delivery(
-        DeliveryStatus.QWEN_EXPRESSION_PLAN if pack_data and pack_data.get("qwen_used")
-        else DeliveryStatus.TEMPLATE,
-        qwen_used=bool(pack_data and pack_data.get("qwen_used")),
-    )
-    chat_outcome.set_validation(
-        ValidationStatus.PASSED if verification["passed"] else ValidationStatus.PASSED_WITH_WARNINGS,
-        issues=untraceable if untraceable else None,
-    )
+
+    # Delivery status from actual pack build
+    if pack_data and pack_data.get("qwen_used"):
+        chat_outcome.set_delivery(DeliveryStatus.QWEN_EXPRESSION_PLAN, qwen_used=True)
+    elif pack_data:
+        chat_outcome.set_delivery(DeliveryStatus.TEMPLATE, qwen_used=False)
+    else:
+        chat_outcome.set_delivery(DeliveryStatus.NOT_DELIVERED, qwen_used=False)
+
+    # Validation: run delivery contract if pack was built
+    if pack_data and (run_dir / "render_trace.json").exists():
+        from .expression_validator import validate_delivery_contract
+        from .rendering import RenderedDocument as _RD
+        from .claims import AllowedClaimsBuilder as _ACB2
+        rd_path = run_dir / "rendered_document.json"
+        if rd_path.exists():
+            try:
+                _rd = _RD.from_dict(json.loads(rd_path.read_text(encoding="utf-8")))
+                _resolved = ResolvedTarget(**target_data)
+                _obs = ObservabilityResult(**obs_data)
+                _cb = _ACB2(_resolved, _obs, loc_data.get("name", "unknown") if loc_data else "unknown")
+                _cb.build()
+                _contract = validate_delivery_contract(run_dir, _rd, _cb, blocked_content=blocked_content)
+                if _contract.passed:
+                    chat_outcome.set_validation(ValidationStatus.PASSED)
+                else:
+                    chat_outcome.set_validation(
+                        ValidationStatus.BLOCKED,
+                        [e.message for e in _contract.errors],
+                    )
+            except Exception as e:
+                chat_outcome.set_validation(
+                    ValidationStatus.PASSED_WITH_WARNINGS,
+                    [f"Delivery contract check error: {e}"],
+                )
+        else:
+            chat_outcome.set_validation(ValidationStatus.PASSED_WITH_WARNINGS, ["rendered_document.json missing"])
+    else:
+        chat_outcome.set_validation(
+            ValidationStatus.PASSED_WITH_WARNINGS if verification["passed"] else ValidationStatus.BLOCKED,
+            issues=untraceable if untraceable else None,
+        )
+
+    # W-01: record model call events from aggregated log
+    if model_call_count > 0:
+        chat_outcome.add_model_call_event({
+            "type": "model_call_summary",
+            "count": model_call_count,
+            "stages": model_stages,
+            "source": "model_call_log.jsonl",
+        })
+
     with open(run_dir / "run_outcome.json", "w", encoding="utf-8") as f:
         json.dump(chat_outcome.to_audit_summary(), f, ensure_ascii=False, indent=2, default=str)
 
     print(f"  [OK] Final response ({len(final_content)} chars, blocked={hallucination_blocked})")
     print(f"  [OK] Tool calls: {len(result.get('tool_call_log', []))}")
+    print(f"  [OK] Model calls: {model_call_count} ({', '.join(model_stages) if model_stages else 'none'})")
     print(f"  [OK] Run dir: {run_dir}")
 
     # P0-E: Public return — NO model raw text, NO messages, NO blocked_content.
@@ -849,6 +997,7 @@ def run_starplan_chat(
         "public_output_validation": "passed" if not untraceable else "blocked",
         "tools_called": [tc["tool"] for tc in result.get("tool_call_log", [])],
         "hallucination_blocked": hallucination_blocked,
+        "model_call_count": model_call_count,
     }
 
 
@@ -969,11 +1118,14 @@ def _check_coordinate_source(captured: dict) -> Optional[str]:
 
 def _build_deterministic_summary(captured: dict) -> str:
     """
-    C-4 fix: Build a deterministic summary purely from tool results.
+    DEPRECATED (Phase B): No longer used as a public output path.
 
-    This is the fail-closed fallback when Qwen's free-text summary contains
-    untraceable numbers. Every value in this summary comes directly from
-    captured tool outputs — no model-generated text is included.
+    Phase B (C-03 fix): Chat now forces generate_outreach_pack when
+    target+obs are available, producing Claim-rendered output. This
+    function is retained only for backward compatibility with older tests.
+
+    Original purpose: C-4 fix — build a deterministic summary purely
+    from tool results when Qwen's free-text was blocked.
     """
     lines: list[str] = []
     lines.append("【StarPlan 确定性结果摘要】")

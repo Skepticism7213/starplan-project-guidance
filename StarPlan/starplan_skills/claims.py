@@ -139,6 +139,7 @@ class AllowedClaimsBuilder:
         self._build_derived_visibility_claims()
         self._build_moon_claims()
         self._build_prohibited_claims()
+        self._build_meta_claims()
         self._build_procedural_claims()
         self._build_unconfirmed_claims()
 
@@ -456,7 +457,7 @@ class AllowedClaimsBuilder:
                 validity_scope=self._scope,
                 source_refs=[src],
                 source_hash=src_hash,
-                allowed_variant_ids=["peak_altitude_v1", "peak_altitude_v2", "schedule_obs_peak_v1"],
+                allowed_variant_ids=["peak_altitude_v1", "peak_altitude_v2", "schedule_obs_peak_v1", "recommended_window_peak_v1", "schedule_obs_start_v1"],
             ))
 
             # Peak airmass
@@ -487,7 +488,7 @@ class AllowedClaimsBuilder:
                 validity_scope=self._scope,
                 source_refs=[src],
                 source_hash=src_hash,
-                allowed_variant_ids=["window_v1", "window_v2"],
+                allowed_variant_ids=["window_v1", "window_v2", "recommended_window_time_v1", "recommended_window_reason_v1", "schedule_obs_start_v1", "schedule_proc_v1"],
             ))
 
         # Twilight info
@@ -787,6 +788,118 @@ class AllowedClaimsBuilder:
             source_refs=[],
         ))
 
+    # ── Meta claims (Phase A: document-level metadata) ──
+
+    def _build_meta_claims(self) -> None:
+        """Register document metadata Claims (title, audience, date, location, etc.).
+
+        Phase A (C-01 fix): these were previously hard-coded in the Markdown
+        writer. Now they are proper Claims so every visible fact is traceable.
+        """
+        meta_hash = self._hash_source({"type": "meta", "version": "v1"})
+        obs = self.obs
+        is_obs = obs.is_observable
+        name = self.target.standard_name
+
+        # Title
+        title_text = f"{name} 观测活动包" if is_obs else f"{name} 观测取消/改期通知"
+        self._add_claim(Claim(
+            claim_id="meta.title",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_title",
+            text_value=title_text,
+            display_value=title_text,
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
+        # Audience
+        self._add_claim(Claim(
+            claim_id="meta.audience",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_audience",
+            text_value=self.audience,
+            display_value=self.audience,
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
+        # Date
+        date_str = str(obs.date_range[0]) if obs.date_range else "未指定"
+        self._add_claim(Claim(
+            claim_id="meta.date",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_date",
+            text_value=date_str,
+            display_value=date_str,
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
+        # Location
+        self._add_claim(Claim(
+            claim_id="meta.location",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_location",
+            text_value=obs.location_name,
+            display_value=obs.location_name,
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
+        # Observable status
+        status_text = "是" if is_obs else "否"
+        self._add_claim(Claim(
+            claim_id="meta.observable_status",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_observable_status",
+            text_value=status_text,
+            display_value=status_text,
+            validity_scope=self._scope,
+            source_refs=["observability_plan.is_observable"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
+        # Generation method (two variants: qwen and template)
+        self._add_claim(Claim(
+            claim_id="meta.generation_method.qwen",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_generation_method",
+            text_value="Qwen 模型（经 Claim 验证）",
+            display_value="Qwen 模型（经 Claim 验证）",
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+        self._add_claim(Claim(
+            claim_id="meta.generation_method.template",
+            claim_type=ClaimType.PROCEDURAL,
+            subject=f"{name}@{self.location_id}@{self._scope.date}",
+            predicate="document_generation_method",
+            text_value="确定性模板",
+            display_value="确定性模板",
+            validity_scope=self._scope,
+            source_refs=["run_context"],
+            source_hash=meta_hash,
+            allowed_variant_ids=["meta_passthrough_v1"],
+        ))
+
     # ── Procedural claims (P1: fine-grained, one Claim per sentence) ──
 
     def _build_procedural_claims(self) -> None:
@@ -822,7 +935,7 @@ class AllowedClaimsBuilder:
                     validity_scope=self._scope,
                     source_refs=["approved_template.v2"],
                     source_hash=proc_hash,
-                    allowed_variant_ids=["schedule_proc_v1"],
+                    allowed_variant_ids=["schedule_proc_v1", "schedule_twilight_end_v1", "schedule_obs_start_v1"],
                 ))
 
         # ── Equipment Claims (conditional on equipment type) ──
@@ -866,16 +979,9 @@ class AllowedClaimsBuilder:
             ))
 
         # ── Safety Claims (approved operational instructions, no facts) ──
-        # Fasy1123 P3/P4 fix: season-aware temperature safety note
-        obs_month = int(self._scope.date.split("-")[1]) if self._scope.date else 6
-        if obs_month in (12, 1, 2):
-            weather_note = "注意防寒保暖，冬季夜间气温可能降至 0°C 以下，请穿戴厚外套、帽子和手套"
-        elif obs_month in (3, 4, 5):
-            weather_note = "春季夜间气温仍较低（约 5-15°C），建议携带外套"
-        elif obs_month in (6, 7, 8):
-            weather_note = "夏季夜间较为温暖，但仍建议携带薄外套；注意防蚊虫"
-        else:
-            weather_note = "注意保暖，秋季夜间气温可能降至 10°C 以下，建议携带外套"
+        # Phase D (C-05 fix): NO specific temperature without weather data source.
+        # Only non-factual operational instructions are allowed.
+        weather_note = "出发前查看当地天气预报，并按预报准备保暖/防雨物品"
         safety_items = [
             ("safety.night_group", "夜间活动请注意人身安全，避免单独行动"),
             ("safety.red_flashlight", "使用红色手电筒保护暗适应视力"),
@@ -954,6 +1060,12 @@ class AllowedClaimsBuilder:
             reason_sentence = (
                 f"{t.standard_name} 在本地最大高度角永远低于最低要求"
                 f"（纬度受限），改期无效，建议更换观测地点或目标"
+            )
+        elif reason_code == "no_astronomical_night":
+            # Phase D (C-06): polar day / white night — no astronomical darkness
+            reason_sentence = (
+                f"{t.standard_name} 在 {self._scope.date} 当晚没有满足阈值的天文黑夜"
+                f"（太阳整夜未降至 -18° 以下），无法进行有效观测。建议更换到更晚的日期"
             )
         elif reason_code == "moonlight":
             alt_str = f"（最高 {max_alt:.1f}°）" if max_alt is not None else ""

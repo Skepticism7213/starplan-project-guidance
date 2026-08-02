@@ -26,10 +26,13 @@ from .claims import AllowedClaimsBuilder
 from .expression_validator import validate_expression_plan
 from .rendering import (
     FullSectionRenderResult,
+    RenderedDocument,
     RenderResult,
     render_all_sections,
     render_deterministic_fallback,
+    render_document,
     render_from_expression_plan,
+    serialize_document_md,
 )
 from .schemas import (
     ActivityScheduleItem,
@@ -137,6 +140,11 @@ def generate_outreach_pack(
         claims_builder, audience, equipment, talking_points_result,
     )
 
+    # Phase A: assemble RenderedDocument (single source for Markdown + trace)
+    rendered_doc = render_document(
+        claims_builder, sections, audience, equipment, qwen_used=qwen_used,
+    )
+
     # Convert to OutreachPack schema
     talking_points = [s.text for s in sections.talking_points]
     schedule = [
@@ -154,24 +162,24 @@ def generate_outreach_pack(
     safety_notes = [s.text for s in sections.safety]
     manual_check_items = [s.text for s in sections.manual_checks]
     unconfirmed_items = [s.text for s in sections.unconfirmed]
+    # Phase A (C-01): qwen_validation_issues NO LONGER appended directly to
+    # unconfirmed_items. They are recorded in the OutreachPack schema field
+    # for audit but do not enter the Claim-traced document.
 
-    # Append Qwen validation issues to unconfirmed
-    if qwen_validation_issues:
-        unconfirmed_items.extend(qwen_validation_issues)
-
-    # Generate outputs
+    # Generate outputs from RenderedDocument
     md_path = None
     if run_dir:
         md_path = str(run_dir / "outreach_pack.md")
-        _write_outreach_markdown(
-            target, obs_result, schedule, talking_points,
-            equipment_checklist, safety_notes, manual_check_items,
-            unconfirmed_items, audience, md_path, qwen_used=qwen_used,
-        )
-        # Write render_trace.json (P1-4: formal provenance trace)
-        _write_render_trace(sections, run_dir)
+        md_content = serialize_document_md(rendered_doc, is_observable=True)
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(md_content)
+        # Write render_trace.json from RenderedDocument (Phase A: final text hash)
+        _write_render_trace_from_document(rendered_doc, run_dir)
+        # Save RenderedDocument for runner.py delivery contract validation
+        with open(run_dir / "rendered_document.json", "w", encoding="utf-8") as f:
+            json.dump(rendered_doc.to_dict(), f, ensure_ascii=False, indent=2)
         # Backward-compat: sentence_claim_map.json
-        sc_map = {s.text: s.claim_ids for s in sections.all_sentences}
+        sc_map = {b.final_text: b.claim_ids for b in rendered_doc.all_blocks}
         with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
             json.dump(sc_map, f, ensure_ascii=False, indent=2)
         # expression_plan.json
@@ -238,6 +246,11 @@ def _generate_not_observable_pack(
     # Render all sections (not-observable path)
     sections = render_all_sections(claims_builder, audience, equipment)
 
+    # Phase A: assemble RenderedDocument
+    rendered_doc = render_document(
+        claims_builder, sections, audience, equipment, qwen_used=False,
+    )
+
     # Compose talking points from blocking + alternatives
     talking_points = (
         [s.text for s in sections.blocking]
@@ -254,17 +267,19 @@ def _generate_not_observable_pack(
     manual_check_items = [s.text for s in sections.manual_checks]
     alt_suggestions = [s.text for s in sections.alternatives]
 
-    # Generate outputs
+    # Generate outputs from RenderedDocument
     md_path = None
     if run_dir:
         md_path = str(run_dir / "outreach_pack.md")
-        _write_not_observable_markdown(
-            target, obs_result, schedule, talking_points,
-            alt_suggestions, manual_check_items, audience, md_path,
-        )
-        _write_render_trace(sections, run_dir)
+        md_content = serialize_document_md(rendered_doc, is_observable=False)
+        with open(md_path, "w", encoding="utf-8") as f:
+            f.write(md_content)
+        _write_render_trace_from_document(rendered_doc, run_dir)
+        # Save RenderedDocument for runner.py delivery contract validation
+        with open(run_dir / "rendered_document.json", "w", encoding="utf-8") as f:
+            json.dump(rendered_doc.to_dict(), f, ensure_ascii=False, indent=2)
         # Backward-compat files
-        sc_map = {s.text: s.claim_ids for s in sections.all_sentences}
+        sc_map = {b.final_text: b.claim_ids for b in rendered_doc.all_blocks}
         with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
             json.dump(sc_map, f, ensure_ascii=False, indent=2)
         expression_plan = {
@@ -298,32 +313,35 @@ def _generate_not_observable_pack(
     )
 
 
-# ── Render trace ─────────────────────────────────────
+# ── Render trace (Phase A: from RenderedDocument) ──
 
 
-def _write_render_trace(sections: FullSectionRenderResult, run_dir: Path) -> None:
-    """Write render_trace.json: formal provenance for every rendered sentence.
+def _write_render_trace_from_document(doc: RenderedDocument, run_dir: Path) -> None:
+    """Write render_trace.json from the final RenderedDocument.
+
+    Phase A (C-01 fix): trace is generated from the SAME RenderedDocument
+    that produces the Markdown. text_hash corresponds to the exact atomic
+    text the user sees. Section order is deterministic (closes W-03).
 
     Schema per entry:
       sentence_id, text_hash, text, claim_ids, variant_id, section, render_mode
     """
     trace_entries = []
-    for i, sentence in enumerate(sections.all_sentences):
-        text_hash = hashlib.sha256(sentence.text.encode("utf-8")).hexdigest()[:12]
+    for i, block in enumerate(doc.all_blocks):
         trace_entries.append({
             "sentence_id": f"s{i:03d}",
-            "text_hash": text_hash,
-            "text": sentence.text,
-            "claim_ids": sentence.claim_ids,
-            "variant_id": sentence.variant_id,
-            "section": sentence.section,
-            "render_mode": "claim_variant",
+            "text_hash": block.text_hash,
+            "text": block.final_text,
+            "claim_ids": block.claim_ids,
+            "variant_id": block.variant_id,
+            "section": block.section,
+            "render_mode": block.render_mode,
         })
 
     trace_doc = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "sentence_count": len(trace_entries),
-        "sections": list({s.section for s in sections.all_sentences}),
+        "sections": doc.sections_ordered,
         "sentences": trace_entries,
     }
     with open(run_dir / "render_trace.json", "w", encoding="utf-8") as f:
@@ -416,121 +434,9 @@ def _generate_expression_plan_qwen(
         return None, [f"[fail-closed] ExpressionPlan 解析失败: {e}"]
 
 
-# ── Markdown writers ─────────────────────────────────
-
-
-def _write_outreach_markdown(
-    target, obs, schedule, talking_points, equipment_checklist,
-    safety_notes, manual_check_items, unconfirmed_items, audience, path: str,
-    qwen_used: bool = False,
-) -> None:
-    """Write the outreach pack as a markdown file."""
-    lines: list[str] = []
-    lines.append(f"# {target.standard_name} 观测活动包")
-    lines.append("")
-    lines.append(f"**受众**: {audience}  ")
-    lines.append(f"**日期**: {obs.date_range[0]}  ")
-    lines.append(f"**地点**: {obs.location_name}  ")
-    lines.append(f"**可观测**: {'是' if obs.is_observable else '否'}  ")
-    lines.append(f"**讲解生成**: {'Qwen 模型（经 Claim 验证）' if qwen_used else '确定性模板'}")
-    lines.append("")
-
-    if obs.recommended_window:
-        w = obs.recommended_window.window
-        lines.append("## 推荐观测时段")
-        lines.append("")
-        lines.append(f"- **时间**: {w.start.strftime('%H:%M')} ~ {w.end.strftime('%H:%M')}")
-        lines.append(f"- **峰值高度角**: {obs.recommended_window.peak_altitude_deg:.1f}°")
-        lines.append(f"- **理由**: {obs.recommended_window.reason}")
-        lines.append("")
-
-    lines.append("## 活动流程")
-    lines.append("")
-    for item in schedule:
-        notes_str = f"（{item.notes}）" if item.notes else ""
-        time_str = f"**{item.time_label}**: " if item.time_label else ""
-        lines.append(f"- {time_str}{item.activity}{notes_str}")
-    lines.append("")
-
-    lines.append("## 讲解要点")
-    lines.append("")
-    for tp in talking_points:
-        lines.append(f"- {tp}")
-    lines.append("")
-
-    lines.append("## 设备清单")
-    lines.append("")
-    for eq in equipment_checklist:
-        notes_str = f"（{eq.notes}）" if eq.notes else ""
-        lines.append(f"- {eq.item} x {eq.quantity}{notes_str}")
-    lines.append("")
-
-    lines.append("## 安全提示")
-    lines.append("")
-    for sn in safety_notes:
-        lines.append(f"- {sn}")
-    lines.append("")
-
-    lines.append("## 人工核对项")
-    lines.append("")
-    for mc in manual_check_items:
-        lines.append(f"- [ ] {mc}")
-    lines.append("")
-
-    if unconfirmed_items:
-        lines.append("## 待确认项")
-        lines.append("")
-        for ui in unconfirmed_items:
-            lines.append(f"- {ui}")
-        lines.append("")
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
-
-
-def _write_not_observable_markdown(
-    target, obs, schedule, talking_points,
-    alt_suggestions, manual_check_items, audience, path: str,
-) -> None:
-    """Write a not-observable pack as markdown."""
-    lines: list[str] = []
-    lines.append(f"# {target.standard_name} 观测取消/改期通知")
-    lines.append("")
-    lines.append(f"**受众**: {audience}  ")
-    lines.append(f"**原定日期**: {obs.date_range[0]}  ")
-    lines.append(f"**地点**: {obs.location_name}  ")
-    lines.append("**状态**: 目标不可观测，活动取消/改期  ")
-    lines.append("**生成方式**: 确定性模板（不可观测场景不调用 Qwen）")
-    lines.append("")
-
-    lines.append("## 说明要点")
-    lines.append("")
-    for tp in talking_points:
-        lines.append(f"- {tp}")
-    lines.append("")
-
-    if alt_suggestions:
-        lines.append("## 替代建议")
-        lines.append("")
-        for s in alt_suggestions:
-            lines.append(f"- {s}")
-        lines.append("")
-
-    lines.append("## 建议安排")
-    lines.append("")
-    for item in schedule:
-        notes_str = f"（{item.notes}）" if item.notes else ""
-        lines.append(f"- **{item.time_label}**: {item.activity}{notes_str}")
-    lines.append("")
-
-    lines.append("## 人工核对项")
-    lines.append("")
-    for mc in manual_check_items:
-        lines.append(f"- [ ] {mc}")
-    lines.append("")
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+# Phase A: _write_outreach_markdown and _write_not_observable_markdown DELETED.
+# Markdown is now generated exclusively by rendering.serialize_document_md()
+# from a RenderedDocument. No direct fact interpolation from target/obs.
 
 
 # ── Legacy utility (defense-in-depth, tested independently) ──

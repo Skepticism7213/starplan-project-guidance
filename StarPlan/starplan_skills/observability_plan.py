@@ -443,9 +443,11 @@ def compute_observability(
     # Determine if target is observable
     is_observable = len(visibility_windows) > 0
 
-    # Determine WHY the target is not observable (hfzr 8b5f804 + 8d93cf0).
-    # Distinguish latitude-limited (permanent), moonlight-blocked (target high
-    # enough but moon interferes), and altitude/sun-bound (too low this night).
+    # Determine WHY the target is not observable.
+    # Phase D (C-06 fix): priority order is
+    #   latitude → no_astronomical_night → altitude → moonlight
+    # Moonlight can only be the reason if astronomical night EXISTS and the
+    # target can reach min_alt during dark hours.
     max_alt_theory = 90.0 - abs(lat - dec_deg)
     latitude_limited = (not is_observable) and (max_alt_theory < min_alt)
     not_observable_reason: Optional[str] = None
@@ -453,13 +455,22 @@ def compute_observability(
         if latitude_limited:
             not_observable_reason = "latitude"
         else:
-            # Target can reach min_alt in principle; does it do so during this
-            # night (ignoring the moon)? If yes, the moon must be the blocker.
-            alt_ok = any(
-                h.altitude_deg >= min_alt and (h.airmass is None or h.airmass <= max_am)
-                for h in hourly_data
+            # Check if astronomical night exists at all (sun < sun_dark_alt)
+            has_dark_hours = any(
+                h.sun_altitude_deg < sun_dark_alt for h in hourly_data
             )
-            not_observable_reason = "moonlight" if alt_ok else "altitude"
+            if not has_dark_hours:
+                # Polar day / white night: no astronomical darkness
+                not_observable_reason = "no_astronomical_night"
+            else:
+                # Dark hours exist; check if target reaches min_alt during them
+                alt_ok = any(
+                    h.altitude_deg >= min_alt
+                    and (h.airmass is None or h.airmass <= max_am)
+                    and h.sun_altitude_deg < sun_dark_alt
+                    for h in hourly_data
+                )
+                not_observable_reason = "moonlight" if alt_ok else "altitude"
 
     # Find recommended window
     prefer_early = bool(constraints.get("prefer_early_night", False)) if constraints else False

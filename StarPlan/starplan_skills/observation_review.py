@@ -83,15 +83,19 @@ def review_observation(
 
         if delay_minutes > 10:
             deviations.append(Deviation(
+                deviation_id="dev.time.delay",
                 deviation_type="time",
                 description=f"实际开始时间比计划晚 {delay_minutes:.0f} 分钟",
                 plan_reference=f"计划开始时间: {planned_start.strftime('%H:%M')}",
                 actual_value=f"实际开始时间: {actual_start.strftime('%H:%M')}",
             ))
             causes.append(CauseEntry(
+                cause_id="cause.team_late",
                 cause="团队迟到",
                 classification="evidence_based",
                 evidence=f"计划开始 {planned_start.strftime('%H:%M')}，实际开始 {actual_start.strftime('%H:%M')}，延迟 {delay_minutes:.0f} 分钟（阈值: review.delay_significance@v1 = 10 分钟活动政策）",
+                source_deviation_ids=["dev.time.delay"],
+                source="rule_based",
             ))
             suggestions.append("下次活动增加到场准备步骤，确保在推荐窗口开始时已就位")
             plan_diffs.append(RevisedPlanDiff(
@@ -99,22 +103,27 @@ def review_observation(
                 original_value="无提前到场要求",
                 revised_value="提前到场进行设备调试和暗适应",
                 reason=f"本次迟到 {delay_minutes:.0f} 分钟",
+                source_cause_ids=["cause.team_late"],
             ))
 
     # ── 2. Environment deviation ──
     if log.cloud_cover and log.cloud_cover != "clear":
         deviations.append(Deviation(
+            deviation_id="dev.env.cloud",
             deviation_type="environment",
             description=f"云量: {log.cloud_cover}",
             plan_reference="计划假设晴朗天空",
             actual_value=f"实际云量: {log.cloud_cover}",
         ))
         causes.append(CauseEntry(
+            cause_id="cause.cloud",
             cause="云层干扰",
             classification="evidence_based" if log.observer_notes and "云" in log.observer_notes else "possible",
             evidence=f"观测日志记录云量为 {log.cloud_cover}" + (
                 f"，备注: {log.observer_notes}" if log.observer_notes and "云" in log.observer_notes else ""
             ),
+            source_deviation_ids=["dev.env.cloud"],
+            source="rule_based",
         ))
         suggestions.append("活动前增加天气预报检查步骤，关注云量预报")
         suggestions.append("准备备选方案：若天气不适合观测，转为室内科普讲座")
@@ -123,15 +132,19 @@ def review_observation(
     if log.observer_notes:
         if "三脚架" in log.observer_notes or "不稳" in log.observer_notes:
             deviations.append(Deviation(
+                deviation_id="dev.equip.tripod",
                 deviation_type="equipment",
                 description="三脚架不稳定，影响观测效果",
                 plan_reference="设备清单包含三脚架",
                 actual_value="三脚架不稳定",
             ))
             causes.append(CauseEntry(
+                cause_id="cause.equipment_prep",
                 cause="设备准备不足",
                 classification="possible",
                 evidence=f"观测者备注提及: {log.observer_notes}（人工报告，未经独立验证）",
+                source_deviation_ids=["dev.equip.tripod"],
+                source="human_report",
             ))
             suggestions.append("增加设备检查步骤：活动前测试三脚架稳定性")
             plan_diffs.append(RevisedPlanDiff(
@@ -139,14 +152,18 @@ def review_observation(
                 original_value="无设备预检步骤",
                 revised_value="活动前检查三脚架稳定性、望远镜调焦",
                 reason="观测者报告三脚架不稳（possible，待验证）",
+                source_cause_ids=["cause.equipment_prep"],
             ))
 
     # ── 4. Expectation / operation issues ──
     if log.observer_notes and "不如预期" in log.observer_notes:
         causes.append(CauseEntry(
+            cause_id="cause.expectation",
             cause="成员期望管理",
             classification="undetermined",
             evidence=f"备注提到'不如预期清晰'，但无法确定是设备、目标还是期望问题",
+            source_deviation_ids=[],
+            source="human_report",
         ))
         suggestions.append("活动前增加预期管理说明（来源: 天文科普经验，非本次计算）")
         plan_diffs.append(RevisedPlanDiff(
@@ -154,18 +171,24 @@ def review_observation(
             original_value="无预期管理说明",
             revised_value="活动前发放目视效果预期说明",
             reason="备注提及不如预期（undetermined，具体原因待确认）",
+            source_cause_ids=["cause.expectation"],
         ))
 
     # ── 5. Seeing conditions ──
     if log.seeing_conditions and log.seeing_conditions != "good":
         causes.append(CauseEntry(
+            cause_id="cause.seeing",
             cause="视宁度",
             classification="possible",
             evidence=f"视宁度记录为 {log.seeing_conditions}，但无法确定是否为主要影响因素",
+            source_deviation_ids=[],
+            source="rule_based",
         ))
 
     # ── 6. Qwen-assisted attribution (optional enhancement) ──
+    # Phase C (C-04 + W-04): structured error handling, ID-based attribution
     qwen_used = False
+    qwen_status = "not_called"  # not_called / success / failed / rejected
     if use_qwen and deviations and _qwen_available():
         try:
             qwen_causes, qwen_suggestions = _qwen_assisted_attribution(
@@ -174,14 +197,33 @@ def review_observation(
             if qwen_causes:
                 # Merge: Qwen causes supplement rule-based causes
                 existing_cause_names = {c.cause for c in causes}
-                for qc in qwen_causes:
+                for i, qc in enumerate(qwen_causes):
                     if qc.cause not in existing_cause_names:
+                        # Phase C: assign stable ID and source
+                        qc.cause_id = f"cause.qwen.{i}"
+                        qc.source = "qwen_assisted"
                         causes.append(qc)
                 if qwen_suggestions:
                     suggestions.extend(qwen_suggestions)
                 qwen_used = True
-        except Exception:
-            pass  # Fail-closed: keep rule-based results
+                qwen_status = "success"
+            else:
+                qwen_status = "rejected"  # Qwen returned nothing valid
+        except Exception as e:
+            # Phase C (W-04): structured audit event, NOT silent pass
+            qwen_status = "failed"
+            if log_path:
+                import json as _json
+                from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+                _audit = {
+                    "timestamp": _dt.now(_tz(_td(hours=8))).isoformat(),
+                    "type": "model_error",
+                    "step": "review_attribution",
+                    "error": str(e)[:200],
+                    "action": "deterministic_fallback",
+                }
+                with open(log_path, "a", encoding="utf-8") as _f:
+                    _f.write(_json.dumps(_audit, ensure_ascii=False) + "\n")
 
     # ── Build revised plan ──
     revised_plan = _build_revised_plan(original_plan, plan_diffs, suggestions)
@@ -198,28 +240,40 @@ def review_observation(
         )
         _write_revised_plan(revised_plan, revised_json_path)
 
-        # P0-D: generate review trace — maps each output item to evidence
+        # Phase C (C-04): review trace uses ACTUAL IDs, not heuristic inference
         review_trace = {
+            "schema_version": "2.0",
+            "qwen_status": qwen_status,
             "causes": [
                 {
+                    "cause_id": c.cause_id,
                     "cause": c.cause,
                     "classification": c.classification,
                     "evidence": c.evidence,
-                    "source": "rule_based" if c.classification == "evidence_based" else "human_report" if c.classification == "possible" else "insufficient_data",
+                    "source": c.source,
+                    "source_deviation_ids": c.source_deviation_ids,
                 }
                 for c in causes
             ],
             "suggestions": [
-                {"text": s, "source": "activity_policy" if "步骤" in s or "检查" in s else "general_advice"}
-                for s in suggestions
+                {"text": s, "index": i}
+                for i, s in enumerate(suggestions)
             ],
             "plan_diffs": [
                 {
                     "field": d.field,
                     "reason": d.reason,
-                    "source_cause": next((c.cause for c in causes if c.classification in ("evidence_based", "possible")), "undetermined"),
+                    "source_cause_ids": d.source_cause_ids,
                 }
                 for d in plan_diffs
+            ],
+            "deviations": [
+                {
+                    "deviation_id": d.deviation_id,
+                    "deviation_type": d.deviation_type,
+                    "description": d.description,
+                }
+                for d in deviations
             ],
         }
         with open(run_dir / "review_trace.json", "w", encoding="utf-8") as f:

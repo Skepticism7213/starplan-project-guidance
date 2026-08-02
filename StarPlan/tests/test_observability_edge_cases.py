@@ -33,6 +33,10 @@ def test_warning1_polar_day_not_observable():
     # 回退夜间窗口内太阳全程在地平线上
     if obs.hourly_data:
         assert all(h.sun_altitude_deg > 0 for h in obs.hourly_data)
+    # Phase D (C-06): reason must be no_astronomical_night, NOT moonlight
+    assert obs.not_observable_reason == "no_astronomical_night", (
+        f"Polar day should give no_astronomical_night, got {obs.not_observable_reason}"
+    )
 
 
 def test_warning2_latitude_limited_gives_location_not_date():
