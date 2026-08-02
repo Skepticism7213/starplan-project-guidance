@@ -15,11 +15,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from starplan_skills.target_resolve import resolve_target
 from starplan_skills.observability_plan import compute_observability
+from starplan_skills.astro_runtime import configure_astronomy_runtime
 
 from astroplan import Observer, FixedTarget
 from astropy.coordinates import SkyCoord, EarthLocation
 from astropy.time import Time
 import astropy.units as u
+
+# Batch A: Configure offline IERS policy before any Time/coordinate usage
+configure_astronomy_runtime()
 
 TZ8 = timezone(timedelta(hours=8))
 results = []

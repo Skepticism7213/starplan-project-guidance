@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Optional
 
 from .config import get_run_dir
+from .astro_runtime import configure_astronomy_runtime
 from .schemas import (
     CalculationManifest,
     ObservationLog,
@@ -51,6 +52,11 @@ def run_starplan(
     Returns:
         Dict with all results: target, plan, outreach_pack, manifest, etc.
     """
+    # Batch A: Configure Astropy for offline deterministic operation.
+    # Must precede any Time/EarthLocation/AltAz usage in the pipeline.
+    _policy = configure_astronomy_runtime()
+    print(f"  astronomy_runtime={_policy}")
+
     # Parse and validate input
     starplan_input = StarPlanInput(**input_data)
 
@@ -638,6 +644,9 @@ def run_starplan_chat(
         Dict with pipeline results + Qwen conversation log.
     """
     from .qwen_client import call_qwen_chat, TOOL_DEFINITIONS, DEFAULT_MODEL
+
+    # Batch A: Ensure offline IERS policy before any tool executor runs
+    configure_astronomy_runtime()
 
     print(f"[CHAT] Qwen tool-calling orchestration mode")
     print(f"  Input: {user_text[:100]}{'...' if len(user_text) > 100 else ''}")
