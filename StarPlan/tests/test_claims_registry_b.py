@@ -297,7 +297,7 @@ class TestTemplateRendering:
 
     def test_render_sentence_basic(self):
         result = render_sentence("target_name_v1", "M31")
-        assert result == "今晚我们要观测的是 M31"
+        assert result == "本次活动我们要观测的是 M31"
 
     def test_render_sentence_unknown_variant(self):
         result = render_sentence("nonexistent_v99", "test")

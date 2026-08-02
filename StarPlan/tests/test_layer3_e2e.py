@@ -691,7 +691,7 @@ class TestChatStructuredEquivalence:
         # Simulate the P3-2 logic
         captured = {
             "outreach_pack": {
-                "talking_points": ["今晚我们要观测的是 M31", "它是一个深空天体"],
+                "talking_points": ["本次活动我们要观测的是 M31", "它是一个深空天体"],
                 "alternative_suggestions": [],
                 "qwen_used": False,
             }
@@ -704,7 +704,7 @@ class TestChatStructuredEquivalence:
         header = "【StarPlan 观测规划结果】\n（以下要点由 Claim 证据链确定性渲染）\n"
         final_content = header + "\n".join(f"- {tp}" for tp in tp_lines)
 
-        assert "今晚我们要观测的是 M31" in final_content
+        assert "本次活动我们要观测的是 M31" in final_content
         assert "Claim 证据链确定性渲染" in final_content
         # Must NOT contain _build_deterministic_summary markers
         assert "确定性结果摘要" not in final_content

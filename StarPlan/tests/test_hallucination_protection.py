@@ -54,7 +54,7 @@ def test_valid_points_pass():
     """Talking points with only fact-card numbers should pass."""
     cards = _make_m31_fact_cards()
     points = [
-        "今晚我们要观测的是 M31，也就是仙女座星系",
+        "本次活动我们要观测的是 M31，也就是仙女座星系",
         "它的视星等约为 3.4，在黑暗环境下肉眼可见",
         "它在天空中的角大小约为 178.0 角分，相当于 6 个满月",
         "今晚它的峰值高度角将达到 72.3°，非常适合观测",
