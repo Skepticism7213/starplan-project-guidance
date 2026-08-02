@@ -29,7 +29,7 @@ SENTENCE_VARIANTS: dict[str, dict] = {
     # ── Target section ──
 
     "target_name_v1": {
-        "template": "今晚我们要观测的是 {display_value}",
+        "template": "本次活动我们要观测的是 {display_value}",
         "audience": ["beginner", "general"],
         "section": "target",
         "note": "Basic target introduction",

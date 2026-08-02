@@ -342,9 +342,12 @@ def _write_review_markdown(
 
     lines.append("## 偏差识别")
     lines.append("")
+    # Batch C: deviation type Chinese mapping
+    _deviation_type_zh = {"time": "时间", "environment": "环境", "equipment": "设备"}
     if deviations:
         for d in deviations:
-            lines.append(f"### {d.deviation_type}偏差")
+            type_zh = _deviation_type_zh.get(d.deviation_type, d.deviation_type)
+            lines.append(f"### {type_zh}偏差")
             lines.append(f"- **描述**: {d.description}")
             lines.append(f"- **计划**: {d.plan_reference}")
             lines.append(f"- **实际**: {d.actual_value}")
@@ -374,11 +377,11 @@ def _write_review_markdown(
     if diffs:
         lines.append("## 计划修订")
         lines.append("")
+        lines.append("| 字段 | 原值 | 修订值 | 原因 |")
+        lines.append("|---|---|---|---|")
         for d in diffs:
-            lines.append(f"| 字段 | 原值 | 修订值 | 原因 |")
-            lines.append(f"|---|---|---|---|")
             lines.append(f"| {d.field} | {d.original_value} | {d.revised_value} | {d.reason} |")
-            lines.append("")
+        lines.append("")
 
     with open(path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

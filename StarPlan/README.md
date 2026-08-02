@@ -73,7 +73,7 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件（v0.2.0 Claim 架构）
+  skills.yaml                  # Skills 定义文件（v0.5.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
