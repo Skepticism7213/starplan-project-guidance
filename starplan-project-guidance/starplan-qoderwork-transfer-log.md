@@ -2,9 +2,11 @@
 
 初始日期：2026-07-18
 
-最近更新：2026-07-26
+最近更新：2026-08-02
 
 用途：将当前对话与项目方案转移到 QoderWork，作为后续开发、分工和材料撰写的上下文。
+
+> 2026-08-02 执行基线更新：当前主计划已将项目定位扩展为面向学校、青少年科普活动和高校社团的可信 AI Ready Skills 包；主展示依托 Qwen 智能体加载与调用，独立前端不再是核心硬要求；团队按两名核心成员、合计三名稳定协作成员和 2026-09-01 截止时间倒排。本文若与主计划冲突，以 `starplan-loop-project-plan.md` 第 11 至 14 节为准。
 
 ## 1. 赛项背景
 
@@ -58,15 +60,15 @@
 
 项目名称：
 
-**星程 StarPlan Loop：面向 AI 的校园天文观测与科普实训闭环 Skills 包**
+**星程 StarPlan Loop：面向学校与青少年科普活动的可信 AI Ready 天文实训闭环 Skills 包**
 
 一句话简介：
 
-**星程 StarPlan Loop 将目标解析、可观测性计算、科普活动设计、实际观测记录和偏差复盘封装为 Qwen 智能体可调用的 AI Ready Skills，让一次校园观测活动能够被计划、执行、检查并持续改进。**
+**星程 StarPlan Loop 将目标解析、可观测性计算、分众科普表达、活动执行记录和证据复盘封装为 Qwen 智能体可调用的 AI Ready Skills，让学校和青少年天文活动能够被计划、执行、检查、复现并持续改进。**
 
 200 字以内简介：
 
-星程 StarPlan Loop 是面向 Qwen 智能体调用的校园天文观测与科普实训 Skills 包，聚焦“观测计划—活动执行—结果复盘”这一真实但分散的环节。用户输入目标、地点、日期、受众和设备后，系统结合 Qwen 与确定性天文工具生成计划和科普活动包；活动结束后导入观测日志，系统解释计划与实际的差异并生成下一次修订计划，同时保留中间结果与人工校验入口。
+星程 StarPlan Loop 是面向 Qwen 智能体调用的学校与青少年天文实训 Skills 包，聚焦“观测计划—分众表达—活动执行—证据复盘—下一轮计划”这一真实但分散的环节。用户输入目标、地点、日期、受众和设备后，系统结合 Qwen 与确定性天文工具生成计划和面向组织者、讲解员、学生的活动内容；活动结束后导入日志，系统解释计划与实际的差异，生成可再次运行的下一轮输入，并保留中间结果与人工校验入口。
 
 ## 3. 为什么选择这个切口
 
@@ -137,7 +139,7 @@ StarPlan 面向：
 
 ### 没有 StarPlan 时的传统流程
 
-以“北京某高校天文社组织 M31 仙女座星系公众观测活动”为例，组织者需要：
+以“济南某学校或天文社组织 M31 仙女座星系新手观测活动”为例，组织者需要：
 
 1. 查 M31 的基础信息、坐标、视星等、角大小。
 2. 将学校地点转换成经纬度和时区。
@@ -293,7 +295,7 @@ result = run_starplan(input_data)
 ```json
 {
   "target": "M31",
-  "location": "北京",
+  "location": "济南_四门塔",
   "date_range": ["2026-10-09", "2026-10-11"],
   "audience": "大学新生",
   "equipment": "双筒望远镜",
@@ -347,7 +349,7 @@ runs/case_xxx/
 
 ### 案例 1：正常可观测活动
 
-任务：北京高校天文社组织 M31 新生观测夜。
+任务：济南某学校、青少年科普组织或高校天文社组织 M31 新手观测活动。
 
 系统生成目标信息、推荐时段、高度曲线、设备建议和科普活动包，人工确认后形成活动计划。
 
@@ -407,15 +409,15 @@ validation_report.md
 
 > 我们团队并不依赖主观观星经验来判断结果正确性，而是采用“权威数据源 + 确定性计算 + Claim 准入 + 交叉验证 + 人工校验入口”的验证机制。目标信息和参考结果根据目标类型选择可靠来源，可见性由 Astropy/astroplan 等确定性工具计算；SIMBAD、JPL Horizons、Stellarium 或 KStars 可作为交叉校验，不作为首期核心服务的唯一依赖。大模型只负责语言理解、工具编排和受限表达计划，数值和文字事实均来自验证后的 Claims，并通过 RunOutcome、Manifest 和 validation_report 保留来源、规则和中间结果。
 
-## 11. 五人分工
+## 11. 当前三人分工
 
-| 成员 | 角色 | 主要任务 | 最终交付 |
-|---|---|---|---|
-| A | 项目负责人 + 天文校验 | 定项目边界、3 个典型案例、校验规则、汇总进度 | 案例设计、验证标准、`validation_report` 模板、PPT 总逻辑 |
-| B | 天文计算内核 | 用 Astropy/astroplan 计算高度角、airmass、暮光/月光影响、最佳窗口 | `observability_plan`、CSV 中间结果、曲线图、规则测试 |
-| C | 目标数据与结果展示 | 维护首批目标目录，处理名称歧义，生成必要图表；外部工具只做可选校验 | `target_resolve`、目标目录、展示层和可选交叉验证 |
-| D | Qwen/百炼 + Skill 编排 | 设计 Claim/表达 Schema、工具调用、确定性渲染和模型审计 | `skills.yaml`、`runner.py`、`outreach_pack`、`model_call_log` |
-| E | 复盘与交付展示 | 观测日志、偏差归因、修订计划、轻量页面、README、PPT 和视频 | `observation_review`、演示页、技术报告、视频、复现材料 |
+| 角色 | 主要任务 | 最终交付 |
+|---|---|---|
+| A：项目负责人/验收与材料 | 冻结产品目标、三类案例、人工校验、实地尝试、PPT/PDF 和视频主线 | 项目计划、案例证据、外部复核、最终材料 |
+| B：代码集成/Skills 与运行合同 | 修复运行阻断、现实活动时段、分众输出、可执行下一轮、智能体加载和测试 | 可加载 Skills 包、三案例、自动测试、复现说明 |
+| C：独立复现/证据与许可证 | 从干净环境安装，复核运行记录，整理来源、许可证和开源改造说明 | 独立复现记录、证据清单、许可证清单、材料校对 |
+
+GPT/Qwen 可用于实现和交叉审查，但不能替代实际运行、独立复现和外部科学复核。
 
 ## 12. 线上协作方式
 
@@ -428,7 +430,6 @@ StarPlan/
   README.md
   requirements.txt
   skills.yaml
-  app.py
   starplan_skills/
     runner.py
     target_resolve.py
@@ -437,7 +438,7 @@ StarPlan/
     observation_review.py
     validation.py
   examples/
-    case_01_m31_beijing.json
+    case_01_m31_jinan.json
     case_02_unfavorable_window.json
     case_03_observation_review.json
   runs/
@@ -446,18 +447,16 @@ StarPlan/
 
 分支建议：
 
-| 人 | 分支名 | 负责文件 |
+| 角色 | 分支名 | 负责范围 |
 |---|---|---|
-| A | `feature/validation-cases` | `examples/`、`validation.py`、校验模板 |
-| B | `feature/observability` | `observability_plan.py`、规则测试 |
-| C | `feature/targets-display` | `target_resolve.py`、目标目录、展示层 |
-| D | `feature/qwen-runner` | `runner.py`、`outreach_pack.py`、`skills.yaml`、模型审计 |
-| E | `feature/review-demo` | `observation_review.py`、`app.py`、`README.md`、`docs/` |
+| A | `feature/cases-materials` | `examples/`、人工校验、文档和提交材料 |
+| B | `feature/core-skills` | `starplan_skills/`、`skills.yaml`、测试和智能体加载 |
+| C | `feature/repro-evidence` | 干净环境复现、运行记录、来源和许可证 |
 
 协作规则：
 
 - 先冻结输入输出 schema，再分头开发。
-- 每个人只改自己负责的模块。
+- 受保护架构文件只由代码集成负责人合并；其他成员修改前先同步最新 `main`，发生冲突时逐行核对。
 - 输入输出格式变更必须同步到 `skills.yaml` 和示例 JSON。
 - API Key 不进仓库，用 `.env` 和 `.env.example`。
 - `main` 分支必须始终能跑通 3 个案例。
@@ -495,14 +494,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 ## 13. 时间安排
 
-| 阶段 | 时间 | 目标 |
-|---|---|---|
-| 第 1 周 | 冻结范围、Schema、案例和验证规则 | Skills 清单、输入样例、输出目录、测试基线 |
-| 第 2 周 | 跑通目标解析和本地可观测性计算 | M31 案例能生成结构化计算结果和验证报告 |
-| 第 3 周 | 加固 Qwen 编排和科普活动包 | Claim Schema 冻结；模型原文无直达用户路径；验证失败确定性回退；调用可追踪 |
-| 第 4 周 | 完成观测日志与复盘闭环 | Evidence Claims 可追溯；证据不足时区分 `possible`/`undetermined` |
-| 第 5 周 | 完成演示入口和 3 类案例 | 新环境可复跑，失败场景可解释 |
-| 第 6 周 | 打磨提交材料 | PPT/PDF、视频、开源工具说明、校验报告 |
+当前唯一执行时间表为主计划第 12 节的 2026-09-01 提交倒排：8 月 8 日前关闭运行阻断，8 月 13 日前完成现实活动时段、分众输出和可执行下一轮，8 月 17 日前完成 Qwen 智能体加载与干净环境复现，8 月 22 日前固定三案例和真实/模拟证据，8 月 27 日前完成材料，8 月 28 日至 31 日冻结验证和提交。
 
 ## 14. 20 页 PPT/PDF 建议结构
 
@@ -550,25 +542,12 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 ## 16. 下一步建议
 
-转移到 QoderWork 后，优先做以下事项：
+转移到 Qwen/QoderWork 后，按以下顺序执行，不再从零搭架构：
 
-1. 冻结 4 个核心 Skill、Claim、状态机和表达计划 Schema，以及 3 个案例和验证规则。
-2. 创建项目目录，统一 Claims、RunOutcome、Manifest、渲染映射和审计事件规范。
-3. 先完成 M31 + 北京 + 日期的本地目标解析和可观测性计算。
-4. 接入 Qwen/百炼的结构化表达计划，保存工具调用与模型审计记录，并验证 fail-closed。
-5. 增加观测日志复盘，再制作轻量演示入口，不要一开始做全功能。
+1. 修复正常入口 IERS 离线策略、BLOCKED 公共返回、Review 自由补充、文案矛盾和版本漂移。
+2. 区分科学可见窗口与现实活动时段，完成组织者、讲解员、学生三类输出和未成年人安全确认模板。
+3. 让复盘输出符合 Schema 的下一轮输入，并实际重新运行生成 before/after 活动包。
+4. 将现有四个 Skills 包加载到至少一种 Qwen 智能体环境，补齐安装、触发、输入输出和失败处理说明。
+5. 固定 M31 正常、M42 不可观测、真实/模拟复盘三类记录，再制作 20 页内材料和 6 至 8 分钟视频。
 
-第一阶段最低目标：
-
-```text
-输入 M31 + 北京 + 日期
--> 输出 resolved_target.json
--> 输出 observability.csv
--> 输出 visibility_curve.png
--> 输出 outreach_pack.md
--> 导入 observation_log.csv
--> 输出 review_report.md 和 revised_plan.json
--> 输出 validation_report.md
-```
-
-这个闭环跑通后，再考虑土星、流星雨、Stellarium/Aladin 和校园地平线遮挡等扩展。
+土星、流星雨、Stellarium/Aladin、复杂前端和取证级防篡改继续后置，不得影响 2026-09-01 核心交付。

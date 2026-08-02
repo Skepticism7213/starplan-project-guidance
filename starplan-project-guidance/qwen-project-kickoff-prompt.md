@@ -1,192 +1,310 @@
-# Qwen 项目启动 Prompt
+# Qwen/QoderWork 竞赛收口执行 Prompt（2026-08-02）
 
+使用方式：把下面完整代码块交给 Qwen/QoderWork。首次只执行 P0 的 Batch A-C；完成、验证、提交并生成强制报告后停止，等待项目负责人确认再进入 P1。不要一次性实现全部阶段。
 
 ```text
-你现在是“星程 StarPlan Loop”项目的项目架构师、天文计算流程顾问和竞赛技术负责人。
+你现在是 StarPlan Loop 项目的代码实施负责人。你的任务不是重新设计项目，而是在最新仓库基础上，按已冻结的竞赛计划逐批关闭阻断项，并保留可验证证据。
 
-当前任务不是立刻写完整代码，而是先把项目初期的范围、技术路线、接口和验收标准确定下来。请先做事实核对和可行性分析，再给出可执行的启动计划；在计划获得人工确认前，不要擅自扩展范围，也不要生成大段未经验证的业务代码。
+一、最终目标
 
-一、项目背景
+项目名称：
 
-我们参加挑战杯“揭榜挂帅”阿里云榜题：
+“星程 StarPlan Loop：面向学校与青少年科普活动的可信 AI Ready 天文实训闭环 Skills 包”。
 
-- 赛道三方向三：星语·面向 AI 的天文实训
-- 作品必须使用阿里云 Qwen 系列模型及相关产品能力
-- 作品重点是把真实天文工作或科普实践中的一个具体任务环节改造成可运行、可检查、可复现、可复用、可被智能体调用的 AI Ready Skills 包
-- 项目不能做泛用天文聊天助手，也不能只做一个漂亮但无法复现的网页
-
-当前项目定位：
-
-“星程 StarPlan Loop：面向 AI 的校园天文观测与科普实训闭环 Skills 包”。
-
-目标用户是高校天文社团新成员、天文科普教师和校园观测活动组织者。核心场景是：用户提出一次校园观测需求，系统判断目标是否适合观测，生成观测计划和科普活动包；活动结束后，用户导入实际观测日志，系统解释计划与实际的差异，并生成下一次修订计划。
-
-核心流程：
-
-自然语言活动需求
--> Qwen 解析为结构化任务
--> 天文工具完成确定性计算
--> 生成观测计划和科普活动包
--> 导入实际观测日志
--> 对比计划与实际结果
--> 解释偏差并生成修订计划
-
-核心原则：
-
-工具算，模型讲，报告验，人员确认，日志促改进。
-
-二、必须遵守的技术边界
-
-1. Qwen 负责自然语言理解、任务编排、工具调用和基于事实卡的科普表达。
-2. Qwen 不得直接编造高度角、方位角、日落时间、月亮位置、行星位置或其他关键天文数值。
-3. 高度角、方位角、airmass、暮光、月光影响等结果必须来自确定性天文工具，并保留来源和中间结果。
-4. 首期优先采用 Python + Astropy/astroplan 等本地可复现工具；在线服务不能成为核心演示的单点故障。
-5. 阿里云百炼/Qwen 的模型名称、调用方式、工具调用输入输出和模型版本必须可审计。
-6. 首期不做望远镜硬件控制、实时天气系统、账户体系、复杂 3D 前端、模型微调和多智能体编排。
-7. 行星星历、Stellarium/Aladin 接入和校园地平线遮挡模型属于后续扩展，只有在核心闭环稳定后才能加入。
-
-三、首期 Skills 范围
-
-请围绕以下 4 个核心 Skill 设计启动方案，不要随意增加新的核心模块：
+项目面向中小学教师、青少年科普组织者、高校天文社和其他非专业活动组织者。作品主体是可被 Qwen 智能体加载或调用的 4 个 Skills：
 
 1. target_resolve
-   将中文名、英文名或别名解析为标准目标、目标类型、坐标、来源和置信度；名称歧义时必须要求人工确认。
-
 2. observability_plan
-   根据目标、地点、日期和设备约束，计算可见窗口、高度/方位、airmass、暮光和月光风险，输出推荐时段和备选方案。
-
 3. outreach_pack
-   根据已经验证的事实卡、计算结果、受众和设备，生成活动流程、讲解词、设备清单、安全提示和人工核对项；事实不足时不得自行补写数值。
-
 4. observation_review
-   读取原计划和实际观测日志，识别时间、环境、设备或操作方面的偏差，引用对应证据，并生成参数确实发生变化的下一次修订计划。
 
-总控入口为：starplan.run
+核心闭环：
 
-星图和曲线属于输出展示层，不要在项目初期单独拆成复杂 Skill。
+自然语言活动需求
+-> Qwen 解析或选择 Skill
+-> 确定性天文计算
+-> 科学可见窗口与现实活动时段
+-> 同源 Claims 的组织者/讲解员/学生输出
+-> 活动日志
+-> 证据复盘
+-> 可再次进入 runner 的下一轮输入
+-> 重新生成活动包并显示 before/after
 
-四、项目初期应该先做什么
+截止时间为 2026-09-01 00:00:00（北京时间）。初赛无答辩，最终材料必须自己说明价值和证据。
 
-请严格按下面顺序安排工作：
+二、权威文件和读取顺序
 
-阶段 0：现状与规则核对
+开始任何修改前，完整读取以下文件：
 
-- 如果可以访问项目目录，先读取现有 Markdown、配置文件、代码和提交说明。
-- 列出当前已有内容、缺失内容、相互冲突的决定和未知的赛事要求。
-- 不要把不确定的比赛截止日期、提交格式或 API 能力当成事实；无法确认时明确标记“待核实”。
+1. 根目录 agents.md
+2. starplan-project-guidance/starplan-loop-project-plan.md
+3. starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-02-project-plan-competition-reset.md
+4. starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-02-competition-priority-live-demo-recheck.md
+5. starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-02-phase-a-d-independent-recheck.md
+6. starplan-project-guidance/starplan-qoderwork-transfer-log.md
+7. StarPlan/README.md
+8. StarPlan/skills.yaml
 
-阶段 1：冻结 MVP 边界
+如果文档冲突，以 project plan 为准。`phase-a-d-completion` 只作为历史修复记录，不能作为当前已验收证明。
 
-- 只选择一条主演示线：校园天文社组织一次面向新成员的观测活动。
-- 首批只支持一个可审计的常用目标目录和固定地点格式。
-- 确定 3 个案例：正常可观测、条件不适合及备选方案、导入实际日志后的复盘修订。
-- 明确哪些功能是 MVP 必须完成，哪些内容延期，哪些内容明确不做。
+三、Git 和协作前置门禁
 
-阶段 2：定义接口和证据链
+1. 执行 git fetch origin，并确认本地基线包含最新 origin/main。
+2. 执行 git status 和 git rev-list --left-right --count origin/main...HEAD。
+3. 如果无法确认远端、工作区存在与本任务重叠的未提交修改、或受保护文件发生冲突，立即停止并报告，不得覆盖他人工作。
+4. 建议从最新 main 创建独立分支，例如 feature/competition-p0-runtime-contract。不要 force push。
+5. 修改 claims.py、rendering.py、expression_validator.py、runner.py、outreach_pack.py、run_outcome.py、templates.py 或 Layer 3/对抗测试时，必须逐行处理，不得用旧文件整份覆盖新架构。
+6. 每个 Batch 单独 commit；不要把 P0、P1、P2 合成一个提交。
 
-为 4 个 Skill 分别定义：
+在真正编辑前，先回复一段不超过 15 行的基线确认：
 
-- 解决的问题
-- 触发条件
-- 输入字段及字段类型
-- 输出字段及字段类型
-- 依赖的数据和工具
-- 可能失败的情况
-- 人工确认点
-- 可验证的成功标准
+- 当前 commit
+- 本地/远端关系
+- 工作区是否干净
+- 你读过的权威文件
+- 本批只解决什么
+- 本批明确不解决什么
+- 当前失败证据和预期成功行为
 
-同时设计每次运行的目录和 manifest，至少能保存：
+四、不可违反的架构边界
 
-- 原始用户需求
-- Qwen 结构化结果
-- 目标来源和坐标
-- 地点、时区和日期
-- 工具、模型和版本
-- 约束规则
-- 中间计算结果
-- 模型调用日志
-- 人工修改和最终确认
+1. Qwen 只负责自然语言理解、Skill 选择、调用编排、Claim/批准句式/顺序/语气选择。
+2. 高度角、方位角、airmass、暮光、月光、时间窗口和其他科学结果必须由确定性工具产生。
+3. 用户可见科学事实必须来自本次运行的 Claim Registry；模型原始自由文本不得直达用户。
+4. 验证失败必须 fail-closed：宁可少交付，不得返回被阻断内容。
+5. 不新增第 5 个核心 Skill，不做行星、流星雨、望远镜控制、实时天气、复杂前端、模型微调、多智能体或取证级防篡改。
+6. 不新增在线天文服务作为核心依赖。
+7. 不读取、显示、复制、记录或提交 .env 中的 API Key。日志不得包含密钥、token、私人数据和完整内部提示词。
+8. 不把 GPT/Qwen 的互相认可当作科学验证。科学验收依赖确定性计算、固定参考、运行记录和人工复核。
 
-阶段 3：做最小技术可行性验证
+五、本轮只执行 P0：Batch A-C
 
-不要一开始搭建完整前端。先验证以下最小链路：
+不要在同一轮进入 P1 或 P2。先完成以下三个 Batch，分别提交。
 
-输入一个目标、地点和日期
--> 目标解析
--> 本地可见性计算
--> 输出结构化 JSON/CSV
--> 生成验证报告
+--------------------------------
+Batch A：正常入口 IERS/leap-second 离线运行
+--------------------------------
 
-验证时重点检查：
+当前失败事实：
 
-- 坐标和目标名称是否正确
-- 时区是否统一
-- 高度角和推荐窗口是否来自工具计算
-- 相同输入能否重复得到一致结果
-- 无效目标、缺地点、缺日期时是否能清楚失败
+- conftest.py 只在 pytest 中关闭 IERS 自动下载。
+- 正常 README 入口仍可能联网等待。
+- 最近复验中，空 API Key 条件下 M42 45 秒超时，复盘案例 90 秒超时。
 
-阶段 4：再接入 Qwen
+目标行为：
 
-- 让 Qwen 把自然语言需求转换成结构化输入。
-- 让 Qwen 通过工具调用请求确定性计算。
-- 让 Qwen 只基于事实卡生成解释和科普活动包。
-- 保存模型版本、提示词、工具调用参数和返回结果。
-- 测试模型被要求“不要调用工具、直接编一个精确角度”时，是否会拒绝或要求补充证据。
+- README M31、M42 和复盘案例不依赖用户已有 Astropy 缓存。
+- 网络不可用时不等待远端 IERS/leap-second 更新。
+- 30 秒内进入明确终态；若确实无法计算，返回 TOOL_ERROR 或安全状态并写清原因，不能无输出挂起。
 
-阶段 5：实现复盘闭环
+先写失败测试：
 
-- 先设计统一观测日志字段：实际开始/结束时间、目标、设备、云量、观测结果和备注。
-- 构造至少 3 类偏差：时间偏差、环境影响、设备/操作问题。
-- 让系统明确区分“有证据的原因”“可能原因”和“无法判断”。
-- 检查修订计划是否真正改变时间、目标优先级、设备准备或流程步骤。
+1. 新增 tests/test_runtime_offline_policy.py 或等价测试。
+2. 用子进程创建全新临时缓存，清空 DASHSCOPE_API_KEY，设置不可用网络/代理或可靠禁止下载。
+3. 对 M31、M42 至少各跑一次，设置明确 timeout。
+4. 当前实现必须先出现超时、联网尝试或 warning 失败证据；保存测试输出。
 
-阶段 6：最后做展示层和提交材料
+最小实现建议：
 
-- 只做一个轻量调用面板，重点展示 Skill 输入、工具调用、中间结果、验证报告和复盘结果。
-- 整理 3 个可复跑案例和一键运行说明。
-- 生成 Skills 清单、流程图、技术报告、Qwen 使用证据、开源依赖和许可证说明。
-- 最后再制作 10 分钟以内的演示视频和 PPT/PDF。
+1. 如果项目没有公共运行初始化点，新增一个很小的 starplan_skills/astro_runtime.py；不要建立配置框架。
+2. 提供幂等函数 configure_astronomy_runtime()，把产品运行需要的 Astropy policy 放在这里。
+3. 使用 Astropy 随包 IERS/leap-second 数据，关闭运行时自动下载和缓存新鲜度强制检查。
+4. runner 的所有公开入口和 scripts/cross_validate.py 在第一次 Time/Observer/EarthLocation 前调用该函数。
+5. observability_plan.py 不得依赖 conftest.py 才能安全运行。
+6. 不使用全局 warnings.filterwarnings("ignore")。如果仍有已证明无害的 warning，只在具体调用周围局部处理并写注释。
+7. 在 state_log 或早期控制台输出中记录 astronomy_runtime=offline_bundled_data。
 
-五、你现在必须输出的内容
+Batch A 验收：
 
-请不要直接输出完整代码，先按以下结构给出项目启动报告：
+- 新增失败测试转为通过。
+- python scripts/run_case.py examples/case_01_m31_jinan.json
+- python scripts/run_case.py examples/case_02_unfavorable_window.json
+- python scripts/run_case.py examples/case_03_observation_review.json
+- tests/test_observability_edge_cases.py 全过。
+- tests/test_moon_separation_c1.py 全过。
+- 不出现远端 IERS 等待；Manifest 记录运行 policy。
 
-1. 你对项目目标和边界的理解
-2. 当前最小可行 MVP 的明确范围
-3. 4 个 Skill 的接口草案表
-4. 统一输入/输出 Schema 草案
-5. 首批 3 个案例及每个案例的验收标准
-6. 技术依赖选择及其理由
-7. Qwen 与确定性天文计算的职责分工
-8. 数据来源、版本和可复现方案
-9. 失败处理和人工确认设计
-10. 按优先级排列的首周任务清单
-11. 每项首周任务的完成定义和验证命令
-12. 风险清单：风险、影响、概率、规避方案、触发后的降级方案
-13. 你认为当前计划中最可能失控的部分
-14. 需要人类确认的阻塞问题，最多列 5 个
+--------------------------------
+Batch B：公共 fail-closed + Review 安全降级
+--------------------------------
 
-首周任务必须具体到可以直接分工，例如：
+当前失败事实：
 
-- 冻结目标目录和 3 个输入案例
-- 建立统一 Schema
-- 完成本地计算最小验证
-- 写失败输入测试
-- 生成一次完整 manifest
-- 确认百炼/Qwen 的调用方式和模型版本
+- 结构化入口合同 BLOCKED 后可能仍在公共 dict 的 outreach_pack 字段返回已构建内容。
+- Chat 的 public_output_validation 没有完全从最终 RunOutcome 派生。
+- Chat 合同异常或缺证据时可能降成 passed_with_warnings。
+- Review Qwen 仍可返回自由原因、证据或建议，尚未完成 ID-only。
 
-不要用“继续完善”“优化体验”“做好前端”这类无法验收的表述。
+目标行为：
 
-六、输出要求
+- BLOCKED 时，结构化入口和 Chat 的公共返回都是 0 条事实。
+- RunOutcome、Manifest、Validation Report、磁盘交付和公共返回状态一致。
+- P1 ID-only 完成前，案例三只使用确定性 Review，不调用 Qwen 自由补充。
 
-- 使用中文，先给结论，再给依据。
-- 所有未知信息都标记为“待核实”，不要自行假设成事实。
-- 计划必须按“任务—负责人—输入—输出—验收标准—依赖—风险”组织。
-- 先完成规划和技术验证，不要因为想展示能力而增加不必要的模块。
-- 如果发现计划存在范围冲突，优先保证“可运行、可检查、可复现、可复用”的核心闭环。
-- 报告最后给出一个明确的 Go/No-Go 判断：当前是否已经具备开始搭建最小骨架的条件；如果不能开始，指出唯一最关键的阻塞项。
+先写失败测试：
 
-在我确认启动报告之前，不要创建复杂前端，不要接入多个外部服务，不要开始模型微调，也不要把未验证的天文数值写入最终材料。
+1. 在 test_delivery_contract_gate.py 和 runner/Chat 端到端测试中覆盖：删除 claims.json、损坏 expression_plan.json、空 sentence map、错 variant、改 hash、插入额外事实。
+2. 对结构化入口和 Chat 分别断言：validation=blocked、delivery=not_delivered、公共返回不含 talking points/替代建议/模型原文。
+3. Mock Qwen 在 Review 返回一条无数字但虚构的原因和建议，断言最终 Review 与 use_qwen=False 的确定性基线一致。
+4. 模型调用 0、1、多次和一次被拒绝时，model_call_log、RunOutcome、Manifest 计数一致。
+
+结构化入口最小修复：
+
+1. 保留 validate_delivery_contract()，但让最终 RunOutcome 决定 public return。
+2. run_starplan() 在 BLOCKED/NOT_DELIVERED 时，outreach_pack 返回 None 或固定无事实 envelope，不能返回此前的 outreach.model_dump()。
+3. BLOCKED 仍写 run_outcome.json、calculation_manifest.json 和 validation_report.md，三者同为 blocked/not_delivered。
+4. 不新增大型 Web/API 层，只稳定当前 dict 返回合同。
+
+Chat 最小修复：
+
+1. public_output_validation 直接来自 chat_outcome.validation_status。
+2. 合同异常、缺 rendered_document 或证据文件损坏必须 BLOCKED，不得 passed_with_warnings。
+3. BLOCKED 时 final_content 使用固定无事实说明，不拼接 pack_data。
+4. 共享结构化入口的 finalize/Manifest/Report writer，不复制一套状态推断。
+5. 模型调用按真实 model_call 事件聚合；不要用无法被 RunOutcome 统计的 model_call_summary 冒充调用。
+
+Review 临时策略：
+
+1. runner 显式调用 review_observation(..., use_qwen=False)，或提供清楚的 competition_safe 默认策略。
+2. 输出和审计中记录 qwen_status=disabled_pending_id_only。
+3. 保留现有 Qwen Review helper 供 P1 改成 ID-only，当前不要删除或重写整文件。
+
+Batch B 验收：
+
+- 所有新增 fail-closed 对抗测试通过。
+- tests/test_mock_qwen_adversarial.py 通过。
+- tests/test_chat_hallucination_c4.py 通过。
+- Layer 3/端到端测试通过。
+- 任一 BLOCKED 场景公共返回 0 条事实。
+- 案例三不再为 Review 额外等待真实模型调用。
+
+--------------------------------
+Batch C：文案、示例和版本一致性
+--------------------------------
+
+目标行为：评委看到的 README、Skills 声明、控制台、Markdown 和 JSON 使用同一版本、同一时间口径和同一数值来源。
+
+实施项：
+
+1. 统一 skills.yaml、starplan_skills.__version__、README、Manifest 中的软件版本。版本号只能代表已通过验收的能力。
+2. templates.py 中把未来日期通用“今晚”改为“本次活动”或具体日期；只有输入日期等于当地当前日期才可写“今晚”。
+3. M42 的“夜间最高高度”全部使用 max_altitude_deg；某个采样点高度必须带采样时间，不能与最高高度混写。
+4. 案例三结构化时间差是唯一延迟数值来源。删除或改写 observer_notes 中冲突的“迟到30分钟”，备注不重复结构化数字。
+5. 偏差类型显示中文；Markdown 修订表只输出一次表头。
+6. 更新 README 和 skills.yaml 时只声明当前真实实现，不能提前写 P1 尚未完成的分众/next input 为已完成。
+
+Batch C 验收：
+
+- 为上述四类可见矛盾增加回归断言。
+- python scripts/validate_examples.py 为 3 passed, 0 failed。
+- rg 检查不再发现旧版本号和冲突措辞。
+- git diff --check 通过。
+
+六、P0 完成后的统一回归
+
+至少运行并记录：
+
+1. python -m compileall -q starplan_skills scripts tests
+2. python scripts/validate_examples.py
+3. python tests/layer23_validation.py
+4. python -m pytest -q tests/test_runtime_offline_policy.py
+5. python -m pytest -q tests/test_observability_edge_cases.py
+6. python -m pytest -q tests/test_moon_separation_c1.py
+7. python -m pytest -q tests/test_mock_qwen_adversarial.py
+8. python -m pytest -q tests/test_chat_hallucination_c4.py
+9. 受影响的 delivery contract、Layer 3、runner、Review 测试
+10. README 三案例，记录每个耗时和终态
+
+然后尝试完整 pytest。当前托管 Windows 环境曾因 pytest tmp_path 临时目录 ACL 出现 PermissionError；如果再次发生：
+
+- 不得把它写成业务测试失败；
+- 也不得宣称 155 全过；
+- 报告已收集数量、通过到哪里、ACL 错误原文；
+- 在普通终端或第二台电脑重跑完整 suite，作为合并门禁。
+
+真实 Qwen canary 与离线 merge gate 分开。P0 先保证无 Key、无网络也能安全运行；真实 Qwen 只需低频验证 API 兼容性，不用为了 canary 波动放松测试。
+
+七、P0 强制交付和停止条件
+
+完成 Batch A-C 后必须：
+
+1. 在 starplan-project-guidance/ 新增 UTF-8 Markdown error-check/phase-plan 报告。
+2. 报告逐条列出 CRITICAL/WARNING/INFO、修改文件、失败测试转绿证据、README 三案例耗时、完整 pytest 状态和遗留风险。
+3. 更新 README、skills.yaml 和项目文档中受本批影响的真实能力声明。
+4. 检查 git status、完整 diff、git diff --check 和 origin/main...HEAD。
+5. commit 并 push 当前分支；报告必须和代码一起提交。
+6. 停止，不要自动进入 P1。等待项目负责人审查 P0 结果。
+
+最终回复使用以下结构：
+
+Assumption：本批采用了哪些明确假设。
+Changed：按 Batch 列文件和行为变化。
+Verified：列实际命令、通过数、失败数、耗时和终态。
+Remaining risk：没有通过或没有运行的内容。
+Commit：分支、commit SHA、远端同步关系。
+Next approval：进入 P1 前需要负责人确认什么。
+
+八、负责人确认后才执行的 P1
+
+只有用户明确回复“继续 P1”后，才执行以下两个独立 Batch。
+
+Batch D：现实活动时段 + 三类分众输出
+
+1. 保留 recommended_window 的科学窗口语义。
+2. 新增 ActivityPreferences 和 RecommendedActivitySlot：默认 90 分钟，限制 60-120 分钟，含 setup/cleanup、可选 preferred start/latest end、规则版本和人工确认状态。
+3. 活动 slot 只能由确定性 activity_slot_policy_v1 从科学窗口中选择；Qwen 只能选批准候选，不能自由填时间。
+4. 保留 audience 字符串兼容性，新增 AudienceProfile：age_band、experience_level、requested_views。
+5. 同一 Claims 生成 organizer、facilitator、learner 三种 view；改变表达，不改变事实。
+6. 未成年人安全项来自 youth_activity_policy_v1，并保持“待人工确认”；不采集姓名、联系方式和健康隐私。
+
+Batch D 验收：
+
+- M31 同时显示完整科学窗口和现实 90 分钟活动时段，不再通宵。
+- M42 不生成虚假 activity slot。
+- 三个 view 的科学句和数字均映射到同一 Claim IDs，无事实冲突。
+
+Batch E：可执行下一轮输入 + before/after
+
+1. review_observation 接收原始 StarPlanInput 的规范化副本，不从 ObservabilityResult 反推用户需求。
+2. 可修订字段使用白名单 ActivityPreferences；自由建议不能直接成为 Schema 字段。
+3. 复制原输入、应用证据支持的 patch、移除 observation_log，写 next_activity_input.json。
+4. ObservationReview 增加 next input path、parent_run_id 和 source_cause_ids。
+5. 不在 run_starplan 内默认递归；通过明确 CLI 或测试读取 next input 后再次调用 runner。
+6. 生成 before/after，对每项变化引用 Evidence/Cause ID。
+
+Batch E 验收：
+
+- next_activity_input.json 通过 StarPlanInput Schema。
+- 第二次 runner 正常运行且不再次触发 Review。
+- 至少一个活动步骤或时间字段可见变化。
+- 删除证据后对应 patch 消失或降为待确认。
+
+P1 每个 Batch 仍需独立测试、报告、commit 和 push。
+
+九、P2 在人类选择平台前不得开始
+
+项目负责人必须先指定最终用于“直接加载到智能体”的 Qwen/百炼产品形态。你不能自行假设是 MCP、OpenAPI、百炼应用、QoderWork 私有格式或其他平台。
+
+平台确认后：
+
+1. 只写薄适配层：参数转换 -> 调用现有 Skills/runner -> 返回稳定 envelope。
+2. 不复制天文计算、Claim、渲染或 Review 逻辑。
+3. 为四个 Skills 写触发条件、输入、输出、依赖、超时、失败状态和人工确认点。
+4. 在干净环境完成安装、加载、自然语言触发和结果返回。
+5. 现场/视频只实时调用一次 Qwen，其余可用确定性运行或明确标记的已验证历史运行。
+6. 模型超时建议 30-35 秒；容量、空响应、非法 JSON 后安全回退。
+7. 保存平台配置证据、模型调用日志和完整运行目录。
+
+十、任何阶段都禁止的做法
+
+- 不要为了让测试变绿而删除、跳过或放松测试。
+- 不要加关键词黑名单替代 Claim/ID-only 架构。
+- 不要把 BLOCKED 改成 WARNING 来继续交付。
+- 不要用整文件回退覆盖科学修复或可信输出架构。
+- 不要把模拟观测写成真实观测。
+- 不要在报告里写没有实际运行过的命令或通过数字。
+- 不要声称“全部完成”，除非 project plan 的对应验收项逐条有证据。
+- 不要开始复杂前端。视频和 Qwen 智能体调用优先。
+
+现在开始：只做基线确认和 P0 Batch A。先展示当前失败测试，再实施最小修复。
 ```
-
-
