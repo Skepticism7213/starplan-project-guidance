@@ -1,11 +1,11 @@
 # StarPlan Loop Skills Definition
-# Version: 0.5.0
-# Date: 2026-08-02
+# Version: 0.6.0
+# Date: 2026-08-03
 
 project:
   name: "StarPlan Loop"
-  version: "0.5.0"
-  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链架构）"
+  version: "0.6.0"
+  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链架构 + 百炼兼容端点适配）"
 
 skills:
   - name: target_resolve

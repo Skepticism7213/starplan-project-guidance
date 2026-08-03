@@ -1016,13 +1016,20 @@ class AllowedClaimsBuilder:
         # procedural activity texts that have no data dependency.
         if obs.is_observable:
             schedule_items = [
-                ("schedule.obs_progress", "观测进行中"),
-                ("schedule.obs_guide", "引导成员使用星桥法寻找目标"),
-                ("schedule.obs_end", "推荐时段结束"),
-                ("schedule.obs_descend", "目标高度角逐渐降低"),
-                ("schedule.cleanup", "收拾设备，合影留念"),
+                # I-5 fix: each procedural schedule claim only allows its own
+                # passthrough variant. Previously all of them allowed
+                # schedule_obs_start_v1, so Qwen could select
+                # schedule.obs_guide + schedule_obs_start_v1 and render the
+                # awkward sentence "开始观测 引导成员使用星桥法寻找目标".
+                ("schedule.obs_progress", "观测进行中", ["schedule_proc_v1"]),
+                ("schedule.obs_guide", "引导成员使用星桥法寻找目标", ["schedule_proc_v1"]),
+                ("schedule.obs_end", "推荐时段结束", ["schedule_proc_v1"]),
+                ("schedule.obs_descend", "目标高度角逐渐降低", ["schedule_proc_v1"]),
+                # cleanup shares a block with obs.twilight_start in the
+                # schedule renderer, which uses schedule_twilight_end_v1.
+                ("schedule.cleanup", "收拾设备，合影留念", ["schedule_proc_v1", "schedule_twilight_end_v1"]),
             ]
-            for claim_id, text in schedule_items:
+            for claim_id, text, variants in schedule_items:
                 self._add_claim(Claim(
                     claim_id=claim_id,
                     claim_type=ClaimType.PROCEDURAL,
@@ -1033,7 +1040,7 @@ class AllowedClaimsBuilder:
                     validity_scope=self._scope,
                     source_refs=["approved_template.v2"],
                     source_hash=proc_hash,
-                    allowed_variant_ids=["schedule_proc_v1", "schedule_twilight_end_v1", "schedule_obs_start_v1"],
+                    allowed_variant_ids=variants,
                 ))
 
         # ── Equipment Claims (conditional on equipment type) ──

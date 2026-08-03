@@ -39,6 +39,126 @@ def _assert_online():
             "This is a tripwire — offline CI must not reach the network."
         )
 
+# ── Runtime model/endpoint configuration (env-overridable) ──
+#
+# 百炼 API Key 常只授权 OpenAI 兼容端点下的特定模型（例如
+# qwen3.7-plus / qwen3.8-max），原生 DashScope 端点会返回 403/400。
+# 通过环境变量启用兼容端点：
+#   STARPLAN_QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+#   STARPLAN_QWEN_MODEL=qwen3.7-plus
+#   STARPLAN_QWEN_TIMEOUT=60
+#   STARPLAN_QWEN_RETRIES=1
+# 配置在每次调用时读取，支持运行期修改。
+
+
+def _api_key() -> str:
+    """Return the configured DASHSCOPE_API_KEY (raises if missing)."""
+    _check_api_key()
+    return os.getenv("DASHSCOPE_API_KEY", "")
+
+
+def _resolve_model(model: Optional[str]) -> str:
+    """Resolve the effective model: explicit arg > STARPLAN_QWEN_MODEL > default."""
+    return (
+        model
+        or os.getenv("STARPLAN_QWEN_MODEL", "").strip()
+        or DEFAULT_MODEL
+    )
+
+
+def _compatible_base_url() -> str:
+    """OpenAI-compatible endpoint base URL, or '' when disabled."""
+    return os.getenv("STARPLAN_QWEN_BASE_URL", "").strip().rstrip("/")
+
+
+def _compatible_timeout() -> int:
+    """Per-call timeout in seconds (default 60)."""
+    raw = os.getenv("STARPLAN_QWEN_TIMEOUT", "60") or "60"
+    try:
+        return max(int(raw), 1)
+    except ValueError:
+        return 60
+
+
+def _compatible_retries() -> int:
+    """Retry count for transient failures (default 1)."""
+    raw = os.getenv("STARPLAN_QWEN_RETRIES", "1") or "1"
+    try:
+        return max(int(raw), 0)
+    except ValueError:
+        return 1
+
+
+def _compatible_enabled() -> bool:
+    return bool(_compatible_base_url())
+
+
+def _compatible_chat(
+    messages: list[dict],
+    tools: Optional[list[dict]] = None,
+    max_tokens: int = 4096,
+) -> dict:
+    """POST to the OpenAI-compatible chat/completions endpoint."""
+    import json as _json
+    import urllib.request as _urlreq
+
+    url = f"{_compatible_base_url()}/chat/completions"
+    payload: dict[str, Any] = {
+        "model": _resolve_model(None),
+        "messages": messages,
+        "max_tokens": max_tokens,
+    }
+    if tools:
+        payload["tools"] = tools
+    req = _urlreq.Request(
+        url,
+        data=_json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {_api_key()}",
+            "Content-Type": "application/json",
+        },
+    )
+    with _urlreq.urlopen(req, timeout=_compatible_timeout()) as resp:
+        return _json.loads(resp.read().decode("utf-8"))
+
+
+def _compatible_chat_with_retry(
+    messages: list[dict],
+    tools: Optional[list[dict]] = None,
+    max_tokens: int = 4096,
+) -> dict:
+    """Call the compatible endpoint with bounded retries on 5xx/network errors."""
+    import urllib.error as _urlerr
+
+    last_error: Optional[Exception] = None
+    for attempt in range(_compatible_retries() + 1):
+        try:
+            return _compatible_chat(messages, tools=tools, max_tokens=max_tokens)
+        except _urlerr.HTTPError as exc:
+            last_error = exc
+            if exc.code >= 500 and attempt < _compatible_retries():
+                continue
+            raise
+        except Exception as exc:  # network/timeout — retry once
+            last_error = exc
+            if attempt < _compatible_retries():
+                continue
+            raise
+    raise last_error  # pragma: no cover — loop always returns or raises
+
+
+def _parse_compatible_choice(data: dict, model: str) -> dict:
+    """Normalize an OpenAI-compatible response choice to the internal dict."""
+    choice = data["choices"][0]
+    msg = choice.get("message", {})
+    return {
+        "content": msg.get("content") or "",
+        "model": model,
+        "tool_calls": msg.get("tool_calls"),
+        "finish_reason": choice.get("finish_reason", "stop"),
+    }
+
+
 # ── Model configuration ──────────────────────────────
 
 QWEN_MODELS = {
@@ -207,7 +327,7 @@ TOOL_DEFINITIONS = [
 
 def call_qwen(
     prompt: str,
-    model: str = DEFAULT_MODEL,
+    model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     tools: Optional[list[dict]] = None,
     log_path: Optional[str] = None,
@@ -229,24 +349,41 @@ def call_qwen(
     """
     _assert_online()
     _check_api_key()
-
-    from dashscope import Generation
+    model = _resolve_model(model)
 
     messages: list[dict] = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    kwargs: dict[str, Any] = {
-        "model": model,
-        "messages": messages,
-        "result_format": "message",
-    }
-    if tools:
-        kwargs["tools"] = tools
+    if _compatible_enabled():
+        try:
+            data = _compatible_chat_with_retry(messages, tools=tools)
+            result = _parse_compatible_choice(data, model)
+        except Exception as e:
+            result = {
+                "content": "",
+                "model": model,
+                "tool_calls": None,
+                "finish_reason": "error",
+                "error": str(e)[:300],
+            }
+    else:
+        from dashscope import Generation
 
-    response = Generation.call(**kwargs)
-    result = _parse_response(response, model)
+        kwargs: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "result_format": "message",
+        }
+        if tools:
+            kwargs["tools"] = tools
+        try:
+            response = Generation.call(**kwargs, timeout=_compatible_timeout())
+        except TypeError:
+            # Older dashscope releases may not accept the timeout kwarg.
+            response = Generation.call(**kwargs)
+        result = _parse_response(response, model)
 
     if log_path:
         _log_call(log_path, step_name, prompt, result, model)
@@ -256,7 +393,7 @@ def call_qwen(
 
 def call_qwen_json(
     prompt: str,
-    model: str = DEFAULT_MODEL,
+    model: Optional[str] = None,
     system_prompt: Optional[str] = None,
     log_path: Optional[str] = None,
     step_name: str = "qwen_json",
@@ -266,11 +403,6 @@ def call_qwen_json(
 
     The model is instructed to return valid JSON only.
     """
-    _assert_online()
-    _check_api_key()
-
-    from dashscope import Generation
-
     json_system = (
         "你必须且只能返回合法的 JSON 对象，不要输出任何 JSON 之外的文字、"
         "解释或 markdown 代码块标记。"
@@ -278,17 +410,13 @@ def call_qwen_json(
     if system_prompt:
         json_system = system_prompt + "\n\n" + json_system
 
-    messages = [
-        {"role": "system", "content": json_system},
-        {"role": "user", "content": prompt},
-    ]
-
-    response = Generation.call(
+    result = call_qwen(
+        prompt=prompt,
         model=model,
-        messages=messages,
-        result_format="message",
+        system_prompt=json_system,
+        log_path=log_path,
+        step_name=step_name,
     )
-    result = _parse_response(response, model)
 
     # Parse JSON from content
     content = result.get("content", "")
@@ -303,15 +431,12 @@ def call_qwen_json(
         result["parsed_json"] = None
         result["json_error"] = f"Failed to parse JSON from response: {content[:200]}"
 
-    if log_path:
-        _log_call(log_path, step_name, prompt, result, model)
-
     return result
 
 
 def call_qwen_chat(
     messages: list[dict],
-    model: str = DEFAULT_MODEL,
+    model: Optional[str] = None,
     tools: Optional[list[dict]] = None,
     tool_executors: Optional[dict[str, Callable]] = None,
     max_tool_rounds: int = 5,
@@ -341,26 +466,45 @@ def call_qwen_chat(
     """
     _assert_online()
     _check_api_key()
-
-    from dashscope import Generation
+    model = _resolve_model(model)
 
     tool_call_log: list[dict] = []
     tz = timezone(timedelta(hours=8))
 
     for round_idx in range(max_tool_rounds):
-        kwargs: dict[str, Any] = {
-            "model": model,
-            "messages": messages,
-            "result_format": "message",
-        }
-        if tools:
-            kwargs["tools"] = tools
+        if _compatible_enabled():
+            try:
+                data = _compatible_chat_with_retry(messages, tools=tools)
+                result = _parse_compatible_choice(data, model)
+            except Exception as e:
+                return {
+                    "content": "",
+                    "model": model,
+                    "tool_calls": None,
+                    "finish_reason": "error",
+                    "error": str(e)[:300],
+                    "tool_call_log": tool_call_log,
+                    "messages": messages,
+                }
+        else:
+            from dashscope import Generation
 
-        response = Generation.call(**kwargs)
-        result = _parse_response(response, model)
+            kwargs: dict[str, Any] = {
+                "model": model,
+                "messages": messages,
+                "result_format": "message",
+            }
+            if tools:
+                kwargs["tools"] = tools
+            try:
+                response = Generation.call(**kwargs, timeout=_compatible_timeout())
+            except TypeError:
+                # Older dashscope releases may not accept the timeout kwarg.
+                response = Generation.call(**kwargs)
+            result = _parse_response(response, model)
 
         if log_path:
-            _log_call(log_path, f"{step_name}_round{round_idx}", 
+            _log_call(log_path, f"{step_name}_round{round_idx}",
                       str(messages[-1].get("content", ""))[:200], result, model)
 
         # If no tool calls, we're done

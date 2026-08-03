@@ -772,14 +772,19 @@ def run_starplan_chat(
         equipment: str = "binoculars",
     ) -> str:
         """Execute observability_plan and return JSON result."""
+        # C-6a fix: prefer the standardized name from resolve_location when it
+        # was called first. Qwen often passes the raw user phrase (e.g.
+        # "济南四门塔") as location_name, while the location table stores a
+        # normalized name ("四门塔景区观星点"). Mixing the two made the
+        # saved Claim scope differ from the finalizer's rebuilt registry and
+        # blocked every real Chat delivery.
+        loc_data = captured.get("resolve_location") or {}
         location = {
-            "name": location_name,
+            "name": loc_data.get("name") or location_name,
             "latitude": latitude,
             "longitude": longitude,
             "elevation_m": elevation_m,
-            "timezone": (captured.get("resolve_location") or {}).get(
-                "timezone", "Asia/Shanghai"
-            ),
+            "timezone": loc_data.get("timezone", "Asia/Shanghai"),
         }
         obs = compute_observability(
             ra_deg=ra_deg,
@@ -888,7 +893,8 @@ def run_starplan_chat(
         "1. 先调用 target_resolve 解析目标名称，获取目标坐标\n"
         "2. 再调用 resolve_location 解析地点名称，获取准确的经纬度和海拔\n"
         "3. 然后调用 observability_plan 计算可观测性（必须使用前两步工具返回的坐标和经纬度）\n"
-        "4. 工具调用完成后，系统会自动生成 Claim 渲染的观测规划，你只需简要告知用户已完成即可\n\n"
+        "4. 工具调用完成后，系统会自动生成 Claim 渲染的观测规划，你只需简要告知用户已完成即可\n"
+        "5. 为节省轮次，可以在一次回复中并行调用多个工具（例如同时调用 target_resolve 与 resolve_location）\n\n"
         "严格规则（违反任何一条都是严重错误）：\n"
         "- 所有数值（坐标、高度角、方位角、时间、月相、大气质量等）必须来自工具返回结果，绝对不能编造。\n"
         f"- 如果用户没有指定日期，使用当前日期 {today} 或其后的合理日期，绝对不要使用 2026 年之前的年份。\n"
@@ -918,7 +924,9 @@ def run_starplan_chat(
             messages=messages,
             tools=TOOL_DEFINITIONS,
             tool_executors=tool_executors,
-            max_tool_rounds=3,
+            # C-6b fix: real Qwen models often issue one tool call per round;
+            # the four-Skill chain needs 4 rounds plus a final answer round.
+            max_tool_rounds=6,
             log_path=log_path,
             step_name="chat_orchestration",
         )
