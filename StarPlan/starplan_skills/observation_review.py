@@ -41,7 +41,7 @@ def review_observation(
     log: ObservationLog,
     run_dir: Optional[Path] = None,
     timezone_name: str = "Asia/Shanghai",
-    use_qwen: bool = True,
+    use_qwen: bool = False,
     log_path: Optional[str] = None,
 ) -> ObservationReview:
     """

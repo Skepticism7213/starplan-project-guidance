@@ -97,7 +97,12 @@ class RunOutcome:
 
         # Evidence
         self.qwen_used = False
+        # Compatibility alias: true only when a Qwen ExpressionPlan passed
+        # validation and was adopted for rendering.
+        self.model_output_accepted = False
         self.model_call_events: list[dict] = []
+        self.runtime_policy: Optional[str] = None
+        self.stage_timings_ms: dict[str, float] = {}
         self.claims_registry_hash: Optional[str] = None
         self.validation_issues: list[str] = []
         self.file_hashes: dict[str, str] = {}
@@ -128,10 +133,48 @@ class RunOutcome:
         """Set delivery method."""
         self.delivery_status = status
         self.qwen_used = qwen_used
+        self.model_output_accepted = qwen_used
 
     def add_model_call_event(self, event: dict):
         """Record a model call event for evidence chain."""
-        self.model_call_events.append(event)
+        if event.get("type") == "model_call":
+            self.model_call_events.append(event)
+
+    def import_model_call_events(self, log_path: str | Path | None) -> list[str]:
+        """Import real ``type=model_call`` entries from the JSONL audit log."""
+        if not log_path:
+            return []
+        path = Path(log_path)
+        if not path.exists():
+            return []
+        warnings: list[str] = []
+        imported: list[dict] = []
+        try:
+            for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if not line.strip():
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    warnings.append(f"model_call_log.jsonl line {line_no} is invalid JSON: {exc}")
+                    continue
+                if isinstance(entry, dict) and entry.get("type") == "model_call":
+                    imported.append(entry)
+        except (OSError, UnicodeDecodeError) as exc:
+            warnings.append(f"model_call_log.jsonl could not be read: {exc}")
+            return warnings
+        self.model_call_events = imported
+        return warnings
+
+    @property
+    def model_called(self) -> bool:
+        return bool(self.model_call_events)
+
+    def set_runtime_policy(self, policy: str | None) -> None:
+        self.runtime_policy = policy
+
+    def record_stage_timing(self, name: str, elapsed_ms: float) -> None:
+        self.stage_timings_ms[name] = round(float(elapsed_ms), 3)
 
     def compute_file_hash(self, file_path: Path) -> str:
         """Compute and store sha256 hash of a file."""
@@ -166,13 +209,15 @@ class RunOutcome:
         tz = timezone(timedelta(hours=8))
 
         # model_used derived from actual events
-        has_model_calls = any(
-            e.get("type") == "model_call" for e in self.model_call_events
+        has_model_calls = self.model_called
+        model_name = next(
+            (e.get("model") for e in reversed(self.model_call_events) if e.get("model")),
+            None,
         )
-        if has_model_calls and self.qwen_used:
+        if has_model_calls:
             model_info = ModelInfo(
                 provider="阿里云百炼",
-                model_name=DEFAULT_MODEL,
+                model_name=model_name or DEFAULT_MODEL,
                 called=True,
             )
         else:
@@ -216,6 +261,7 @@ class RunOutcome:
             ),
             model=model_info,
             constraints_applied={
+                "astronomy_runtime_policy": self.runtime_policy or "unknown",
                 "refraction_policy": "astropy_default (pressure=0, no atmospheric refraction)",
             },
             intermediate_files=[f.name for f in run_dir.iterdir() if f.is_file()],
@@ -233,9 +279,16 @@ class RunOutcome:
             "validation_status": self.validation_status.value,
             "delivery_status": self.delivery_status.value,
             "qwen_used": self.qwen_used,
+            "model_called": self.model_called,
+            "model_output_accepted": self.model_output_accepted,
             "model_call_count": len(self.model_call_events),
+            "model_call_steps": [
+                e.get("step") for e in self.model_call_events if e.get("step")
+            ],
             "claims_registry_hash": self.claims_registry_hash,
             "file_hashes": self.file_hashes,
             "validation_issues_count": len(self.validation_issues),
             "state_transitions": len(self.state_log),
+            "astronomy_runtime": self.runtime_policy,
+            "stage_timings_ms": self.stage_timings_ms,
         }
