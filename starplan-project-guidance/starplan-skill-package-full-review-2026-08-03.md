@@ -338,3 +338,28 @@ qwen3.7-plus 每轮只调用一个工具，4 个工具需要 4 轮 + 1 轮收尾
 - 已关闭：C-3（客户端适配）、C-6a、C-6b、I-5、W-6 中 `.env.example` 与版本漂移部分。
 - 仍未开始：P1 Batch D（现实活动时段 + 三视图 + 未成年人安全模板）、P1 Batch E（可执行下一轮 + before/after）、P3（三案例入库 + 独立复现 + 人工复核）、P4（PDF + 视频）。
 - 遗留：Chat 每轮单工具导致 4–5 次调用（约 40–50s），演示需设置 ≥90s 预算或换更快模型；运行记录仍未入库（`runs/*/` 保持 gitignore，提交包需另附）。
+
+---
+
+## 十一、P1 Batch D 实施结果（2026-08-03，已完成，v0.7.0）
+
+### 11.1 交付内容
+
+| 验收项（项目计划 P1 基线） | 实施结果 |
+|---|---|
+| 科学窗口与现实活动时段分离 | `activity_slot_policy_v1`：从科学窗口确定性生成 60-120 分钟活动时段（默认 90 分钟，含准备/收尾）；M31 活动流程为 18:58 准备 → 19:13-20:43 观测 → 20:58 收尾，科学窗口 19:13~04:28 仍独立展示；窗口短于活动时长或不可观测时返回无 slot |
+| 同一 Claims 的组织者/讲解员/学生三视图 | `AudienceProfile.requested_views` 控制；三视图由同一 Claim Registry 渲染，仅按板块过滤（organizer 全量、facilitator 含设备与核对项、learner 含讲解/安全/日程）；每视图独立 `outreach_pack_<view>.md`、`rendered_document_<view>.json`、`render_trace_<view>.json`、`sentence_claim_map_<view>.json`，并纳入交付合同校验 |
+| 未成年人安全与人工确认 | `youth_activity_policy_v1`：受众为中小学生/儿童时追加监护人许可、成人陪同、点名等安全项与人工核对项（待人工确认）；不采集姓名、联系方式等隐私；runner 与校验重建使用同一 youth 标志，避免 saved-registry 漂移 |
+
+### 11.2 验证证据
+
+- 新增 `tests/test_activity_slot_and_views.py` 10 项（slot 策略 5 项 + runner 集成 5 项），全量 **205 passed, 9 skipped, 0 failed**。
+- 案例 1（更新后的示例输入）实跑：24 个产物文件，`validation=passed`，三视图文件齐全；学习者视图包含现实活动流程与安全提示，无设备/核对板块。
+- 案例 2（M42）：`activity_slot=None`，不生成虚假活动时段；案例 3（复盘）：正常终态。
+- 交付合同：额外视图文档/trace 纳入 `validate_delivery_contract`（claim 存在、变体允许、哈希、trace 一致性），任一视图损坏即 BLOCKED。
+
+### 11.3 下一步
+
+- **P1 Batch E（立即）**：复盘输出可再次进入 runner 的 `next_activity_input.json` + before/after 活动包对比——这是闭环的最后一段，也是项目差异化卖点的最终证明。
+- P2 收尾：用团队最新有效 Key 录制真实演示（NL 已通、案例 1 已通、Chat 已通）；保存调用凭证截图。
+- P3：三案例完整运行记录入库 + 第二环境复跑 + 人工复核签名。

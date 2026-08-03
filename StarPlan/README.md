@@ -56,12 +56,13 @@ python scripts/run_case.py examples/case_03_observation_review.json
 | `resolved_target.json` | 目标解析结果（坐标、类型、来源） |
 | `observability.csv` | 逐 15 分钟高度角/方位角/airmass 数据 |
 | `visibility_curve.png` | 高度-时间曲线图 |
-| `plan.json` | 观测计划（推荐窗口、风险、备选方案） |
+| `plan.json` | 观测计划（科学可见窗口 + 现实活动时段 activity_slot、风险、备选方案） |
 | `claims.json` | Claim Registry（所有事实声明 + registry_hash） |
 | `render_trace.json` | 逐句 provenance trace（schema 2.0，text_hash 对应最终文本） |
 | `rendered_document.json` | RenderedDocument 序列化（双向覆盖门禁输入） |
 | `sentence_claim_map.json` | 输出句子 → claim_id 映射（覆盖审计） |
-| `outreach_pack.md` | 科普活动包（流程、讲解词、设备清单） |
+| `outreach_pack.md` | 科普活动包-组织者视图（流程、讲解词、设备清单） |
+| `outreach_pack_facilitator.md` / `outreach_pack_learner.md` | 讲解员/学习者视图（同一 Claim 来源，按受众筛选板块） |
 | `run_outcome.json` | RunOutcome（业务/验证/交付三状态 + 文件哈希） |
 | `review_report.md` | 偏差复盘报告（仅案例 3） |
 | `revised_plan.json` | 修订后的下一次计划（仅案例 3） |
@@ -80,7 +81,7 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件（v0.6.0 Claim 架构）
+  skills.yaml                  # Skills 定义文件（v0.7.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
@@ -154,6 +155,7 @@ StarPlan/
 - 折射策略：`astropy_default`（pressure=0，不启用大气折射），已写入 RunOutcome。
 - 不含行星实时历表、实时天气 API、Stellarium/Aladin 集成和复杂前端。
 - 可见性派生规则基于视星等阈值 + 角径，未建模天空背景、表面亮度、消光和观测经验。
+- 现实活动时段（`activity_slot_policy_v1`）默认 90 分钟（60-120 可配），由科学窗口确定性生成；未成年人活动启用 `youth_activity_policy_v1` 安全项与人工确认清单（监护人许可、成人陪同、点名），不采集任何隐私信息。
 
 ## 协作规范
 
@@ -199,7 +201,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线测试：195 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+离线测试：205 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
 
 **2026-08-03 在线修复（v0.6.0）：**
 
@@ -208,6 +210,13 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - Chat 工具轮次上限从 3 提升到 6，适配每轮只调用一个工具的真实模型。
 - 收紧程序性日程 Claim 的变体白名单（如 `schedule.obs_guide` 不再允许 `schedule_obs_start_v1`），避免"开始观测 引导成员…"式别扭句子。
 - 新增 `StarPlan/.env.example` 与 10 个回归测试（兼容客户端 + Chat 地点/轮次）。
+
+**P1 Batch D（v0.7.0，2026-08-03）：**
+
+- 现实活动时段：`activity_slot_policy_v1` 从科学窗口确定性生成 60-120 分钟活动时段（含准备/收尾），M31 案例活动流程为 18:58 准备 → 19:13-20:43 观测 → 20:58 收尾，不再出现"通宵式"安排；科学窗口仍在"推荐观测时段"独立展示。
+- 三类分众视图：同一 Claim Registry 生成组织者（`outreach_pack.md`）、讲解员（`outreach_pack_facilitator.md`）、学习者（`outreach_pack_learner.md`）三种视图，事实句与数字映射同一 claim_id；每视图独立 rendered_document/trace/map，并纳入交付合同校验。
+- 未成年人安全策略：`youth_activity_policy_v1` 在受众为中小学生/儿童时追加监护人许可、成人陪同、点名等安全项与人工确认清单，不采集隐私字段。
+- 新增 10 个 Batch D 回归测试；版本统一为 0.7.0。
 
 **关键架构组件：**
 

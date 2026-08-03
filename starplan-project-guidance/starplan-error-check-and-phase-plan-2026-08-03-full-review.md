@@ -71,6 +71,17 @@
 
 **离线全量**：195 passed, 9 skipped, 0 failed（新增 10 个测试）。**真实在线（Key-3）**：NL passed（2 次调用）、案例 1 passed（1 次调用）、Chat passed（4 次调用）、Chat 对抗 blocked（正确 fail-closed）。
 
+### P1 Batch D 实施结果（v0.7.0，2026-08-03 晚）
+
+| 验收项 | 状态 | 验证 |
+|---|---|---|
+| 现实活动时段（60-120 分钟） | **已完成** | `activity_slot_policy_v1` 从科学窗口确定性生成；M31 案例活动流程为 18:58 准备 → 19:13-20:43 观测 → 20:58 收尾，科学窗口 19:13~04:28 独立展示；M42 无虚假 slot |
+| 三类分众视图 | **已完成** | 同一 Claim 渲染 organizer/facilitator/learner 三视图；每视图独立 rendered_document/trace/map，并纳入交付合同校验；数值/事实 claim_id 跨视图一致（回归测试断言） |
+| 未成年人安全模板 | **已完成** | `youth_activity_policy_v1`：监护人许可、成人陪同、点名等安全项与人工确认清单；不采集隐私字段；runner/validator 重建一致（无 saved-registry 漂移） |
+| 回归测试 | **已完成** | 新增 `tests/test_activity_slot_and_views.py` 10 项；全量 205 passed, 9 skipped, 0 failed；案例 1 运行产物 24 个文件，validation=passed |
+
+**本批新增/修改**：`schemas.py`（ActivityPreferences/ActivitySlot/AudienceProfile + 输入输出字段）、`observability_plan.py`（select_activity_slot）、`claims.py`（活动时段 Claim + youth_activity_policy_v1）、`rendering.py`（slot 日程 + 视图板块过滤 + 未成年人安全/核对项）、`outreach_pack.py`（三视图写入）、`expression_validator.py`（额外视图门禁）、`runner.py`（偏好/分众/未成年人参数透传）、`examples/case_01`（演示输入）、版本统一 0.7.0。
+
 ## 二、完成状态
 
 | 项目计划阶段 | 状态 | 说明 |
@@ -88,7 +99,7 @@
 
 | 时间 | 工作 | 验收标准 | 阻塞项 | 风险 |
 |---|---|---|---|---|
-| 8/3–8/8 | P1 Batch D：活动时段 + 三视图 + 未成年人安全模板 | M31 同时显示科学窗口与 90 分钟活动 slot；M42 无虚假 slot；三视图共享同一 claim_id；测试全绿 | 无 | 活动时段策略阈值需定稿 |
+| 8/3–8/8 | P1 Batch D：活动时段 + 三视图 + 未成年人安全模板 | **已完成（v0.7.0）**：M31 科学窗口与 90 分钟 slot 并存；M42 无虚假 slot；三视图共享 claim_id；205 测试全绿 | 无 | 无 |
 | 8/5–8/13 | P1 Batch E：`next_activity_input.json` + 二次运行 + before/after | next input 过 Schema；二次运行成功；至少一个字段可见变化；删除证据后 patch 消失 | Batch D 验收 | 与现有 Claim 门禁冲突需逐行处理 |
 | 8/10–8/17 | P2：① 新增 OpenAI 兼容端点适配层（base_url/model 可配、60s 超时、1 次重试）；② 修复 Chat 地点名归一化；③ max_tool_rounds≥6；④ 收紧变体白名单；⑤ 真实 canary + 加载演示 | 用团队实际 Key 完成一次真实 NL 触发与一次 Chat 工具链交付，validation 均 passed 且留有调用凭证/截图；无 Key 离线仍可交付 | 需要有效百炼 Key/账号 | 模型名不可用、限流、网络 |
 | 8/14–8/22 | P3：三案例固化、runs 入库、第二环境复跑、人工复核、实地/桌面演练 | 新环境零失败；每案例有人工确认签名；外部科学复核 1 名以上 | 第二环境可安装依赖 | Windows ACL、天气/场地 |
@@ -104,5 +115,7 @@
 5. **决定 runs 交付策略**：将三案例运行记录纳入提交包（建议同时入库），并安排第二台电脑复跑。
 
 6. **P2 前置修复（本会话实测发现）**：新增兼容端点适配层与模型配置；修复 Chat 地点名不一致与轮次上限；建议用户立即轮换在对话中明文分享的三把 Key。
+
+7. **P1 Batch E（下一批）**：`observation_review` 接收原始 `StarPlanInput` 规范化副本，白名单修订字段，生成符合 Schema 的 `next_activity_input.json`，二次调用 runner 重跑并输出 before/after 对比（每项变化引用 cause_id）。
 
 提交纪律：本报告与审查报告一起提交推送；代码修复仍按"每个 Batch 独立 commit + 强制报告"执行，受保护架构文件（claims/rendering/expression_validator/runner/outreach_pack/run_outcome/templates/Layer3 测试）的修改须逐行处理并保持门禁全绿。
