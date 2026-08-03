@@ -435,3 +435,38 @@ def test_direct_observability_skill_offline_subprocess(tmp_path):
     )
     assert result.returncode == 0, result.stderr
     assert "M31" in result.stdout
+
+
+def test_non_default_timezone_keeps_delivery_contract(tmp_path):
+    """Claims and delivery validation must use the location's IANA timezone."""
+    from starplan_skills import runner
+
+    run_dir = tmp_path / "new_york_run"
+
+    def fake_get_run_dir(run_id: str) -> Path:
+        run_dir.mkdir(parents=True, exist_ok=True)
+        return run_dir
+
+    case = {
+        "target": "M31",
+        "location": "New York Test Site",
+        "location_detail": {
+            "name": "New York Test Site",
+            "city": "New York",
+            "latitude": 40.7128,
+            "longitude": -74.0060,
+            "elevation_m": 10,
+            "timezone": "America/New_York",
+        },
+        "date_range": ["2026-10-17", "2026-10-17"],
+        "audience": "astronomy club",
+        "equipment": "binoculars",
+        "goal": "test",
+    }
+    with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
+         patch("starplan_skills.outreach_pack._qwen_available", return_value=False):
+        result = runner.run_starplan(case, run_id="new_york_timezone")
+
+    assert result["validation_status"] == "passed"
+    assert result["delivery_status"] == "template"
+    assert result["outreach_pack"] is not None

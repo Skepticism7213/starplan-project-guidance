@@ -56,6 +56,7 @@ def generate_outreach_pack(
     use_qwen: bool = True,
     log_path: Optional[str] = None,
     timing_sink: Optional[dict[str, float]] = None,
+    timezone_name: str = "Asia/Shanghai",
 ) -> OutreachPack:
     """
     Generate an outreach activity pack based on verified Claims.
@@ -72,7 +73,7 @@ def generate_outreach_pack(
         location_id=obs_result.location_name,
         audience=audience,
         equipment=equipment,
-        timezone_name=getattr(obs_result, '_timezone_name', None) or "Asia/Shanghai",
+        timezone_name=timezone_name,
     )
     claims_builder.build()
     if run_dir:

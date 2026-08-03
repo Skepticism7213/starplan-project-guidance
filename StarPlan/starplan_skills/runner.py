@@ -243,6 +243,7 @@ def run_starplan(
         use_qwen=True,
         log_path=log_path,
         timing_sink=outreach_timings,
+        timezone_name=location.get("timezone", "Asia/Shanghai"),
     )
     outcome.record_stage_timing(
         "outreach_pack_render",
@@ -776,7 +777,9 @@ def run_starplan_chat(
             "latitude": latitude,
             "longitude": longitude,
             "elevation_m": elevation_m,
-            "timezone": "Asia/Shanghai",
+            "timezone": (captured.get("resolve_location") or {}).get(
+                "timezone", "Asia/Shanghai"
+            ),
         }
         obs = compute_observability(
             ra_deg=ra_deg,
@@ -822,6 +825,9 @@ def run_starplan_chat(
             use_qwen=False,
             log_path=log_path,
             timing_sink=chat_outreach_timings,
+            timezone_name=(captured.get("resolve_location") or {}).get(
+                "timezone", "Asia/Shanghai"
+            ),
         )
         captured["outreach_pack"] = pack.model_dump()
         return json.dumps(pack.model_dump(), ensure_ascii=False, default=str)
@@ -967,6 +973,7 @@ def run_starplan_chat(
                 use_qwen=False,  # Chat already used Qwen for orchestration
                 log_path=log_path,
                 timing_sink=chat_outreach_timings,
+                timezone_name=(loc_data or {}).get("timezone", "Asia/Shanghai"),
             )
             pack_data = pack.model_dump()
             captured["outreach_pack"] = pack_data
