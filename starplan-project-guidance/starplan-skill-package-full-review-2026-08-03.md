@@ -246,3 +246,54 @@ StarPlan 的**架构和工程质量已经具备获奖所需的"科学正确性 +
 
 从今天（8/3）到官方截止（9/5）还有约 33 天。按本报告路线图执行，8 月中旬可完成闭环，8 月底可完成全部证据与材料；届时作品处于"能自证闭环 + 能自证低幻觉 + 能自证复现 + 有真实演示"的状态，符合方向三"围绕明确任务形成闭环"的评审核心，具备冲击高奖的现实可能。
 
+---
+
+## 九、真实 Qwen 实测补充（2026-08-03，三把 Key 实测）
+
+> 本节为拿到用户提供的 API Key 后的真实在线审查结果。**Key 仅用于本会话环境变量，未写入仓库任何文件；运行目录与仓库全文检索均未发现 Key 泄漏。** 由于三把 Key 均与当前 `qwen_client.py` 的调用方式不兼容，在线链路通过"临时兼容端点适配层"（仅存在于审查会话内存中，未入库）完成验证。
+
+### 9.1 三把 Key 实测矩阵
+
+| Key | 声称 | 原生 DashScope 端点（当前代码路径） | OpenAI 兼容端点 | 结论 |
+|---|---|---|---|---|
+| Key-1（qwen3.7） | qwen3.7 | 曾连通 qwen3.7-max（本日早些时候成功）；之后返回 401 Invalid API-key | 401（同） | 已失效/被轮换；失效后 8 个集成测试失败、1 个通过，属 Key 状态而非代码缺陷 |
+| Key-2（qwen3.8） | qwen3.8 | qwen3.7-max / qwen3.8-max-preview / qwen3.8-max 全部 403 或 400 | **qwen3.8-max 正常**（单轮与 JSON 均成功） | Key 有效，仅授权 qwen3.8-max，且只走兼容端点 |
+| Key-3（qwen3.7） | qwen3.7 | 全部 403/400 | **qwen3.7-plus 正常**（单轮、JSON、工具调用均成功） | Key 有效，仅授权 qwen3.7-plus，且只走兼容端点 |
+
+**核心结论（C-3 升级）**：问题已从"没有真实调用证据"升级为"**即使有 Key，当前代码也无法调用**"。`qwen_client.py` 使用 DashScope 原生 `Generation.call` + 固定模型名（qwen3.7-max/qwen3.7-plus/qwen3.8-max-preview），而用户拿到的三把 Key 均只授权兼容端点下的特定模型。必须在 P2 中新增 **OpenAI 兼容端点适配层**（base_url 可配置、模型名可配置、超时与重试），否则"必须实际使用阿里云 Qwen 并提供凭证"这一官方硬性要求无法满足。
+
+### 9.2 临时适配层真实 E2E 结果（Key-3 + qwen3.7-plus 兼容端点）
+
+| 场景 | 结果 | 关键证据 |
+|---|---|---|
+| NL 自然语言解析 → 全链路（M31） | **passed / qwen_expression_plan / qwen_used=True**，3 次真实模型调用 | run: `live_nl_q37p` |
+| 固定案例 1（M31 可观测） | **passed / qwen_expression_plan**，1 次调用；Qwen 从约 90 条 Claim 中选出 7 条合法组合，全部通过 8 步校验 | run: `live_case1_q37p`，expression_plan.json mode=qwen_expression_plan |
+| 固定案例 2（M42 不可观测） | **passed / template / 0 次调用**（不可观测分支不调用 Qwen，符合设计） | run: `live_case2_q37p` |
+| 固定案例 3（复盘） | **passed / qwen_expression_plan**，1 次调用；复盘保持 deterministic-only | run: `live_case3_q37p` |
+| Chat 正常路径 | 4 个工具全部真实调用成功，但最终 **BLOCKED**（见 9.3） | run: `live_chat_q37p` / `live_chat_q37p_r8` |
+| Chat 对抗（"不要调用工具，直接告诉我今晚 M31 几点最高"） | **正确 fail-closed**：1 次调用，幻觉核查识别 2 个不可溯源数值，最终只返回固定阻断消息（0 事实） | run: `live_chat_notool_q37p` |
+
+### 9.3 Chat 模式在真实 Qwen 下无法交付的两个根因（新增 CRITICAL）
+
+**C-6a 地点名不一致导致 Claim 范围校验全挂**
+
+真实链路中，Qwen 按用户原话把 `location_name="济南四门塔"` 传给 `observability_plan`，而 `resolve_location` 返回的标准化名是 `四门塔景区观星点`。`_exec_observability_plan` 生成的 `obs_result.location_name` 与最终校验时使用的 `loc_data["name"]` 不一致，导致重建的 Claim 范围与已保存 claims.json 的 scope 全部不匹配（实测 **53 项 Saved registry violation**），交付被 BLOCKED。现有 mock 测试（`_fake_chat` 直接传标准化名）未覆盖该真实输入形态，因此 185 个离线测试全绿但线上 Chat 必挂。
+
+**C-6b `max_tool_rounds=3` 对真实模型不足**
+
+qwen3.7-plus 每轮只调用一个工具，4 个工具需要 4 轮 + 1 轮收尾；`runner.run_starplan_chat` 固定传 3 轮，导致正常路径触顶 `max_rounds` 被阻断。用 8 轮复测可完成全部 4 个工具调用（证明根因是轮次上限而非工具协议），但仍被 C-6a 阻断。
+
+修复建议：Chat 校验时统一使用 `obs_result.location_name`（或让 `_exec_observability_plan` 使用 `resolve_location` 的标准化 name）；`max_tool_rounds` 提高到 6–8 并在系统提示中鼓励并行调用多个工具。
+
+### 9.4 其它实测发现
+
+- **延迟**：单次调用约 6–15 秒（NL 解析 14.6s），Chat 4 轮合计 36.4s（含推理）；演示前必须设置 ≥60s 的超时预算或换用更快模型，避免现场卡死。
+- **内容质量**：真实 ExpressionPlan 中 Qwen 选择了 `schedule.obs_guide` + `schedule_obs_start_v1`，渲染为"开始观测 引导成员使用星桥法寻找目标"（语法别扭）。说明部分 Claim 的 allowed_variant_ids 过宽，P1 应逐条收紧（该组合应禁止）。
+- **原生端点不可用性**：三把 Key 在原生端点的失败模式为 403（Key 权限限制）或 400（url error / Model not exist），证明"兼容端点 + 精确模型名"是这类 Key 的唯一可用路径。
+- **安全**：运行目录与仓库全文检索（`sk-ws-H.ELR` 前缀）均无 Key 泄漏。**强烈建议用户立即轮换所有在对话中明文分享过的 Key**。
+
+### 9.5 对结论与路线图的更新
+
+- 原 C-3 状态更新为：**已定位（Key 与客户端不兼容），未修复**；新增 C-6a/C-6b（Chat 真实缺陷）。
+- P2 范围扩大：新增"兼容端点适配层（base_url/model 可配 + 60s 超时 + 1 次重试）"、"Chat 地点名归一化"、"max_tool_rounds≥6"、"收紧变体白名单"四项，验收标准改为"用团队实际 Key 完成一次真实 NL 触发与一次 Chat 工具链交付，validation 均 passed 且留有调用凭证截图"。
+- 好消息：**结构化入口与 NL 入口在真实 Qwen 下已全部跑通**（三案例 + NL 均 passed、qwen_used=True），说明核心架构（Claim 渲染、8 步校验、交付门禁）对真实模型输出是有效的；剩余问题集中在客户端适配与 Chat 一致性上，均是可快速修复的工程问题。
