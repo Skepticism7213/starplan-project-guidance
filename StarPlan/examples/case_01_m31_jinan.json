@@ -19,5 +19,15 @@
     "max_airmass": 2.0,
     "prefer_early_night": false,
     "max_moon_illumination": null
+  },
+  "activity_preferences": {
+    "duration_minutes": 90,
+    "setup_minutes": 15,
+    "cleanup_minutes": 15
+  },
+  "audience_profile": {
+    "age_band": "high_school",
+    "experience_level": "beginner",
+    "requested_views": ["organizer", "facilitator", "learner"]
   }
 }

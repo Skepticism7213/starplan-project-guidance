@@ -44,6 +44,14 @@ DERIVATION_RULES = {
 }
 
 
+def audience_is_youth(audience: str) -> bool:
+    """Detect a minor audience from the audience description string."""
+    return any(
+        keyword in audience
+        for keyword in ("小学生", "中学生", "儿童", "青少年")
+    )
+
+
 class AllowedClaimsBuilder:
     """Builds the Claim Registry for a single run.
 
@@ -61,12 +69,21 @@ class AllowedClaimsBuilder:
         audience: str = "general",
         equipment: str = "binoculars",
         timezone_name: str = "Asia/Shanghai",
+        youth_policy: Optional[bool] = None,
     ):
         self.target = target
         self.obs = obs_result
         self.location_id = location_id
         self.audience = audience
         self.equipment = equipment
+        # P1 Batch D: youth_activity_policy_v1 applies when the audience is
+        # minors (explicit profile age_band or Chinese audience keywords).
+        # The explicit flag is preferred so runner/outreach/validator rebuilds
+        # stay consistent (otherwise saved-registry scope drift would block).
+        derived_youth = audience_is_youth(audience)
+        self._youth_policy = (
+            youth_policy if youth_policy is not None else derived_youth
+        )
         self._claims: list[Claim] = []
         self._claim_ids: set[str] = set()
         self._prohibited: list[Claim] = []
@@ -106,6 +123,11 @@ class AllowedClaimsBuilder:
     def allowed_claims(self) -> list[Claim]:
         """Claims eligible for user-visible output (excludes prohibited)."""
         return self._claims
+
+    @property
+    def youth_policy_applied(self) -> bool:
+        """Whether youth_activity_policy_v1 claims were added to this run."""
+        return self._youth_policy
 
     @property
     def claim_ids(self) -> set[str]:
@@ -409,7 +431,12 @@ class AllowedClaimsBuilder:
             validity_scope=self._scope,
             source_refs=[src],
             source_hash=src_hash,
-            allowed_variant_ids=["target_name_v1", "target_name_v2", "schedule_obs_start_v1"],
+            allowed_variant_ids=[
+                "target_name_v1",
+                "target_name_v2",
+                "schedule_obs_start_v1",
+                "activity_slot_start_v1",
+            ],
         ))
 
         # Target type
@@ -1016,13 +1043,20 @@ class AllowedClaimsBuilder:
         # procedural activity texts that have no data dependency.
         if obs.is_observable:
             schedule_items = [
-                ("schedule.obs_progress", "观测进行中"),
-                ("schedule.obs_guide", "引导成员使用星桥法寻找目标"),
-                ("schedule.obs_end", "推荐时段结束"),
-                ("schedule.obs_descend", "目标高度角逐渐降低"),
-                ("schedule.cleanup", "收拾设备，合影留念"),
+                # I-5 fix: each procedural schedule claim only allows its own
+                # passthrough variant. Previously all of them allowed
+                # schedule_obs_start_v1, so Qwen could select
+                # schedule.obs_guide + schedule_obs_start_v1 and render the
+                # awkward sentence "开始观测 引导成员使用星桥法寻找目标".
+                ("schedule.obs_progress", "观测进行中", ["schedule_proc_v1"]),
+                ("schedule.obs_guide", "引导成员使用星桥法寻找目标", ["schedule_proc_v1"]),
+                ("schedule.obs_end", "推荐时段结束", ["schedule_proc_v1"]),
+                ("schedule.obs_descend", "目标高度角逐渐降低", ["schedule_proc_v1"]),
+                # cleanup shares a block with obs.twilight_start in the
+                # schedule renderer, which uses schedule_twilight_end_v1.
+                ("schedule.cleanup", "收拾设备，合影留念", ["schedule_proc_v1", "schedule_twilight_end_v1"]),
             ]
-            for claim_id, text in schedule_items:
+            for claim_id, text, variants in schedule_items:
                 self._add_claim(Claim(
                     claim_id=claim_id,
                     claim_type=ClaimType.PROCEDURAL,
@@ -1033,7 +1067,82 @@ class AllowedClaimsBuilder:
                     validity_scope=self._scope,
                     source_refs=["approved_template.v2"],
                     source_hash=proc_hash,
-                    allowed_variant_ids=["schedule_proc_v1", "schedule_twilight_end_v1", "schedule_obs_start_v1"],
+                    allowed_variant_ids=variants,
+                ))
+
+        # ── Activity slot Claims (P1 Batch D, observable path) ──
+        if obs.is_observable and obs.activity_slot is not None:
+            slot = obs.activity_slot
+            slot_hash = self._hash_source(
+                {"slot": slot.model_dump(mode="json"), "rule": slot.rule_version}
+            )
+            slot_items = [
+                ("activity.setup_start", "setup_start",
+                 slot.setup_start.strftime("%H:%M") if slot.setup_start else None,
+                 ["activity_setup_v1"]),
+                ("activity.slot_start", "activity_start",
+                 slot.start.strftime("%H:%M"),
+                 ["activity_slot_start_v1", "schedule_proc_v1"]),
+                ("activity.slot_end", "activity_end",
+                 slot.end.strftime("%H:%M"),
+                 ["activity_slot_end_v1", "schedule_proc_v1"]),
+                ("activity.cleanup_end", "cleanup_end",
+                 slot.cleanup_end.strftime("%H:%M") if slot.cleanup_end else None,
+                 ["activity_cleanup_v1"]),
+            ]
+            for claim_id, predicate, display, variants in slot_items:
+                if display is None:
+                    continue
+                self._add_claim(Claim(
+                    claim_id=claim_id,
+                    claim_type=ClaimType.OBSERVED_FACT,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate=predicate,
+                    text_value=display,
+                    display_value=display,
+                    validity_scope=self._scope,
+                    source_refs=["observability_plan.activity_slot"],
+                    source_hash=slot_hash,
+                    allowed_variant_ids=variants,
+                ))
+
+        # ── Youth activity safety Claims (P1 Batch D) ──
+        if self._youth_policy:
+            youth_hash = self._hash_source({"policy": "youth_activity_policy_v1", "version": "v1"})
+            youth_safety = [
+                ("safety.youth_supervision", "未成年人活动须有成人陪同与监护人确认（待人工确认）"),
+                ("safety.youth_rollcall", "活动开始与结束时须点名清点人数（待人工确认）"),
+                ("safety.youth_consent", "活动前确认监护人许可与场地准入（待人工确认）"),
+            ]
+            for claim_id, text in youth_safety:
+                self._add_claim(Claim(
+                    claim_id=claim_id,
+                    claim_type=ClaimType.PROCEDURAL,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="youth_safety_instruction",
+                    text_value=text,
+                    display_value=text,
+                    validity_scope=self._scope,
+                    source_refs=["youth_activity_policy_v1"],
+                    source_hash=youth_hash,
+                    allowed_variant_ids=["safety_instruction_v1"],
+                ))
+            youth_checks = [
+                ("manual_check.youth_consent", "确认每位未成年人的监护人许可与成人陪同安排"),
+                ("manual_check.youth_rollcall", "确认点名流程与应急联系人清单"),
+            ]
+            for claim_id, text in youth_checks:
+                self._add_claim(Claim(
+                    claim_id=claim_id,
+                    claim_type=ClaimType.PROCEDURAL,
+                    subject=f"{self.target.standard_name}@{self.location_id}@{self._scope.date}",
+                    predicate="manual_check",
+                    text_value=text,
+                    display_value=text,
+                    validity_scope=self._scope,
+                    source_refs=["youth_activity_policy_v1"],
+                    source_hash=youth_hash,
+                    allowed_variant_ids=["manual_check_v1"],
                 ))
 
         # ── Equipment Claims (conditional on equipment type) ──

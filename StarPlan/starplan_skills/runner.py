@@ -196,6 +196,11 @@ def run_starplan(
             target_magnitude=resolved.visual_magnitude,
             target_angular_size_arcmin=resolved.angular_size_arcmin,
             target_type=resolved.target_type,
+            activity_preferences=(
+                starplan_input.activity_preferences.model_dump()
+                if starplan_input.activity_preferences
+                else None
+            ),
         )
     except Exception as e:
         # P0-C: persist RunOutcome with tool_error before propagating
@@ -244,6 +249,12 @@ def run_starplan(
         log_path=log_path,
         timing_sink=outreach_timings,
         timezone_name=location.get("timezone", "Asia/Shanghai"),
+        requested_views=(
+            list(starplan_input.audience_profile.requested_views)
+            if starplan_input.audience_profile
+            else ["organizer"]
+        ),
+        youth_policy=_audience_is_youth(starplan_input),
     )
     outcome.record_stage_timing(
         "outreach_pack_render",
@@ -284,6 +295,8 @@ def run_starplan(
             timezone_name=location.get("timezone", "Asia/Shanghai"),
             log_path=str(run_dir / "model_call_log.jsonl"),
             use_qwen=False,  # Batch B: deterministic-only until ID-only protocol (P1)
+            original_input=input_data,
+            parent_run_id=run_id,
         )
         outcome.record_stage_timing(
             "observation_review", (time.perf_counter() - review_started) * 1000
@@ -335,6 +348,7 @@ def run_starplan(
         audience=outreach.audience,
         equipment=starplan_input.equipment or "binoculars",
         timezone_name=location.get("timezone", "Asia/Shanghai"),
+        youth_policy=_audience_is_youth(starplan_input),
     )
     _claims_builder.build()
 
@@ -462,6 +476,19 @@ def run_starplan(
         "validation_status": outcome.validation_status.value,
         "delivery_status": outcome.delivery_status.value,
     }
+
+
+def _audience_is_youth(starplan_input) -> bool:
+    """P1 Batch D: determine whether youth_activity_policy_v1 applies."""
+    if (
+        starplan_input.audience_profile
+        and starplan_input.audience_profile.age_band in ("kids", "middle_school")
+    ):
+        return True
+    return any(
+        keyword in starplan_input.audience
+        for keyword in ("小学生", "中学生", "儿童", "青少年")
+    )
 
 
 def _persist_outcome(outcome, run_dir: Path):
@@ -772,14 +799,19 @@ def run_starplan_chat(
         equipment: str = "binoculars",
     ) -> str:
         """Execute observability_plan and return JSON result."""
+        # C-6a fix: prefer the standardized name from resolve_location when it
+        # was called first. Qwen often passes the raw user phrase (e.g.
+        # "济南四门塔") as location_name, while the location table stores a
+        # normalized name ("四门塔景区观星点"). Mixing the two made the
+        # saved Claim scope differ from the finalizer's rebuilt registry and
+        # blocked every real Chat delivery.
+        loc_data = captured.get("resolve_location") or {}
         location = {
-            "name": location_name,
+            "name": loc_data.get("name") or location_name,
             "latitude": latitude,
             "longitude": longitude,
             "elevation_m": elevation_m,
-            "timezone": (captured.get("resolve_location") or {}).get(
-                "timezone", "Asia/Shanghai"
-            ),
+            "timezone": loc_data.get("timezone", "Asia/Shanghai"),
         }
         obs = compute_observability(
             ra_deg=ra_deg,
@@ -888,7 +920,8 @@ def run_starplan_chat(
         "1. 先调用 target_resolve 解析目标名称，获取目标坐标\n"
         "2. 再调用 resolve_location 解析地点名称，获取准确的经纬度和海拔\n"
         "3. 然后调用 observability_plan 计算可观测性（必须使用前两步工具返回的坐标和经纬度）\n"
-        "4. 工具调用完成后，系统会自动生成 Claim 渲染的观测规划，你只需简要告知用户已完成即可\n\n"
+        "4. 工具调用完成后，系统会自动生成 Claim 渲染的观测规划，你只需简要告知用户已完成即可\n"
+        "5. 为节省轮次，可以在一次回复中并行调用多个工具（例如同时调用 target_resolve 与 resolve_location）\n\n"
         "严格规则（违反任何一条都是严重错误）：\n"
         "- 所有数值（坐标、高度角、方位角、时间、月相、大气质量等）必须来自工具返回结果，绝对不能编造。\n"
         f"- 如果用户没有指定日期，使用当前日期 {today} 或其后的合理日期，绝对不要使用 2026 年之前的年份。\n"
@@ -918,7 +951,9 @@ def run_starplan_chat(
             messages=messages,
             tools=TOOL_DEFINITIONS,
             tool_executors=tool_executors,
-            max_tool_rounds=3,
+            # C-6b fix: real Qwen models often issue one tool call per round;
+            # the four-Skill chain needs 4 rounds plus a final answer round.
+            max_tool_rounds=6,
             log_path=log_path,
             step_name="chat_orchestration",
         )

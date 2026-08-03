@@ -26,6 +26,13 @@ pip install -r requirements.txt
 # 配置 API Key（用于 Qwen 调用，核心计算不需要）
 cp .env.example .env
 # 编辑 .env，填入你的 DASHSCOPE_API_KEY
+
+# 若 Key 仅授权 OpenAI 兼容端点下的特定模型（常见于 sk-ws- 开头的 Key），
+# 在 .env 中追加：
+#   STARPLAN_QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+#   STARPLAN_QWEN_MODEL=qwen3.7-plus   # 或 qwen3.8-max 等实际授权模型
+#   STARPLAN_QWEN_TIMEOUT=60           # 单次调用超时（秒）
+#   STARPLAN_QWEN_RETRIES=1            # 5xx/网络错误重试次数
 ```
 
 ### 运行案例
@@ -39,6 +46,9 @@ python scripts/run_case.py examples/case_02_unfavorable_window.json
 
 # 案例 3：实际活动复盘（M31 + 模拟观测日志）
 python scripts/run_case.py examples/case_03_observation_review.json
+
+# 完整闭环：计划 → 复盘 → 可执行下一轮输入 → 二次运行 → before/after 对比
+python scripts/run_loop.py examples/case_03_observation_review.json
 ```
 
 每个案例会在 `runs/` 目录下生成独立的输出文件夹，包含：
@@ -49,15 +59,18 @@ python scripts/run_case.py examples/case_03_observation_review.json
 | `resolved_target.json` | 目标解析结果（坐标、类型、来源） |
 | `observability.csv` | 逐 15 分钟高度角/方位角/airmass 数据 |
 | `visibility_curve.png` | 高度-时间曲线图 |
-| `plan.json` | 观测计划（推荐窗口、风险、备选方案） |
+| `plan.json` | 观测计划（科学可见窗口 + 现实活动时段 activity_slot、风险、备选方案） |
 | `claims.json` | Claim Registry（所有事实声明 + registry_hash） |
 | `render_trace.json` | 逐句 provenance trace（schema 2.0，text_hash 对应最终文本） |
 | `rendered_document.json` | RenderedDocument 序列化（双向覆盖门禁输入） |
 | `sentence_claim_map.json` | 输出句子 → claim_id 映射（覆盖审计） |
-| `outreach_pack.md` | 科普活动包（流程、讲解词、设备清单） |
+| `outreach_pack.md` | 科普活动包-组织者视图（流程、讲解词、设备清单） |
+| `outreach_pack_facilitator.md` / `outreach_pack_learner.md` | 讲解员/学习者视图（同一 Claim 来源，按受众筛选板块） |
 | `run_outcome.json` | RunOutcome（业务/验证/交付三状态 + 文件哈希） |
 | `review_report.md` | 偏差复盘报告（仅案例 3） |
 | `revised_plan.json` | 修订后的下一次计划（仅案例 3） |
+| `next_activity_input.json` | 可再次进入 runner 的下一轮输入（仅案例 3，通过 StarPlanInput Schema） |
+| `loop_before_after.md` | 计划/复盘/二次运行的前后对比（仅 `run_loop.py`） |
 | `validation_report.md` | 验证报告 |
 | `model_call_log.jsonl` | Qwen 调用审计日志 |
 
@@ -73,7 +86,7 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件（v0.5.0 Claim 架构）
+  skills.yaml                  # Skills 定义文件（v0.8.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
@@ -113,7 +126,7 @@ StarPlan/
 | `target_resolve` | 解析目标名称为标准坐标 | 目标名称 | 标准名、坐标、类型、置信度 |
 | `observability_plan` | 计算可观测性并生成计划 | 坐标、地点、日期、设备 | 可见窗口、高度/方位、airmass、风险、blocking_reasons |
 | `outreach_pack` | 基于 Claim Registry 确定性渲染科普活动包 | Claim Registry、受众、设备 | 活动流程、讲解词、设备清单、sentence_claim_map |
-| `observation_review` | 复盘偏差并修订计划（Evidence Claim 归因） | 原计划、观测日志、log_path | 偏差分类、证据 Claims、修订计划 |
+| `observation_review` | 复盘偏差并修订计划（Evidence Claim 归因） | 原计划、观测日志、log_path、原始输入 | 偏差分类、证据 Claims、修订计划、可执行下一轮输入 |
 
 ## 技术依赖
 
@@ -147,6 +160,7 @@ StarPlan/
 - 折射策略：`astropy_default`（pressure=0，不启用大气折射），已写入 RunOutcome。
 - 不含行星实时历表、实时天气 API、Stellarium/Aladin 集成和复杂前端。
 - 可见性派生规则基于视星等阈值 + 角径，未建模天空背景、表面亮度、消光和观测经验。
+- 现实活动时段（`activity_slot_policy_v1`）默认 90 分钟（60-120 可配），由科学窗口确定性生成；未成年人活动启用 `youth_activity_policy_v1` 安全项与人工确认清单（监护人许可、成人陪同、点名），不采集任何隐私信息。
 
 ## 协作规范
 
@@ -192,7 +206,29 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线测试：184 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+离线测试：211 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+
+**2026-08-03 在线修复（v0.6.0）：**
+
+- 新增 OpenAI 兼容端点适配：`STARPLAN_QWEN_BASE_URL` / `STARPLAN_QWEN_MODEL` / 超时与重试环境变量；兼容模式下 `call_qwen` / `call_qwen_json` / `call_qwen_chat` 走 `chat/completions`，原生 DashScope 路径保持不变。
+- Chat 模式地点名归一化：`observability_plan` 优先使用 `resolve_location` 返回的标准化地点名，修复真实 Qwen 传入用户原话导致 Claim 范围校验全挂的问题（原 53 项 Saved registry violation）。
+- Chat 工具轮次上限从 3 提升到 6，适配每轮只调用一个工具的真实模型。
+- 收紧程序性日程 Claim 的变体白名单（如 `schedule.obs_guide` 不再允许 `schedule_obs_start_v1`），避免"开始观测 引导成员…"式别扭句子。
+- 新增 `StarPlan/.env.example` 与 10 个回归测试（兼容客户端 + Chat 地点/轮次）。
+
+**P1 Batch D（v0.7.0，2026-08-03）：**
+
+- 现实活动时段：`activity_slot_policy_v1` 从科学窗口确定性生成 60-120 分钟活动时段（含准备/收尾），M31 案例活动流程为 18:58 准备 → 19:13-20:43 观测 → 20:58 收尾，不再出现"通宵式"安排；科学窗口仍在"推荐观测时段"独立展示。
+- 三类分众视图：同一 Claim Registry 生成组织者（`outreach_pack.md`）、讲解员（`outreach_pack_facilitator.md`）、学习者（`outreach_pack_learner.md`）三种视图，事实句与数字映射同一 claim_id；每视图独立 rendered_document/trace/map，并纳入交付合同校验。
+- 未成年人安全策略：`youth_activity_policy_v1` 在受众为中小学生/儿童时追加监护人许可、成人陪同、点名等安全项与人工确认清单，不采集隐私字段。
+- 新增 10 个 Batch D 回归测试；版本统一为 0.7.0。
+
+**P1 Batch E（v0.8.0，2026-08-03）：**
+
+- 复盘生成可执行下一轮输入：`observation_review` 接收原始 `StarPlanInput`，按白名单（`activity_preferences.*`）应用证据支持的修订（如迟到 → 推迟 `preferred_start`），移除 `observation_log` 后写出 `next_activity_input.json`；自由建议不进入 Schema 字段。
+- 二次运行与 before/after：`scripts/run_loop.py` 显式读取下一轮输入并重跑 runner，生成 `loop_before_after.md`（证据修订表 + 活动时段/流程前后对比，每项引用 cause_id）；`run_starplan` 不做隐式递归。
+- 证据边界：结构化时间差是唯一延迟证据来源；删除延迟证据后 `preferred_start` 补丁自动消失；无原始输入时不生成下一轮输入。
+- 新增 6 个 Batch E 回归测试；全量 211 passed, 9 skipped；版本统一为 0.8.0。
 
 **关键架构组件：**
 
@@ -207,6 +243,7 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - review report 未使用 RenderedDocument + 双向覆盖门禁（outreach 已实现）
 - 天气 Claim 接入后需恢复具体温度显示（当前为非事实化操作指令）
 - 六类终态参数化 E2E 矩阵仍需在独立环境复跑确认；本地 R1-R3 已有真实入口对抗测试
+- 真实在线验证依赖百炼 Key 的授权模型与端点（sk-ws- Key 通常需兼容端点）；现场演示前须用团队实际 Key 复跑并录制调用凭证
 
 ## 赛项信息
 

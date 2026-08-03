@@ -13,7 +13,7 @@ Week 3 additions:
     - runner: Three entry modes (structured / NL / chat orchestration)
 """
 
-__version__ = "0.5.0"
+__version__ = "0.8.0"
 
 from .runner import run_starplan, run_starplan_nl, run_starplan_chat
 from .exceptions import TargetConfirmationRequired

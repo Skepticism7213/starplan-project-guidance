@@ -57,6 +57,9 @@ def generate_outreach_pack(
     log_path: Optional[str] = None,
     timing_sink: Optional[dict[str, float]] = None,
     timezone_name: str = "Asia/Shanghai",
+    view: str = "organizer",
+    requested_views: Optional[list[str]] = None,
+    youth_policy: Optional[bool] = None,
 ) -> OutreachPack:
     """
     Generate an outreach activity pack based on verified Claims.
@@ -74,6 +77,7 @@ def generate_outreach_pack(
         audience=audience,
         equipment=equipment,
         timezone_name=timezone_name,
+        youth_policy=youth_policy,
     )
     claims_builder.build()
     if run_dir:
@@ -183,20 +187,40 @@ def generate_outreach_pack(
 
     # Generate outputs from RenderedDocument
     md_path = None
+    rendered_views: dict[str, str] = {}
     if run_dir:
-        md_path = str(run_dir / "outreach_pack.md")
-        md_content = serialize_document_md(rendered_doc, is_observable=True)
-        with open(md_path, "w", encoding="utf-8") as f:
-            f.write(md_content)
-        # Write render_trace.json from RenderedDocument (Phase A: final text hash)
-        _write_render_trace_from_document(rendered_doc, run_dir)
-        # Save RenderedDocument for runner.py delivery contract validation
-        with open(run_dir / "rendered_document.json", "w", encoding="utf-8") as f:
-            json.dump(rendered_doc.to_dict(), f, ensure_ascii=False, indent=2)
-        # Backward-compat: sentence_claim_map.json
-        sc_map = {b.final_text: b.claim_ids for b in rendered_doc.all_blocks}
-        with open(run_dir / "sentence_claim_map.json", "w", encoding="utf-8") as f:
-            json.dump(sc_map, f, ensure_ascii=False, indent=2)
+        views_to_render = list(dict.fromkeys(requested_views or ["organizer"]))
+        if "organizer" not in views_to_render:
+            views_to_render.insert(0, "organizer")
+        for view_name in views_to_render:
+            view_doc = render_document(
+                claims_builder,
+                sections,
+                audience,
+                equipment,
+                qwen_used=qwen_used,
+                view=view_name,
+            )
+            if view_name == "organizer":
+                view_md_path = str(run_dir / "outreach_pack.md")
+                rendered_doc_path = str(run_dir / "rendered_document.json")
+                trace_path = str(run_dir / "render_trace.json")
+                sc_map_path = str(run_dir / "sentence_claim_map.json")
+            else:
+                view_md_path = str(run_dir / f"outreach_pack_{view_name}.md")
+                rendered_doc_path = str(run_dir / f"rendered_document_{view_name}.json")
+                trace_path = str(run_dir / f"render_trace_{view_name}.json")
+                sc_map_path = str(run_dir / f"sentence_claim_map_{view_name}.json")
+            with open(view_md_path, "w", encoding="utf-8") as f:
+                f.write(serialize_document_md(view_doc, is_observable=True))
+            _write_render_trace_from_document(view_doc, Path(view_md_path).parent, trace_name=Path(trace_path).name)
+            with open(rendered_doc_path, "w", encoding="utf-8") as f:
+                json.dump(view_doc.to_dict(), f, ensure_ascii=False, indent=2)
+            sc_map = {b.final_text: b.claim_ids for b in view_doc.all_blocks}
+            with open(sc_map_path, "w", encoding="utf-8") as f:
+                json.dump(sc_map, f, ensure_ascii=False, indent=2)
+            rendered_views[view_name] = view_md_path
+        md_path = rendered_views.get("organizer")
         # expression_plan.json
         expr_plan = {
             "schema_version": "1.0",
@@ -217,6 +241,9 @@ def generate_outreach_pack(
     return OutreachPack(
         target_name=target.standard_name,
         audience=audience,
+        view=view,
+        rendered_views=rendered_views,
+        youth_policy_applied=claims_builder.youth_policy_applied,
         activity_schedule=schedule,
         talking_points=talking_points,
         equipment_checklist=equipment_checklist,
@@ -322,6 +349,9 @@ def _generate_not_observable_pack(
         target_name=target.standard_name,
         audience=audience,
         pack_type="not_observable",
+        view="organizer",
+        rendered_views={},
+        youth_policy_applied=claims_builder.youth_policy_applied,
         activity_schedule=schedule,
         talking_points=talking_points,
         equipment_checklist=[],
@@ -338,7 +368,11 @@ def _generate_not_observable_pack(
 # ── Render trace (Phase A: from RenderedDocument) ──
 
 
-def _write_render_trace_from_document(doc: RenderedDocument, run_dir: Path) -> None:
+def _write_render_trace_from_document(
+    doc: RenderedDocument,
+    run_dir: Path,
+    trace_name: str = "render_trace.json",
+) -> None:
     """Write render_trace.json from the final RenderedDocument.
 
     Phase A (C-01 fix): trace is generated from the SAME RenderedDocument
@@ -366,7 +400,7 @@ def _write_render_trace_from_document(doc: RenderedDocument, run_dir: Path) -> N
         "sections": doc.sections_ordered,
         "sentences": trace_entries,
     }
-    with open(run_dir / "render_trace.json", "w", encoding="utf-8") as f:
+    with open(run_dir / trace_name, "w", encoding="utf-8") as f:
         json.dump(trace_doc, f, ensure_ascii=False, indent=2)
 
 

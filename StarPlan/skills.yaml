@@ -1,11 +1,11 @@
 # StarPlan Loop Skills Definition
-# Version: 0.5.0
-# Date: 2026-08-02
+# Version: 0.8.0
+# Date: 2026-08-03
 
 project:
   name: "StarPlan Loop"
-  version: "0.5.0"
-  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链架构）"
+  version: "0.8.0"
+  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链 + 现实活动时段 + 三视图 + 未成年人安全 + 可执行下一轮输入）"
 
 skills:
   - name: target_resolve
@@ -58,6 +58,14 @@ skills:
         - name: constraints
           type: ObservingConstraint
           required: false
+        - name: activity_preferences
+          type: ActivityPreferences
+          required: false
+          description: "现实活动时段偏好（时长 60-120 分钟、准备/收尾时间、偏好开始/最晚结束）"
+        - name: audience_profile
+          type: AudienceProfile
+          required: false
+          description: "结构化受众（年龄段、经验、所需视图：organizer/facilitator/learner）"
     output:
       schema: ObservabilityResult
     failure_handling:
@@ -92,6 +100,8 @@ skills:
         - claims.json (Claim Registry with registry_hash)
         - sentence_claim_map.json (every output sentence → claim_id mapping)
         - outreach_pack.md (final user-facing document)
+        - outreach_pack_facilitator.md / outreach_pack_learner.md (per-view docs from the same Claims)
+        - plan.json (含 activity_slot：由 activity_slot_policy_v1 从科学窗口确定性生成)
     failure_handling:
       - "Claim 缺失 → unconfirmed 标记，不静默补值"
       - "Qwen ExpressionPlan 验证失败 → fail-closed 确定性回退，原文不落地"
@@ -100,6 +110,7 @@ skills:
     human_confirmation:
       - "科普稿引用 unconfirmed Claim 时"
       - "系统准备替换主目标时"
+      - "未成年人活动：监护人许可、成人陪同与点名流程必须人工确认（youth_activity_policy_v1）"
 
   - name: observation_review
     description: "对比计划和实际日志，生成偏差分析和修订计划（归因基于 Evidence Claims）"
@@ -122,11 +133,14 @@ skills:
       artifacts:
         - review_report.md (偏差分析报告)
         - revised_plan.json (修订后的下一次计划)
+        - next_activity_input.json (P1 Batch E：通过 StarPlanInput Schema、可再次进入 runner 的下一轮输入)
+        - loop_before_after.md (由 scripts/run_loop.py 生成的前后对比报告)
     failure_handling:
       - "日志字段缺失 → 返回缺失清单 + 标记不可比较项"
       - "原计划不存在 → 返回明确错误"
       - "信息不足 → classification=undetermined，原因标记 possible/undetermined"
       - "当前版本 deterministic-only；P1 ID-only Review 协议完成前不会调用 Qwen"
+      - "原始输入缺失时不生成 next_activity_input.json；证据不足时只改白名单字段（activity_preferences.*），自由建议不进入 Schema"
     human_confirmation:
       - "复盘原因只有弱证据时"
       - "系统准备替换下次活动主目标时"
@@ -147,6 +161,8 @@ orchestrator:
     - run_outcome.json (RunOutcome：业务/验证/交付三状态 + 文件哈希)
     - model_call_log.jsonl (Qwen 调用审计日志)
     - validation_report.md (验证报告)
+    - next_activity_input.json (案例含观测日志时，由复盘生成的可执行下一轮输入)
+    - loop_before_after.md (运行 scripts/run_loop.py 后生成的 before/after 对比)
   limitations:
     - "当前 MVP 仅支持单晚观测（date_range 多天只计算第一晚）"
     - "不含行星、实时天气、Stellarium/Aladin 集成"

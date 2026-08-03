@@ -33,6 +33,8 @@ import astropy.units as u
 
 from .config import load_constraints
 from .schemas import (
+    ActivityPreferences,
+    ActivitySlot,
     AlternativeSuggestion,
     EliminatedWindow,
     HourlyData,
@@ -156,6 +158,7 @@ def compute_observability(
     target_magnitude: Optional[float] = None,
     target_angular_size_arcmin: Optional[list[float]] = None,
     target_type: Optional[str] = None,
+    activity_preferences: Optional[dict] = None,
 ) -> ObservabilityResult:
     """
     Compute target observability and generate an observation plan.
@@ -500,6 +503,15 @@ def compute_observability(
             ),
         )
 
+    # P1 Batch D: derive the realistic activity slot deterministically from
+    # the science window. The science window stays the "can observe" truth;
+    # the activity slot is the "how long should the campus event run" plan.
+    activity_slot = select_activity_slot(
+        recommended_window,
+        twilight,
+        preferences=activity_preferences,
+    )
+
     # Generate risk flags
     risk_flags = _compute_risk_flags(hourly_data, moon_info, min_alt, risk_cfg, recommended_window=recommended_window)
 
@@ -567,8 +579,76 @@ def compute_observability(
         alternative_suggestions=alternative_suggestions,
         risk_flags=risk_flags,
         not_observable_reason=not_observable_reason,
+        activity_slot=activity_slot,
         observability_csv_path=csv_path,
         visibility_curve_path=curve_path,
+    )
+
+
+def select_activity_slot(
+    recommended_window: Optional[RecommendedWindow],
+    twilight: TwilightInfo,
+    preferences: Optional[dict] = None,
+) -> Optional[ActivitySlot]:
+    """Deterministically pick a 60-120 minute realistic activity slot.
+
+    Rules (activity_slot_policy_v1):
+      1. Only exists when the target is observable (recommended_window present).
+      2. Slot length = ActivityPreferences.duration_minutes (default 90).
+      3. The slot must fit inside the science window; otherwise None.
+      4. preferred_start is honored when it fits; otherwise the earliest
+         possible start is used, and latest_end clamps the start backward.
+      5. setup_start = start - setup_minutes; cleanup_end = end + cleanup_minutes.
+
+    This function never invents astronomical facts: it only reorganizes the
+    deterministic science window into an event-planning shape.
+    """
+    if recommended_window is None:
+        return None
+
+    pref = ActivityPreferences(**(preferences or {}))
+    w = recommended_window.window
+    dur = timedelta(minutes=pref.duration_minutes)
+    latest_start = w.end - dur
+    if latest_start < w.start:
+        # Science window is shorter than the requested activity length.
+        return None
+
+    start = w.start
+    if pref.preferred_start:
+        cand = pref.preferred_start
+        if cand.tzinfo is not None and w.start.tzinfo is None:
+            cand = cand.replace(tzinfo=None)
+        elif cand.tzinfo is None and w.start.tzinfo is not None:
+            cand = cand.replace(tzinfo=w.start.tzinfo)
+        if cand < w.start:
+            cand = w.start
+        start = cand if cand <= latest_start else latest_start
+
+    if pref.latest_end:
+        latest_end = pref.latest_end
+        if latest_end.tzinfo is not None and w.start.tzinfo is None:
+            latest_end = latest_end.replace(tzinfo=None)
+        elif latest_end.tzinfo is None and w.start.tzinfo is not None:
+            latest_end = latest_end.replace(tzinfo=w.start.tzinfo)
+        if start + dur > latest_end:
+            start = max(w.start, latest_end - dur)
+            if start + dur > w.end:
+                return None
+
+    end = start + dur
+    return ActivitySlot(
+        start=start,
+        end=end,
+        duration_minutes=pref.duration_minutes,
+        setup_start=start - timedelta(minutes=pref.setup_minutes),
+        cleanup_end=end + timedelta(minutes=pref.cleanup_minutes),
+        rule_version="activity_slot_policy_v1",
+        status="proposed",
+        reason=(
+            f"在科学可见窗口 {w.start.strftime('%H:%M')}~{w.end.strftime('%H:%M')} 内，"
+            f"按 activity_slot_policy_v1 选择 {pref.duration_minutes} 分钟现实活动时段"
+        ),
     )
 
 

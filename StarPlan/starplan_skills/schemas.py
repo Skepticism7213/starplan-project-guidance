@@ -38,6 +38,71 @@ class ObservingConstraint(BaseModel):
 
 
 # ──────────────────────────────────────────────
+# P1 Batch D: realistic activity slot + audience profile
+# ──────────────────────────────────────────────
+
+_AGE_BANDS = {"kids", "middle_school", "high_school", "college", "adult"}
+_EXPERIENCE_LEVELS = {"beginner", "intermediate", "advanced"}
+_VIEWS = {"organizer", "facilitator", "learner"}
+
+
+class ActivityPreferences(BaseModel):
+    """User preferences for the realistic (non-scientific) activity slot."""
+
+    duration_minutes: int = Field(default=90, ge=60, le=120, description="Observing activity length (60-120 min)")
+    setup_minutes: int = Field(default=15, ge=5, le=60, description="Setup/preparation time before observing")
+    cleanup_minutes: int = Field(default=15, ge=5, le=60, description="Cleanup/packup time after observing")
+    preferred_start: Optional[datetime] = Field(default=None, description="Optional preferred local start time")
+    latest_end: Optional[datetime] = Field(default=None, description="Optional latest acceptable local end time")
+
+
+class ActivitySlot(BaseModel):
+    """A deterministic realistic activity slot derived from the science window."""
+
+    start: datetime
+    end: datetime
+    duration_minutes: float
+    setup_start: Optional[datetime] = None
+    cleanup_end: Optional[datetime] = None
+    rule_version: str = "activity_slot_policy_v1"
+    status: str = "proposed"
+    reason: str = Field(default="", description="Deterministic selection reason")
+
+
+class AudienceProfile(BaseModel):
+    """Structured audience description for view selection and safety policy."""
+
+    age_band: str = Field(default="high_school", description="kids / middle_school / high_school / college / adult")
+    experience_level: str = Field(default="beginner", description="beginner / intermediate / advanced")
+    requested_views: list[str] = Field(
+        default_factory=lambda: ["organizer", "facilitator", "learner"],
+        description="Views to render: organizer / facilitator / learner",
+    )
+
+    @field_validator("age_band")
+    @classmethod
+    def validate_age_band(cls, v: str) -> str:
+        if v not in _AGE_BANDS:
+            raise ValueError(f"age_band must be one of {sorted(_AGE_BANDS)}, got '{v}'")
+        return v
+
+    @field_validator("experience_level")
+    @classmethod
+    def validate_experience_level(cls, v: str) -> str:
+        if v not in _EXPERIENCE_LEVELS:
+            raise ValueError(f"experience_level must be one of {sorted(_EXPERIENCE_LEVELS)}, got '{v}'")
+        return v
+
+    @field_validator("requested_views")
+    @classmethod
+    def validate_views(cls, v: list[str]) -> list[str]:
+        unknown = [x for x in v if x not in _VIEWS]
+        if unknown:
+            raise ValueError(f"requested_views contains unknown views: {unknown}")
+        return v
+
+
+# ──────────────────────────────────────────────
 # Claim architecture (hallucination prevention)
 #
 # Core invariant: only claims registered in this run's Claim Registry are
@@ -238,6 +303,14 @@ class StarPlanInput(BaseModel):
     equipment: str = Field(description="Equipment type: naked_eye, binoculars, small_telescope, large_telescope")
     goal: str = Field(default="校园科普观测", description="Activity goal description")
     constraints: Optional[ObservingConstraint] = Field(default=None, description="Custom observing constraints")
+    activity_preferences: Optional[ActivityPreferences] = Field(
+        default=None,
+        description="Realistic activity slot preferences (P1 Batch D)",
+    )
+    audience_profile: Optional[AudienceProfile] = Field(
+        default=None,
+        description="Structured audience profile for view/safety selection (P1 Batch D)",
+    )
     # W-9 fix: observation_log is now part of the unified input schema
     observation_log: Optional[ObservationLog] = Field(
         default=None,
@@ -407,6 +480,10 @@ class ObservabilityResult(BaseModel):
         "'altitude' (too low this night / sun-bound). None when observable.",
     )
     nights_computed: int = Field(default=1, description="Number of nights actually computed (MVP computes first night only for multi-day ranges)")
+    activity_slot: Optional[ActivitySlot] = Field(
+        default=None,
+        description="Realistic activity slot derived deterministically from the science window (P1 Batch D)",
+    )
     observability_csv_path: Optional[str] = None
     visibility_curve_path: Optional[str] = None
 
@@ -456,6 +533,18 @@ class OutreachPack(BaseModel):
     safety_notes: list[str] = Field(default_factory=list)
     manual_check_items: list[str] = Field(default_factory=list)
     unconfirmed_items: list[str] = Field(default_factory=list)
+    view: str = Field(
+        default="organizer",
+        description="Primary rendered view; other views are written to per-view Markdown files",
+    )
+    rendered_views: dict[str, str] = Field(
+        default_factory=dict,
+        description="view name -> Markdown file path for every rendered view",
+    )
+    youth_policy_applied: bool = Field(
+        default=False,
+        description="Whether youth_activity_policy_v1 safety items were added",
+    )
     alternative_suggestions: list[str] = Field(
         default_factory=list,
         description="Alternative target/date suggestions when target is not observable",
@@ -526,6 +615,19 @@ class ObservationReview(BaseModel):
     revised_plan_diff: list[RevisedPlanDiff] = Field(default_factory=list)
     review_report_md_path: Optional[str] = None
     revised_plan_json_path: Optional[str] = None
+    # P1 Batch E: executable next-round input
+    next_input_path: Optional[str] = Field(
+        default=None,
+        description="Path to next_activity_input.json (validated StarPlanInput)",
+    )
+    parent_run_id: Optional[str] = Field(
+        default=None,
+        description="Run ID of the plan this review revises",
+    )
+    source_cause_ids: list[str] = Field(
+        default_factory=list,
+        description="Cause IDs that drove any next-input patch (summary level)",
+    )
 
 
 # ──────────────────────────────────────────────

@@ -374,6 +374,58 @@ def render_schedule_section(
     """Render the activity schedule from obs Claims + procedural Claims."""
     items: list[RenderedScheduleItem] = []
 
+    # P1 Batch D: when a realistic activity slot exists, the schedule shows
+    # setup -> observing -> cleanup instead of the full science window.
+    slot = claims_builder.obs.activity_slot
+    if slot is not None:
+        setup_claim = claims_builder.get_claim("activity.setup_start")
+        start_claim = claims_builder.get_claim("activity.slot_start")
+        end_claim = claims_builder.get_claim("activity.slot_end")
+        cleanup_claim = claims_builder.get_claim("activity.cleanup_end")
+        name_claim = claims_builder.get_claim("target.standard_name")
+
+        if setup_claim:
+            items.append(RenderedScheduleItem(
+                time_label=setup_claim.display_value,
+                activity="到达场地，设备调试与准备",
+                notes="",
+                claim_ids=["activity.setup_start"],
+                variant_ids=["activity_setup_v1"],
+            ))
+        if start_claim and name_claim:
+            items.append(RenderedScheduleItem(
+                time_label=start_claim.display_value,
+                activity=f"开始观测 {name_claim.display_value}",
+                notes="",
+                claim_ids=["activity.slot_start", "target.standard_name"],
+                variant_ids=["activity_slot_start_v1"],
+            ))
+        if start_claim and end_claim:
+            items.append(RenderedScheduleItem(
+                time_label=f"{start_claim.display_value} ~ {end_claim.display_value}",
+                activity="观测进行中",
+                notes="",
+                claim_ids=["activity.slot_start", "activity.slot_end"],
+                variant_ids=["schedule_proc_v1"],
+            ))
+        if end_claim:
+            items.append(RenderedScheduleItem(
+                time_label=end_claim.display_value,
+                activity="活动观测部分结束",
+                notes="",
+                claim_ids=["activity.slot_end"],
+                variant_ids=["activity_slot_end_v1"],
+            ))
+        if cleanup_claim:
+            items.append(RenderedScheduleItem(
+                time_label=cleanup_claim.display_value,
+                activity="收拾设备、点名、合影",
+                notes="",
+                claim_ids=["activity.cleanup_end"],
+                variant_ids=["activity_cleanup_v1"],
+            ))
+        return items
+
     # 1. Twilight end -> prepare
     tw_end = claims_builder.get_claim("obs.twilight_end")
     if tw_end:
@@ -600,17 +652,28 @@ def render_all_sections(
     if is_observable:
         result.schedule = render_schedule_section(claims_builder, audience)
         result.equipment = render_equipment_section(claims_builder, equipment)
-        result.safety = render_flat_section(
-            claims_builder,
-            ["safety.night_group", "safety.red_flashlight",
-             "safety.weather_clothing", "safety.laser_caution"],
-            "safety",
-        )
+        safety_ids = [
+            "safety.night_group", "safety.red_flashlight",
+            "safety.weather_clothing", "safety.laser_caution",
+        ]
+        if claims_builder.youth_policy_applied:
+            safety_ids += [
+                "safety.youth_supervision",
+                "safety.youth_rollcall",
+                "safety.youth_consent",
+            ]
+        result.safety = render_flat_section(claims_builder, safety_ids, "safety")
+        manual_check_ids = [
+            "manual_check.coordinate_source", "manual_check.twilight_accuracy",
+            "manual_check.site_access", "manual_check.equipment_battery",
+        ]
+        if claims_builder.youth_policy_applied:
+            manual_check_ids += [
+                "manual_check.youth_consent",
+                "manual_check.youth_rollcall",
+            ]
         result.manual_checks = render_flat_section(
-            claims_builder,
-            ["manual_check.coordinate_source", "manual_check.twilight_accuracy",
-             "manual_check.site_access", "manual_check.equipment_battery"],
-            "manual_check",
+            claims_builder, manual_check_ids, "manual_check",
         )
         result.unconfirmed = render_flat_section(
             claims_builder,
@@ -629,12 +692,17 @@ def render_all_sections(
                     time_label="", activity=claim.display_value, notes="",
                     claim_ids=[cid], variant_ids=["schedule_proc_v1"],
                 ))
-        result.manual_checks = render_flat_section(
-            claims_builder,
-            ["manual_check.reschedule_verify", "manual_check.alt_equipment",
-             "manual_check.notify_members"],
-            "manual_check",
-        )
+        manual_ids = [
+            "manual_check.reschedule_verify",
+            "manual_check.alt_equipment",
+            "manual_check.notify_members",
+        ]
+        if claims_builder.youth_policy_applied:
+            manual_ids += [
+                "manual_check.youth_consent",
+                "manual_check.youth_rollcall",
+            ]
+        result.manual_checks = render_flat_section(claims_builder, manual_ids, "manual_check")
 
     return result
 
@@ -738,6 +806,20 @@ _SECTION_ORDER = [
     "blocking", "alternatives", "actions",
 ]
 
+# P1 Batch D: per-view section allowlists. organizer = None means all sections.
+# Views change only presentation; every block still maps to the same Claims.
+_VIEW_SECTIONS: dict[str, Optional[set[str]]] = {
+    "organizer": None,
+    "facilitator": {
+        "metadata", "recommended_window", "schedule", "talking_points",
+        "equipment", "safety", "manual_check", "blocking", "alternatives",
+    },
+    "learner": {
+        "metadata", "recommended_window", "schedule", "talking_points",
+        "safety", "blocking", "alternatives",
+    },
+}
+
 
 def _make_block(
     block_id: str, section: str, final_text: str,
@@ -757,6 +839,7 @@ def render_document(
     audience: str = "general",
     equipment: str = "binoculars",
     qwen_used: bool = False,
+    view: str = "organizer",
 ) -> RenderedDocument:
     """Assemble the final RenderedDocument from Claim-rendered sections.
 
@@ -903,6 +986,12 @@ def render_document(
             body_blocks.append(_make_block(
                 f"manual_check.{i}", "manual_check", s.text, s.claim_ids, s.variant_id,
             ))
+
+    # P1 Batch D: filter blocks by view. All remaining blocks keep the same
+    # claim_ids/variants, so facts are identical across views by construction.
+    allowed_sections = _VIEW_SECTIONS.get(view)
+    if allowed_sections is not None:
+        body_blocks = [b for b in body_blocks if b.section in allowed_sections]
 
     return RenderedDocument(
         title_block=title_block,

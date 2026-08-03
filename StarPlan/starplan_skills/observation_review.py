@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import copy
 from datetime import timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -43,6 +44,8 @@ def review_observation(
     timezone_name: str = "Asia/Shanghai",
     use_qwen: bool = False,
     log_path: Optional[str] = None,
+    original_input: Optional[dict] = None,
+    parent_run_id: Optional[str] = None,
 ) -> ObservationReview:
     """
     Compare original plan with actual observation log and generate review.
@@ -226,18 +229,40 @@ def review_observation(
                 with open(log_path, "a", encoding="utf-8") as _f:
                     _f.write(_json.dumps(_audit, ensure_ascii=False) + "\n")
 
+    # ── P1 Batch E: executable next-round input ──
+    # Only whitelisted fields (activity_preferences.*) may be patched into the
+    # next StarPlanInput; free-text suggestions never become Schema fields.
+    next_input, next_patches = _build_next_activity_input(
+        original_input,
+        original_plan,
+        log,
+        deviations,
+        causes,
+        timezone_name,
+    )
+    plan_diffs.extend(next_patches)
+    source_cause_ids = sorted(
+        {c for d in next_patches for c in d.source_cause_ids}
+    )
+
     # ── Build revised plan ──
     revised_plan = _build_revised_plan(original_plan, plan_diffs, suggestions)
 
     # ── Generate report ──
     review_md_path = None
     revised_json_path = None
+    next_input_path = None
     if run_dir:
         review_md_path = str(run_dir / "review_report.md")
         revised_json_path = str(run_dir / "revised_plan.json")
+        if next_input is not None:
+            next_input_path = str(run_dir / "next_activity_input.json")
+            with open(next_input_path, "w", encoding="utf-8") as f:
+                json.dump(next_input, f, ensure_ascii=False, indent=2, default=str)
         _write_review_markdown(
             original_plan, log, deviations, causes,
             suggestions, plan_diffs, review_md_path,
+            next_input_path=next_input_path,
         )
         _write_revised_plan(revised_plan, revised_json_path)
 
@@ -268,6 +293,17 @@ def review_observation(
                 }
                 for d in plan_diffs
             ],
+            "next_input_patches": [
+                {
+                    "field": d.field,
+                    "original_value": d.original_value,
+                    "revised_value": d.revised_value,
+                    "reason": d.reason,
+                    "source_cause_ids": d.source_cause_ids,
+                }
+                for d in next_patches
+            ],
+            "next_input_path": next_input_path,
             "deviations": [
                 {
                     "deviation_id": d.deviation_id,
@@ -290,6 +326,9 @@ def review_observation(
         revised_plan_diff=plan_diffs,
         review_report_md_path=review_md_path,
         revised_plan_json_path=revised_json_path,
+        next_input_path=next_input_path,
+        parent_run_id=parent_run_id,
+        source_cause_ids=source_cause_ids,
     )
 
 
@@ -326,8 +365,69 @@ def _build_revised_plan(
     return plan
 
 
+def _build_next_activity_input(
+    original_input: Optional[dict],
+    original_plan: ObservabilityResult,
+    log: ObservationLog,
+    deviations: list[Deviation],
+    causes: list[CauseEntry],
+    timezone_name: str,
+) -> tuple[Optional[dict], list[RevisedPlanDiff]]:
+    """Build the next executable StarPlanInput from evidence-backed patches.
+
+    Whitelist (P1 Batch E): only `activity_preferences.*` fields may be
+    patched. Free-text improvement suggestions are deliberately NOT mapped
+    into Schema fields. The observation_log is always removed so a re-run
+    does not trigger Review again.
+    """
+    if not original_input:
+        return None, []
+
+    next_input = copy.deepcopy(original_input)
+    next_input.pop("observation_log", None)
+    patches: list[RevisedPlanDiff] = []
+
+    # Rule: evidence-backed late start -> shift activity_preferences.preferred_start
+    delay_dev = next(
+        (d for d in deviations if d.deviation_id == "dev.time.delay"),
+        None,
+    )
+    late_cause = next(
+        (c for c in causes if c.cause_id == "cause.team_late"),
+        None,
+    )
+    if delay_dev is not None and late_cause is not None:
+        if late_cause.classification == "evidence_based":
+            actual = log.actual_start_time
+            try:
+                local_tz = ZoneInfo(timezone_name)
+            except Exception:
+                local_tz = ZoneInfo("Asia/Shanghai")
+            if actual.tzinfo is not None:
+                actual = actual.astimezone(local_tz).replace(tzinfo=None)
+            else:
+                actual = actual.replace(tzinfo=None)
+            prefs = dict(next_input.get("activity_preferences") or {})
+            old_start = prefs.get("preferred_start")
+            prefs["preferred_start"] = actual.isoformat()
+            next_input["activity_preferences"] = prefs
+            patches.append(RevisedPlanDiff(
+                field="activity_preferences.preferred_start",
+                original_value=str(old_start) if old_start else "未设置",
+                revised_value=actual.isoformat(),
+                reason=(
+                    f"本次实际开始 {actual.strftime('%H:%M')} 晚于计划，"
+                    f"将下次活动开始时间调整到实际可用时间"
+                ),
+                source_cause_ids=["cause.team_late"],
+            ))
+
+    return next_input, patches
+
+
 def _write_review_markdown(
     plan, log, deviations, causes, suggestions, diffs, path: str,
+    next_input_path: Optional[str] = None,
 ) -> None:
     """Write the review report as markdown."""
     lines: list[str] = []
@@ -381,6 +481,13 @@ def _write_review_markdown(
         lines.append("|---|---|---|---|")
         for d in diffs:
             lines.append(f"| {d.field} | {d.original_value} | {d.revised_value} | {d.reason} |")
+        lines.append("")
+
+    if next_input_path:
+        lines.append("## 下一轮可执行输入")
+        lines.append("")
+        lines.append(f"- 已生成：`{next_input_path}`")
+        lines.append("- 该文件通过 StarPlanInput Schema 校验，可再次进入 `starplan.run` 重跑")
         lines.append("")
 
     with open(path, "w", encoding="utf-8") as f:
