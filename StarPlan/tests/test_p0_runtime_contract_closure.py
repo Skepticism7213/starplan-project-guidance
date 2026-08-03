@@ -71,6 +71,22 @@ def _fake_chat(tool_executors, include_pack: bool = False, include_review: bool 
     }
 
 
+def _write_fake_model_call_log(kwargs):
+    """Make the mocked provider obey the real JSONL evidence contract."""
+    log_path = kwargs.get("log_path")
+    if not log_path:
+        return
+    path = Path(log_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({
+            "type": "model_call",
+            "step": "chat_orchestration_round0",
+            "model": "qwen-test",
+            "finish_reason": "stop",
+        }, ensure_ascii=False) + "\n")
+
+
 def _run_fake_chat(tmp_path: Path, *, fault: str | None = None, include_pack: bool = False):
     from starplan_skills import runner
 
@@ -95,6 +111,13 @@ def _run_fake_chat(tmp_path: Path, *, fault: str | None = None, include_pack: bo
         return pack
 
     def fake_call(**kwargs):
+        _write_fake_model_call_log(kwargs)
+        if fault == "corrupt_model_log":
+            path = Path(kwargs["log_path"])
+            path.write_text(
+                path.read_text(encoding="utf-8") + "{broken" + chr(10),
+                encoding="utf-8",
+            )
         return _fake_chat(kwargs["tool_executors"], include_pack=include_pack)
 
     with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
@@ -106,7 +129,13 @@ def _run_fake_chat(tmp_path: Path, *, fault: str | None = None, include_pack: bo
 
 @pytest.mark.parametrize(
     "fault",
-    ["pack_exception", "missing_claims", "missing_rendered_document", "corrupt_trace"],
+    [
+        "pack_exception",
+        "missing_claims",
+        "missing_rendered_document",
+        "corrupt_trace",
+        "corrupt_model_log",
+    ],
 )
 def test_chat_faults_are_blocked_without_facts(tmp_path, fault):
     result, run_dir = _run_fake_chat(tmp_path, fault=fault)
@@ -131,6 +160,7 @@ def test_chat_contract_exception_is_blocked(tmp_path):
         return run_dir
 
     def fake_call(**kwargs):
+        _write_fake_model_call_log(kwargs)
         return _fake_chat(kwargs["tool_executors"], include_pack=False)
 
     with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
@@ -169,6 +199,7 @@ def test_chat_review_tool_explicitly_disables_qwen(tmp_path):
         return run_dir
 
     def fake_call(**kwargs):
+        _write_fake_model_call_log(kwargs)
         return _fake_chat(kwargs["tool_executors"], include_review=True)
 
     with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
@@ -193,6 +224,7 @@ def test_chat_round_limit_is_fail_closed(tmp_path):
         return run_dir
 
     def fake_call(**kwargs):
+        _write_fake_model_call_log(kwargs)
         result = _fake_chat(kwargs["tool_executors"], include_pack=False)
         result["finish_reason"] = "max_rounds"
         return result
@@ -207,7 +239,73 @@ def test_chat_round_limit_is_fail_closed(tmp_path):
     assert "M31" not in result["final_content"]
 
 
-def _sample_builder() -> AllowedClaimsBuilder:
+@pytest.mark.parametrize("tamper", ["missing", "corrupt"])
+def test_structured_model_log_evidence_failure_is_blocked(tmp_path, tamper):
+    """The standard finalize path must fail closed on broken JSONL evidence."""
+    from starplan_skills import runner
+
+    run_dir = tmp_path / "structured_run"
+
+    def fake_get_run_dir(run_id: str) -> Path:
+        run_dir.mkdir(parents=True, exist_ok=True)
+        return run_dir
+
+    original_writer = runner._write_model_call_log
+
+    def corrupt_writer(*args, **kwargs):
+        original_writer(*args, **kwargs)
+        path = Path(args[0]) / "model_call_log.jsonl"
+        if tamper == "missing":
+            path.unlink()
+        else:
+            path.write_text(
+                path.read_text(encoding="utf-8") + "{broken" + chr(10),
+                encoding="utf-8",
+            )
+
+    case = {
+        "target": "M31",
+        "location": "济南_四门塔",
+        "date_range": ["2026-10-17", "2026-10-17"],
+        "audience": "天文社新成员",
+        "equipment": "binoculars",
+        "goal": "校园科普观测",
+    }
+    with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
+         patch.object(runner, "_write_model_call_log", side_effect=corrupt_writer):
+        result = runner.run_starplan(case, run_id="structured_corrupt_model_log")
+
+    outcome = json.loads((run_dir / "run_outcome.json").read_text(encoding="utf-8"))
+    assert result["validation_status"] == "blocked"
+    assert result["delivery_status"] == "not_delivered"
+    assert result["outreach_pack"] is None
+    assert outcome["validation_status"] == "blocked"
+
+
+def test_chat_without_model_event_is_blocked(tmp_path):
+    """A successful-looking Chat response without provider evidence is unsafe."""
+    from starplan_skills import runner
+
+    run_dir = tmp_path / "chat_run"
+
+    def fake_get_run_dir(run_id: str) -> Path:
+        run_dir.mkdir(parents=True, exist_ok=True)
+        return run_dir
+
+    def fake_call(**kwargs):
+        return _fake_chat(kwargs["tool_executors"], include_pack=False)
+
+    with patch("starplan_skills.runner.get_run_dir", side_effect=fake_get_run_dir), \
+         patch("starplan_skills.qwen_client.call_qwen_chat", side_effect=fake_call):
+        result = runner.run_starplan_chat("规划一次 M31 观测", run_id="chat_missing_model_event")
+
+    outcome = json.loads((run_dir / "run_outcome.json").read_text(encoding="utf-8"))
+    assert result["public_output_validation"] == "blocked"
+    assert outcome["delivery_status"] == "not_delivered"
+    assert "M31" not in result["final_content"]
+
+
+def _sample_builder() -> tuple[AllowedClaimsBuilder, ResolvedTarget, ObservabilityResult]:
     target = ResolvedTarget(
         standard_name="M31", aliases=["仙女座星系"], target_type="deep_sky",
         ra_deg=10.6847, dec_deg=41.2687, visual_magnitude=3.4,
@@ -230,14 +328,30 @@ def _sample_builder() -> AllowedClaimsBuilder:
     )
     builder = AllowedClaimsBuilder(target, obs, "Jinan", "astronomy club", "binoculars")
     builder.build()
-    return builder
+    return builder, target, obs
 
 
 @pytest.mark.parametrize("tamper", ["value", "hash", "delete", "extra", "invalid_json"])
 def test_saved_claim_registry_tampering_blocks(tmp_path, tamper):
-    builder = _sample_builder()
-    builder.save(tmp_path)
-    path = tmp_path / "claims.json"
+    from starplan_skills.expression_validator import validate_delivery_contract
+    from starplan_skills.outreach_pack import generate_outreach_pack
+    from starplan_skills.rendering import RenderedDocument
+
+    builder, target, obs = _sample_builder()
+    run_dir = tmp_path / "delivery"
+    run_dir.mkdir()
+    generate_outreach_pack(
+        target,
+        obs,
+        "astronomy club",
+        "binoculars",
+        run_dir=run_dir,
+        use_qwen=False,
+    )
+    rendered_doc = RenderedDocument.from_dict(
+        json.loads((run_dir / "rendered_document.json").read_text(encoding="utf-8"))
+    )
+    path = run_dir / "claims.json"
     if tamper == "value":
         data = json.loads(path.read_text(encoding="utf-8"))
         data["claims"][0]["display_value"] = "tampered"
@@ -256,7 +370,12 @@ def test_saved_claim_registry_tampering_blocks(tmp_path, tamper):
         path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     else:
         path.write_text("{invalid", encoding="utf-8")
-    assert builder.verify_saved_registry(path)
+    result = validate_delivery_contract(run_dir, rendered_doc, builder)
+    assert not result.passed
+    if tamper == "delete":
+        assert any("claims.json" in issue.message for issue in result.errors)
+    else:
+        assert any("Saved registry violation" in issue.message for issue in result.errors)
 
 
 def test_review_default_is_deterministic():
@@ -281,7 +400,8 @@ def test_model_evidence_counts_actual_calls(tmp_path):
 
 def test_model_evidence_zero_and_accepted_states(tmp_path):
     empty = RunOutcome("model-zero")
-    empty.import_model_call_events(tmp_path / "missing.jsonl")
+    missing_warnings = empty.import_model_call_events(tmp_path / "missing.jsonl")
+    assert missing_warnings == ["model_call_log.jsonl missing"]
     assert empty.model_called is False
     assert empty.to_audit_summary()["model_call_count"] == 0
 

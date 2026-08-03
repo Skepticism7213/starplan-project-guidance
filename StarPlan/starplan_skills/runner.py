@@ -368,22 +368,32 @@ def run_starplan(
     # including calls whose ExpressionPlan was rejected and fell back to the
     # deterministic renderer.
     model_log_warnings = outcome.import_model_call_events(log_path)
+    if outreach.qwen_used and not outcome.model_called:
+        model_log_warnings.append(
+            "model_call_log.jsonl contains no model_call event for accepted Qwen output"
+        )
     if model_log_warnings:
         outcome.validation_issues.extend(model_log_warnings)
 
     # Phase A (C-02): fail-CLOSED semantics
-    if not contract_result.passed:
+    # A malformed/unreadable model log invalidates the evidence chain even when
+    # the rendered document itself is valid.  Do not deliver a document whose
+    # model-call count cannot be reconstructed from the authoritative JSONL.
+    if not contract_result.passed or model_log_warnings:
         # BLOCKED: evidence chain broken, do NOT deliver
+        contract_issues = [e.message for e in contract_result.errors]
+        contract_issues.extend(model_log_warnings)
         outcome.set_validation(
             ValidationStatus.BLOCKED,
-            [e.message for e in contract_result.errors],
+            contract_issues or ["Model call evidence could not be verified"],
         )
         outcome.set_delivery(DeliveryStatus.NOT_DELIVERED)
         # Remove delivered markdown to prevent leakage
         md_file = run_dir / "outreach_pack.md"
         if md_file.exists():
             md_file.unlink()
-        print(f"  [BLOCKED] Delivery contract failed: {len(contract_result.errors)} errors")
+        blocked_error_count = len(contract_result.errors) + len(model_log_warnings)
+        print(f"  [BLOCKED] Delivery contract failed: {blocked_error_count} errors")
     elif contract_result.warnings:
         # PASSED_WITH_WARNINGS: only for non-fact-affecting issues
         outcome.set_validation(
@@ -1073,24 +1083,38 @@ def run_starplan_chat(
     # ── Phase B (W-01): aggregate model calls from log ──
     model_call_entries: list[dict] = []
     log_file = Path(log_path)
-    if log_file.exists():
+    if not log_file.exists():
+        artifact_errors.append("model_call_log.jsonl missing")
+    else:
         try:
             log_lines = log_file.read_text(encoding="utf-8").splitlines()
         except (OSError, UnicodeDecodeError) as exc:
             artifact_errors.append(f"model_call_log.jsonl cannot be read: {exc}")
             log_lines = []
-        for line in log_lines:
+        for line_no, line in enumerate(log_lines, 1):
             if not line.strip():
                 continue
             try:
                 entry = json.loads(line)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:
+                artifact_errors.append(
+                    f"model_call_log.jsonl invalid JSON at line {line_no}: {exc}"
+                )
                 continue
             if isinstance(entry, dict) and entry.get("type") == "model_call":
                 model_call_entries.append(entry)
     model_call_count = len(model_call_entries)
     model_stages = [entry.get("step") for entry in model_call_entries if entry.get("step")]
     model_log_errors = [e for e in artifact_errors if e.startswith("model_call_log.jsonl")]
+    if (
+        not model_call_entries
+        and not chat_call_error
+        and not orchestration_incomplete
+    ):
+        model_log_errors.append(
+            "model_call_log.jsonl contains no model_call event for a successful Chat response"
+        )
+        artifact_errors.extend(model_log_errors[-1:])
     if model_log_errors and contract_passed:
         contract_passed = False
         contract_result.issues.extend(

@@ -179,7 +179,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 检查每个 `runs/` 子目录是否包含完整输出文件。
 
-## 架构验收状态（2026-08-02 更新）
+## 架构验收状态（2026-08-03 更新）
 
 基于 2026-08-01 独立审计报告（6 CRITICAL + 4 WARNING），Phase A-D 修复已完成：
 
@@ -190,7 +190,9 @@ python scripts/run_case.py examples/case_03_observation_review.json
 | C | C-04（复盘 Evidence Claim ID + 精确因果链）、W-04（异常审计） | 已验证通过 |
 | D | C-05（无天气源禁止具体温度）、C-06（极昼 no_astronomical_night 原因码） | 已验证通过 |
 
-离线测试：153 passed, 0 failed（排除需要真实百炼 API 的 11 条在线测试）。
+P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
+
+离线测试：184 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
 
 **关键架构组件：**
 
@@ -201,10 +203,10 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 **尚未完全闭合的项目（诚实标注）：**
 
-- 复盘 Qwen 完整 ID-only 协议（候选原因模板库 + 建议模板库）未实现，当前 Qwen 仍返回自由文本（经数字验证和分类约束）
+- 复盘 Qwen 完整 ID-only 协议（候选原因模板库 + 建议模板库）未实现；当前版本默认不调用 Qwen，保留 helper 仅供 P1 协议实现
 - review report 未使用 RenderedDocument + 双向覆盖门禁（outreach 已实现）
 - 天气 Claim 接入后需恢复具体温度显示（当前为非事实化操作指令）
-- 六类终态参数化 E2E 矩阵未完整建立
+- 六类终态参数化 E2E 矩阵仍需在独立环境复跑确认；本地 R1-R3 已有真实入口对抗测试
 
 ## 赛项信息
 

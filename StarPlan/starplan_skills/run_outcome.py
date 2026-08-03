@@ -145,8 +145,10 @@ class RunOutcome:
         if not log_path:
             return []
         path = Path(log_path)
+        # Re-import is authoritative; never retain events from an older log.
+        self.model_call_events = []
         if not path.exists():
-            return []
+            return ["model_call_log.jsonl missing"]
         warnings: list[str] = []
         imported: list[dict] = []
         try:
