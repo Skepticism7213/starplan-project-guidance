@@ -615,6 +615,19 @@ class ObservationReview(BaseModel):
     revised_plan_diff: list[RevisedPlanDiff] = Field(default_factory=list)
     review_report_md_path: Optional[str] = None
     revised_plan_json_path: Optional[str] = None
+    # P1 Batch E: executable next-round input
+    next_input_path: Optional[str] = Field(
+        default=None,
+        description="Path to next_activity_input.json (validated StarPlanInput)",
+    )
+    parent_run_id: Optional[str] = Field(
+        default=None,
+        description="Run ID of the plan this review revises",
+    )
+    source_cause_ids: list[str] = Field(
+        default_factory=list,
+        description="Cause IDs that drove any next-input patch (summary level)",
+    )
 
 
 # ──────────────────────────────────────────────

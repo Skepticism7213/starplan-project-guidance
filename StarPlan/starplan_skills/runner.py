@@ -295,6 +295,8 @@ def run_starplan(
             timezone_name=location.get("timezone", "Asia/Shanghai"),
             log_path=str(run_dir / "model_call_log.jsonl"),
             use_qwen=False,  # Batch B: deterministic-only until ID-only protocol (P1)
+            original_input=input_data,
+            parent_run_id=run_id,
         )
         outcome.record_stage_timing(
             "observation_review", (time.perf_counter() - review_started) * 1000
