@@ -19,6 +19,7 @@ import hashlib
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -54,6 +55,7 @@ def generate_outreach_pack(
     run_dir: Optional[Path] = None,
     use_qwen: bool = True,
     log_path: Optional[str] = None,
+    timing_sink: Optional[dict[str, float]] = None,
 ) -> OutreachPack:
     """
     Generate an outreach activity pack based on verified Claims.
@@ -62,6 +64,7 @@ def generate_outreach_pack(
     unified section renderer. Qwen's role is limited to selecting and
     ordering Claims (ExpressionPlan); it never produces final text.
     """
+    claim_started = time.perf_counter()
     # Build Claim Registry FIRST
     claims_builder = AllowedClaimsBuilder(
         target=target,
@@ -74,6 +77,8 @@ def generate_outreach_pack(
     claims_builder.build()
     if run_dir:
         claims_builder.save(run_dir)
+    if timing_sink is not None:
+        timing_sink["outreach_pack_claim_build"] = (time.perf_counter() - claim_started) * 1000
 
     # Not-observable branch
     if not obs_result.is_observable:
@@ -85,6 +90,7 @@ def generate_outreach_pack(
             goal=goal,
             run_dir=run_dir,
             claims_builder=claims_builder,
+            timing_sink=timing_sink,
         )
 
     # ── Talking points: ExpressionPlan protocol ──
@@ -92,6 +98,7 @@ def generate_outreach_pack(
     qwen_validation_issues: list[str] = []
     talking_points_result: RenderResult | None = None
 
+    model_started = time.perf_counter()
     if use_qwen and _qwen_available():
         try:
             plan, plan_issues = _generate_expression_plan_qwen(
@@ -102,6 +109,7 @@ def generate_outreach_pack(
                     plan, claims_builder,
                     expected_scope_target=target.standard_name,
                     expected_scope_date=str(obs_result.date_range[0]) if obs_result.date_range else None,
+                    claims_path=(run_dir / "claims.json") if run_dir else None,
                 )
                 if vresult.passed:
                     talking_points_result = render_from_expression_plan(
@@ -134,8 +142,14 @@ def generate_outreach_pack(
             claims_builder, audience,
             reason="template_mode (Qwen not available or disabled)",
         )
+    if timing_sink is not None:
+        timing_sink["outreach_pack_model_call"] = (
+            (time.perf_counter() - model_started) * 1000
+            if use_qwen and _qwen_available() else 0.0
+        )
 
     # ── Render ALL sections from Claims ──
+    render_started = time.perf_counter()
     sections = render_all_sections(
         claims_builder, audience, equipment, talking_points_result,
     )
@@ -196,6 +210,8 @@ def generate_outreach_pack(
         }
         with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
             json.dump(expr_plan, f, ensure_ascii=False, indent=2)
+    if timing_sink is not None:
+        timing_sink["outreach_pack_render"] = (time.perf_counter() - render_started) * 1000
 
     return OutreachPack(
         target_name=target.standard_name,
@@ -220,6 +236,7 @@ def _generate_not_observable_pack(
     goal: str,
     run_dir: Optional[Path] = None,
     claims_builder: Optional[AllowedClaimsBuilder] = None,
+    timing_sink: Optional[dict[str, float]] = None,
 ) -> OutreachPack:
     """Generate a cancellation/alternative pack when target is NOT observable.
 
@@ -244,6 +261,7 @@ def _generate_not_observable_pack(
         )
 
     # Render all sections (not-observable path)
+    render_started = time.perf_counter()
     sections = render_all_sections(claims_builder, audience, equipment)
 
     # Phase A: assemble RenderedDocument
@@ -295,6 +313,9 @@ def _generate_not_observable_pack(
         }
         with open(run_dir / "expression_plan.json", "w", encoding="utf-8") as f:
             json.dump(expression_plan, f, ensure_ascii=False, indent=2)
+    if timing_sink is not None:
+        timing_sink["outreach_pack_model_call"] = 0.0
+        timing_sink["outreach_pack_render"] = (time.perf_counter() - render_started) * 1000
 
     return OutreachPack(
         target_name=target.standard_name,

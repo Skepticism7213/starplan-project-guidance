@@ -173,6 +173,12 @@ def compute_observability(
     Returns:
         ObservabilityResult with all computed data.
     """
+    # Public Skill calls may bypass runner.py.  Apply the same idempotent
+    # offline policy before the first Astropy object is created so direct use
+    # cannot silently fall back to network-dependent IERS behavior.
+    from .astro_runtime import configure_astronomy_runtime
+    configure_astronomy_runtime()
+
     # Load constraint config
     cfg = load_constraints()
     alt_cfg = cfg.get("altitude", {})
@@ -267,55 +273,46 @@ def compute_observability(
             (obs_date + timedelta(days=1)).replace(hour=4, minute=0), tz_hours
         )
 
-    # Compute hourly data through the night
+    # Compute the unchanged 15-minute grid in one Astropy batch.  The old
+    # scalar loop repeated four coordinate transforms per sample; array
+    # transforms preserve the exact frame, rounding, and window rules while
+    # avoiding that repeated setup cost.
     hourly_data: list[HourlyData] = []
-    time_points: list[Time] = []
-    altitudes: list[float] = []
-    azimuths: list[float] = []
-    airmasses: list[Optional[float]] = []
-
-    # Generate time grid: every 15 minutes through the night
+    sample_times: list[datetime] = []
     t_current = night_start
     step = timedelta(minutes=15)
     while t_current <= night_end:
-        astropy_t = _astropy_time(t_current)
-        altaz_frame = AltAz(obstime=astropy_t, location=obs_loc)
-        target_altaz = target.transform_to(altaz_frame)
+        sample_times.append(t_current)
+        t_current += step
 
-        alt = float(target_altaz.alt.deg)
-        az = float(target_altaz.az.deg)
-        am = float(target_altaz.secz) if alt > 0 else None
+    sample_astropy_times = Time(sample_times, scale="utc")
+    sample_altaz_frame = AltAz(obstime=sample_astropy_times, location=obs_loc)
+    target_altaz = target.transform_to(sample_altaz_frame)
+    sun_altaz = get_body("sun", sample_astropy_times, obs_loc).transform_to(sample_altaz_frame)
+    moon_altaz = get_body("moon", sample_astropy_times, obs_loc).transform_to(sample_altaz_frame)
+    moon_separations = target_altaz.separation(moon_altaz).deg
 
-        # Sun altitude
-        sun_coord = get_body("sun", astropy_t, obs_loc)
-        sun_altaz = sun_coord.transform_to(altaz_frame)
-        sun_alt = float(sun_altaz.alt.deg)
+    altitudes = np.asarray(target_altaz.alt.deg, dtype=float)
+    azimuths = np.asarray(target_altaz.az.deg, dtype=float)
+    sun_altitudes = np.asarray(sun_altaz.alt.deg, dtype=float)
+    moon_altitudes = np.asarray(moon_altaz.alt.deg, dtype=float)
+    moon_separations = np.asarray(moon_separations, dtype=float)
 
-        # Moon data
-        moon_coord = get_body("moon", astropy_t, obs_loc)
-        moon_altaz = moon_coord.transform_to(altaz_frame)
-        moon_alt = float(moon_altaz.alt.deg)
-        # Use encapsulated function (enforces same-frame AltAz, C-1 fix)
-        moon_sep = moon_target_apparent_separation(target, astropy_t, obs_loc)
-
+    for idx, t_current in enumerate(sample_times):
+        alt = float(altitudes[idx])
+        az = float(azimuths[idx])
+        am = float(target_altaz.secz[idx]) if alt > 0 else None
         hourly_data.append(
             HourlyData(
                 time=_to_local(t_current, tz),
                 altitude_deg=round(alt, 2),
                 azimuth_deg=round(az, 2),
                 airmass=round(am, 3) if am and am < 38 else None,
-                sun_altitude_deg=round(sun_alt, 2),
-                moon_altitude_deg=round(moon_alt, 2),
-                moon_separation_deg=round(moon_sep, 2),
+                sun_altitude_deg=round(float(sun_altitudes[idx]), 2),
+                moon_altitude_deg=round(float(moon_altitudes[idx]), 2),
+                moon_separation_deg=round(float(moon_separations[idx]), 2),
             )
         )
-
-        time_points.append(astropy_t)
-        altitudes.append(alt)
-        azimuths.append(az)
-        airmasses.append(am)
-
-        t_current += step
 
     # Moon info summary
     moon_alts = [h.moon_altitude_deg for h in hourly_data if h.moon_altitude_deg is not None]
@@ -595,6 +592,16 @@ def _sun_altitude(obs_loc: EarthLocation, utc_time: datetime) -> float:
     return float(sun_altaz.alt.deg)
 
 
+def _sun_altitudes(obs_loc: EarthLocation, utc_times: list[datetime]) -> np.ndarray:
+    """Compute a batch of Sun altitudes for a fixed location."""
+    if not utc_times:
+        return np.asarray([], dtype=float)
+    times = Time(utc_times, scale="utc")
+    frame = AltAz(obstime=times, location=obs_loc)
+    sun = get_body("sun", times, obs_loc).transform_to(frame)
+    return np.asarray(sun.alt.deg, dtype=float)
+
+
 def _bisect_crossing(
     obs_loc: EarthLocation, t_before: datetime, t_after: datetime,
     threshold: float, tz_hours: float,
@@ -625,14 +632,17 @@ def _compute_twilight(
     """
     results = [None, None, None, None]  # sunset, civil, nautical, astronomical
     thresholds = [0, -6, -12, -18]
+    # Scan with the same 5-minute grid (local hours from obs_date midnight)
+    step_hours = 5.0 / 60.0
+    scan_times = [
+        _local_hour_to_utc(obs_date, local_h_float, tz_hours)
+        for local_h_float in _frange(14.0, 26.0, step_hours)
+    ]
+    scan_altitudes = _sun_altitudes(obs_loc, scan_times)
     prev_t = None
     prev_alt = None
-
-    # Scan with 5-minute steps (local hours from obs_date midnight)
-    step_hours = 5.0 / 60.0  # 5 minutes in hours
-    for local_h_float in _frange(14.0, 26.0, step_hours):
-        t = _local_hour_to_utc(obs_date, local_h_float, tz_hours)
-        sun_alt = _sun_altitude(obs_loc, t)
+    for t, sun_alt in zip(scan_times, scan_altitudes):
+        sun_alt = float(sun_alt)
 
         if prev_alt is not None:
             for idx, threshold in enumerate(thresholds):
@@ -659,13 +669,16 @@ def _compute_morning_twilight(
     sunrise = None
     astro_start = None
     base_date = next_date - timedelta(days=1)
+    step_hours = 5.0 / 60.0
+    scan_times = [
+        _local_hour_to_utc(base_date, local_h_float, tz_hours)
+        for local_h_float in _frange(20.0, 34.0, step_hours)
+    ]
+    scan_altitudes = _sun_altitudes(obs_loc, scan_times)
     prev_t = None
     prev_alt = None
-
-    step_hours = 5.0 / 60.0
-    for local_h_float in _frange(20.0, 34.0, step_hours):
-        t = _local_hour_to_utc(base_date, local_h_float, tz_hours)
-        sun_alt = _sun_altitude(obs_loc, t)
+    for t, sun_alt in zip(scan_times, scan_altitudes):
+        sun_alt = float(sun_alt)
 
         if prev_alt is not None:
             # Morning crossings: sun goes from below to above threshold

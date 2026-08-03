@@ -251,6 +251,104 @@ class AllowedClaimsBuilder:
 
         return violations
 
+    def verify_saved_registry(self, path: Path) -> list[str]:
+        """Verify the serialized registry against this sealed builder.
+
+        Runtime integrity checks protect the in-memory builder.  This second
+        check protects the evidence file that will be consumed by a later
+        validator or reviewer: malformed JSON, missing/extra claims, changed
+        values, and stale source hashes are all blocking conditions.
+        """
+        path = Path(path)
+        violations: list[str] = []
+        try:
+            raw = path.read_bytes()
+            data = json.loads(raw.decode("utf-8"))
+        except FileNotFoundError:
+            return [f"Saved Claim Registry missing: {path.name}"]
+        except UnicodeDecodeError as exc:
+            return [f"Saved Claim Registry is not valid UTF-8: {exc}"]
+        except json.JSONDecodeError as exc:
+            return [f"Saved Claim Registry is not valid JSON: {exc}"]
+        except OSError as exc:
+            return [f"Saved Claim Registry cannot be read: {exc}"]
+
+        if not isinstance(data, dict):
+            return ["Saved Claim Registry root must be a JSON object"]
+        if data.get("schema_version") != "1.1":
+            violations.append(
+                f"Saved Claim Registry schema_version={data.get('schema_version')!r}; expected '1.1'"
+            )
+
+        expected_claims = [c.model_dump(mode="json") for c in self._claims]
+        expected_prohibited = [c.model_dump(mode="json") for c in self._prohibited]
+
+        def _index(items, label: str) -> dict[str, dict]:
+            index: dict[str, dict] = {}
+            if not isinstance(items, list):
+                violations.append(f"Saved Claim Registry '{label}' must be a list")
+                return index
+            for item in items:
+                if not isinstance(item, dict) or not item.get("claim_id"):
+                    violations.append(f"Saved Claim Registry contains invalid {label} entry")
+                    continue
+                claim_id = str(item["claim_id"])
+                if claim_id in index:
+                    violations.append(f"Saved Claim Registry contains duplicate {label} id: {claim_id}")
+                index[claim_id] = item
+            return index
+
+        saved_claims = _index(data.get("claims"), "claims")
+        saved_prohibited = _index(data.get("prohibited"), "prohibited")
+        expected_claim_index = {str(c["claim_id"]): c for c in expected_claims}
+        expected_prohibited_index = {str(c["claim_id"]): c for c in expected_prohibited}
+
+        for label, expected, saved in (
+            ("claims", expected_claim_index, saved_claims),
+            ("prohibited", expected_prohibited_index, saved_prohibited),
+        ):
+            missing = sorted(set(expected) - set(saved))
+            extra = sorted(set(saved) - set(expected))
+            if missing:
+                violations.append(f"Saved Claim Registry missing {label}: {missing}")
+            if extra:
+                violations.append(f"Saved Claim Registry has extra {label}: {extra}")
+            for claim_id in sorted(set(expected) & set(saved)):
+                if saved[claim_id] != expected[claim_id]:
+                    violations.append(f"Saved Claim Registry modified {label} claim: {claim_id}")
+
+        if data.get("registry_hash") != self._sealed_registry_hash:
+            violations.append(
+                f"Saved registry_hash mismatch: saved={data.get('registry_hash')!r}, "
+                f"expected={self._sealed_registry_hash!r}"
+            )
+
+        expected_sources = {
+            "target": self._hash_source(self._target_snapshot),
+            "observability": self._hash_source(self._obs_snapshot),
+            "context": self._hash_source(self._context_snapshot),
+        }
+        if data.get("source_artifact_hashes") != expected_sources:
+            violations.append(
+                "Saved source_artifact_hashes do not match the target, observability, and context snapshots"
+            )
+
+        expected_rules_hash = self._hash_source(self._derivation_rules_snapshot)
+        if data.get("derivation_rules_hash") != expected_rules_hash:
+            violations.append("Saved derivation_rules_hash does not match the sealed derivation rules")
+
+        from .templates import SENTENCE_VARIANTS
+        expected_template_hash = self._hash_source(
+            {k: v.get("template", "") for k, v in sorted(SENTENCE_VARIANTS.items())}
+        )
+        if data.get("template_set_hash") != expected_template_hash:
+            violations.append("Saved template_set_hash does not match the current sentence templates")
+
+        if data.get("run_scope") != self._scope.model_dump(mode="json"):
+            violations.append("Saved run_scope does not match the sealed run scope")
+
+        return violations
+
     def get_claim(self, claim_id: str) -> Optional[Claim]:
         """Look up a claim by ID."""
         for c in self._claims:

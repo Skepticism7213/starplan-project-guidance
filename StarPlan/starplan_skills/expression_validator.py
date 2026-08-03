@@ -64,6 +64,7 @@ def validate_expression_plan(
     claims_builder: AllowedClaimsBuilder,
     expected_scope_target: Optional[str] = None,
     expected_scope_date: Optional[str] = None,
+    claims_path=None,
 ) -> ValidationResult:
     """Run the 8-step validation on an ExpressionPlan.
 
@@ -72,6 +73,9 @@ def validate_expression_plan(
         claims_builder: The run's Claim Registry.
         expected_scope_target: Expected target name for scope validation.
         expected_scope_date: Expected date for scope validation.
+        claims_path: Optional serialized claims.json path. When supplied, the
+            on-disk registry is verified in addition to the sealed in-memory
+            registry.
 
     Returns:
         ValidationResult. If passed=False, the plan MUST NOT be rendered;
@@ -239,6 +243,14 @@ def validate_expression_plan(
             claim_id=None,
         ))
 
+    if claims_path is not None:
+        for violation in claims_builder.verify_saved_registry(claims_path):
+            issues.append(ValidationIssue(
+                step=8, step_name="saved_registry_integrity",
+                severity="error",
+                message=f"Saved registry violation: {violation}",
+            ))
+
     # ── Final verdict ──
     passed = len([i for i in issues if i.severity == "error"]) == 0
     return ValidationResult(passed=passed, issues=issues, warnings=warnings)
@@ -309,6 +321,18 @@ def validate_delivery_contract(
             ))
 
     # If critical artifacts missing, cannot proceed with further checks
+    if issues:
+        return ValidationResult(passed=False, issues=issues, warnings=warnings)
+
+    # The serialized registry is part of the delivery contract, not merely an
+    # implementation detail.  A missing, stale, or modified claims file must
+    # block even when the rendered document itself still parses.
+    for violation in claims_builder.verify_saved_registry(run_dir / "claims.json"):
+        issues.append(ValidationIssue(
+            step=1, step_name="saved_registry_integrity",
+            severity="error",
+            message=f"Saved registry violation: {violation}",
+        ))
     if issues:
         return ValidationResult(passed=False, issues=issues, warnings=warnings)
 
