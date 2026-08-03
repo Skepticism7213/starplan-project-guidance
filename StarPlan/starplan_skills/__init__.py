@@ -15,6 +15,10 @@ Week 3 additions:
 
 __version__ = "0.8.0"
 
+from .encoding import configure_utf8_stdio
+
+configure_utf8_stdio()
+
 from .runner import run_starplan, run_starplan_nl, run_starplan_chat
 from .exceptions import TargetConfirmationRequired
 from .nl_parser import parse_natural_language

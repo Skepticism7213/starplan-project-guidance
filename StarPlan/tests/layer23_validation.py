@@ -19,6 +19,11 @@ from collections import defaultdict
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
+sys.path.insert(0, str(DATA_DIR.parent))
+from starplan_skills.encoding import configure_utf8_stdio
+
+configure_utf8_stdio()
+
 # Known correct Chinese names for bright stars (reference)
 KNOWN_CHINESE_STAR_NAMES = {
     "Sirius": ["天狼星"],

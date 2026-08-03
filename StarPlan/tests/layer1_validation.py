@@ -9,6 +9,10 @@ from collections import defaultdict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from starplan_skills.encoding import configure_utf8_stdio
+
+configure_utf8_stdio()
+
 from astropy.coordinates import SkyCoord, get_constellation
 import astropy.units as u
 

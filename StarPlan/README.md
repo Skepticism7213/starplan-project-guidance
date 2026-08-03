@@ -35,6 +35,29 @@ cp .env.example .env
 #   STARPLAN_QWEN_RETRIES=1            # 5xx/网络错误重试次数
 ```
 
+#### Windows 一次性环境初始化
+
+Windows PowerShell 可能把默认 Python 标准输入/输出设为 GBK。项目提供幂等初始化和 UTF-8 运行入口：依赖文件哈希不变时不会重复安装；首次运行会在 `StarPlan/.venv` 创建项目环境。
+
+```powershell
+Set-Location StarPlan
+powershell -ExecutionPolicy Bypass -File scripts/bootstrap_windows.ps1
+powershell -ExecutionPolicy Bypass -File scripts/run_utf8.ps1 scripts/run_case.py examples/case_01_m31_jinan.json
+```
+
+直接调用 Python 做离线检查时也应显式使用 UTF-8 和离线门禁：
+
+```powershell
+$env:PYTHONUTF8 = "1"
+$env:PYTHONIOENCODING = "utf-8"
+$env:STARPLAN_MODEL_MODE = "offline"
+$env:ASTROPY_CACHE_DIR = Join-Path $env:TEMP "starplan_astropy"
+New-Item -ItemType Directory -Force $env:ASTROPY_CACHE_DIR | Out-Null
+python -X utf8 -m pytest tests --ignore=tests/test_qwen_integration.py -p no:cacheprovider -q
+```
+
+`scripts/run_offline_ci.bat` 已内置同样的代码页、Python UTF-8 和可写临时目录设置。
+
 ### 运行案例
 
 ```bash
@@ -91,6 +114,7 @@ StarPlan/
   .gitignore
   starplan_skills/
     __init__.py
+    encoding.py               # Windows/Python UTF-8 标准输入输出初始化
     schemas.py                 # 统一输入/输出 Pydantic Schema（extra=forbid）
     config.py                  # 配置加载器
     runner.py                  # 总控入口 (starplan.run)
@@ -113,6 +137,8 @@ StarPlan/
     case_02_unfavorable_window.json
     case_03_observation_review.json
   scripts/
+    bootstrap_windows.ps1     # 幂等创建 .venv，并按 requirements 哈希安装一次
+    run_utf8.ps1              # 使用项目环境和 UTF-8 执行 Python 脚本
     run_case.py
     validate_examples.py
   runs/                        # 运行输出（gitignore）
@@ -135,7 +161,6 @@ StarPlan/
 | Astropy | 天体坐标框架、时间系统 | BSD 3-Clause |
 | astroplan | 观测约束计算 | BSD 3-Clause |
 | matplotlib | 可视化图表 | PSF (permissive) |
-| pandas | CSV 数据处理 | BSD 3-Clause |
 | pydantic | Schema 验证 | MIT |
 | dashscope | 阿里云百炼 API | Apache 2.0 |
 
@@ -206,7 +231,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线测试：211 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+离线回归（即使本机存在 `.env` 也禁止联网）应先设置 `STARPLAN_MODEL_MODE=offline`，再执行 `python -m pytest tests --ignore=tests/test_qwen_integration.py -p no:cacheprovider -q`；本机当前结果为 **211 passed, 0 failed，71.61s**。需要真实百炼 API 的在线测试单独执行；无 Key 的环境可能显示 9 skipped，有 Key 但未隔离时会尝试联网。完整复现边界见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-local-reproducibility-recheck.md`。
 
 **2026-08-03 在线修复（v0.6.0）：**
 
@@ -215,6 +240,7 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - Chat 工具轮次上限从 3 提升到 6，适配每轮只调用一个工具的真实模型。
 - 收紧程序性日程 Claim 的变体白名单（如 `schedule.obs_guide` 不再允许 `schedule_obs_start_v1`），避免"开始观测 引导成员…"式别扭句子。
 - 新增 `StarPlan/.env.example` 与 10 个回归测试（兼容客户端 + Chat 地点/轮次）。
+- 本机通过代理对 `qwen3.7-plus` / `qwen3.7-max` / `qwen3.8-max` 完成 canary；项目自带在线集成套件在显式可写 `--basetemp` 下为 **9 passed，172.92s**。在线结果依赖 Key、模型权限和网络，不替代离线回归。
 
 **P1 Batch D（v0.7.0，2026-08-03）：**
 
@@ -228,7 +254,7 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - 复盘生成可执行下一轮输入：`observation_review` 接收原始 `StarPlanInput`，按白名单（`activity_preferences.*`）应用证据支持的修订（如迟到 → 推迟 `preferred_start`），移除 `observation_log` 后写出 `next_activity_input.json`；自由建议不进入 Schema 字段。
 - 二次运行与 before/after：`scripts/run_loop.py` 显式读取下一轮输入并重跑 runner，生成 `loop_before_after.md`（证据修订表 + 活动时段/流程前后对比，每项引用 cause_id）；`run_starplan` 不做隐式递归。
 - 证据边界：结构化时间差是唯一延迟证据来源；删除延迟证据后 `preferred_start` 补丁自动消失；无原始输入时不生成下一轮输入。
-- 新增 6 个 Batch E 回归测试；全量 211 passed, 9 skipped；版本统一为 0.8.0。
+- 新增 6 个 Batch E 回归测试；离线回归 211 passed；在线测试与离线门禁分开执行；版本统一为 0.8.0。
 
 **关键架构组件：**
 
