@@ -297,3 +297,44 @@ qwen3.7-plus 每轮只调用一个工具，4 个工具需要 4 轮 + 1 轮收尾
 - 原 C-3 状态更新为：**已定位（Key 与客户端不兼容），未修复**；新增 C-6a/C-6b（Chat 真实缺陷）。
 - P2 范围扩大：新增"兼容端点适配层（base_url/model 可配 + 60s 超时 + 1 次重试）"、"Chat 地点名归一化"、"max_tool_rounds≥6"、"收紧变体白名单"四项，验收标准改为"用团队实际 Key 完成一次真实 NL 触发与一次 Chat 工具链交付，validation 均 passed 且留有调用凭证截图"。
 - 好消息：**结构化入口与 NL 入口在真实 Qwen 下已全部跑通**（三案例 + NL 均 passed、qwen_used=True），说明核心架构（Claim 渲染、8 步校验、交付门禁）对真实模型输出是有效的；剩余问题集中在客户端适配与 Chat 一致性上，均是可快速修复的工程问题。
+
+---
+
+## 十、P2 前置修复实施结果（2026-08-03，已完成）
+
+### 10.1 已实施的代码修复（v0.6.0）
+
+| 修复项 | 对应问题 | 改动 |
+|---|---|---|
+| OpenAI 兼容端点适配层 | C-3 | `qwen_client.py` 新增 `STARPLAN_QWEN_BASE_URL` / `STARPLAN_QWEN_MODEL` / `STARPLAN_QWEN_TIMEOUT` / `STARPLAN_QWEN_RETRIES` 环境变量；兼容模式下 `call_qwen` / `call_qwen_json` / `call_qwen_chat` 走 `chat/completions`（含工具调用、JSON 解析、5xx/网络错误有界重试、60s 默认超时）；原生 DashScope 路径保持默认 |
+| Chat 地点名归一化 | C-6a | `runner.py` 的 `_exec_observability_plan` 优先使用 `resolve_location` 返回的标准化地点名，obs 结果与最终 Claim 校验范围一致 |
+| Chat 轮次上限 | C-6b | `runner.py` 的 `max_tool_rounds` 从 3 提升到 6，并在系统提示中鼓励并行工具调用 |
+| 变体白名单收紧 | I-5 | `claims.py` 中 `schedule.obs_progress/obs_guide/obs_end/obs_descend` 仅允许 `schedule_proc_v1`；`schedule.cleanup` 保留与渲染块共用的 `schedule_twilight_end_v1` |
+| 缺失文件补齐 | W-6 | 新增 `StarPlan/.env.example`（含兼容端点/模型/超时/重试说明） |
+| 版本一致性 | W-6 | `__version__` / `skills.yaml` / README 统一为 0.6.0 |
+
+### 10.2 验证结果
+
+**离线全量**：`pytest -q` = **195 passed, 9 skipped, 0 failed**（原 185 + 新增 10 个回归测试；9 个跳过仍为需要真实 Key 的在线集成测试）。
+
+新增回归测试：
+
+- `tests/test_qwen_compatible_client.py`（7 项）：兼容端点 JSON 调用与日志、模型环境变量覆盖、超时传递、工具调用循环、5xx 重试、403 不重试、原生路径回退。
+- `tests/test_chat_location_normalization.py`（3 项）：真实 Chat 输入形态（用户原话地点名）可交付；轮次上限 ≥6；日程 Claim 变体白名单收紧。
+
+**真实在线（Key-3 + qwen3.7-plus + 兼容端点，适配层为仓库正式代码）**：
+
+| 场景 | 结果 |
+|---|---|
+| NL 自然语言 → 全链路 | **passed / qwen_expression_plan / qwen_used=True**，2 次真实调用 |
+| 固定案例 1（M31） | **passed / qwen_expression_plan**，1 次真实调用 |
+| Chat 正常路径 | **passed**，4 个工具全部调用、4 次真实模型调用，最终输出为 Claim 渲染内容 |
+| Chat 对抗（拒绝工具） | 正确 fail-closed（blocked），幻觉核查识别 1 个不可溯源数值 |
+
+**Key 状态变化**：Key-1 与 Key-2 在本日后续探测中已返回 401（被轮换/失效）；失效 Key 走适配层时会 fail-closed 回退模板并留下 `finish_reason=error` 审计条目（已在 Key-2 实测中确认）。**请团队用最新有效 Key 重跑一次完整演示并保存调用凭证。**
+
+### 10.3 剩余状态
+
+- 已关闭：C-3（客户端适配）、C-6a、C-6b、I-5、W-6 中 `.env.example` 与版本漂移部分。
+- 仍未开始：P1 Batch D（现实活动时段 + 三视图 + 未成年人安全模板）、P1 Batch E（可执行下一轮 + before/after）、P3（三案例入库 + 独立复现 + 人工复核）、P4（PDF + 视频）。
+- 遗留：Chat 每轮单工具导致 4–5 次调用（约 40–50s），演示需设置 ≥90s 预算或换更快模型；运行记录仍未入库（`runs/*/` 保持 gitignore，提交包需另附）。

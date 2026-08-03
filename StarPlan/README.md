@@ -26,6 +26,13 @@ pip install -r requirements.txt
 # 配置 API Key（用于 Qwen 调用，核心计算不需要）
 cp .env.example .env
 # 编辑 .env，填入你的 DASHSCOPE_API_KEY
+
+# 若 Key 仅授权 OpenAI 兼容端点下的特定模型（常见于 sk-ws- 开头的 Key），
+# 在 .env 中追加：
+#   STARPLAN_QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+#   STARPLAN_QWEN_MODEL=qwen3.7-plus   # 或 qwen3.8-max 等实际授权模型
+#   STARPLAN_QWEN_TIMEOUT=60           # 单次调用超时（秒）
+#   STARPLAN_QWEN_RETRIES=1            # 5xx/网络错误重试次数
 ```
 
 ### 运行案例
@@ -73,7 +80,7 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件（v0.5.0 Claim 架构）
+  skills.yaml                  # Skills 定义文件（v0.6.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
@@ -192,7 +199,15 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线测试：184 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+离线测试：195 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+
+**2026-08-03 在线修复（v0.6.0）：**
+
+- 新增 OpenAI 兼容端点适配：`STARPLAN_QWEN_BASE_URL` / `STARPLAN_QWEN_MODEL` / 超时与重试环境变量；兼容模式下 `call_qwen` / `call_qwen_json` / `call_qwen_chat` 走 `chat/completions`，原生 DashScope 路径保持不变。
+- Chat 模式地点名归一化：`observability_plan` 优先使用 `resolve_location` 返回的标准化地点名，修复真实 Qwen 传入用户原话导致 Claim 范围校验全挂的问题（原 53 项 Saved registry violation）。
+- Chat 工具轮次上限从 3 提升到 6，适配每轮只调用一个工具的真实模型。
+- 收紧程序性日程 Claim 的变体白名单（如 `schedule.obs_guide` 不再允许 `schedule_obs_start_v1`），避免"开始观测 引导成员…"式别扭句子。
+- 新增 `StarPlan/.env.example` 与 10 个回归测试（兼容客户端 + Chat 地点/轮次）。
 
 **关键架构组件：**
 
@@ -207,6 +222,7 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - review report 未使用 RenderedDocument + 双向覆盖门禁（outreach 已实现）
 - 天气 Claim 接入后需恢复具体温度显示（当前为非事实化操作指令）
 - 六类终态参数化 E2E 矩阵仍需在独立环境复跑确认；本地 R1-R3 已有真实入口对抗测试
+- 真实在线验证依赖百炼 Key 的授权模型与端点（sk-ws- Key 通常需兼容端点）；现场演示前须用团队实际 Key 复跑并录制调用凭证
 
 ## 赛项信息
 

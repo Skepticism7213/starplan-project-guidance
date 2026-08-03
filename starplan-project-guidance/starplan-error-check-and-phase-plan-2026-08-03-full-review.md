@@ -58,6 +58,19 @@
 
 **实测证据**：Key-3 + qwen3.7-plus 兼容端点（临时适配层，未入库）下，NL 全链路、案例 1/2/3 均 passed（qwen_expression_plan / template）；Chat 正常路径被 C-6a/C-6b 阻断；Chat 对抗场景正确 fail-closed（识别 2 个不可溯源数值，0 事实输出）。运行目录：`StarPlan/runs/live_nl_q37p`、`live_case1_q37p`、`live_case2_q37p`、`live_case3_q37p`、`live_chat_q37p`、`live_chat_q37p_r8`、`live_chat_notool_q37p`。
 
+### 修复实施后的复查（v0.6.0，2026-08-03 晚）
+
+| 编号 | 状态 | 验证 |
+|---|---|---|
+| C-3 | **已修复** | `qwen_client.py` 新增兼容端点适配层（`STARPLAN_QWEN_BASE_URL`/`STARPLAN_QWEN_MODEL`/超时/重试）；真实 Key-3（qwen3.7-plus）NL、案例 1、Chat 均 passed |
+| C-6a | **已修复** | `runner.py` 地点名归一化；新增回归测试 `test_chat_normalizes_location_and_delivers` 通过 |
+| C-6b | **已修复** | `max_tool_rounds=6`；新增回归测试通过；真实 Chat 4 轮工具链交付 passed |
+| W-11 | **部分修复** | 超时（默认 60s）与有界重试已加；延迟仍高（Chat 约 40–50s），演示需 ≥90s 预算 |
+| I-5 | **已修复** | `claims.py` 收紧日程 Claim 变体白名单；新增回归测试通过 |
+| I-6 | 维持 | 三把 Key 均未入库；Key-1/Key-2 已失效（401），失效时 fail-closed 回退并留审计 |
+
+**离线全量**：195 passed, 9 skipped, 0 failed（新增 10 个测试）。**真实在线（Key-3）**：NL passed（2 次调用）、案例 1 passed（1 次调用）、Chat passed（4 次调用）、Chat 对抗 blocked（正确 fail-closed）。
+
 ## 二、完成状态
 
 | 项目计划阶段 | 状态 | 说明 |
