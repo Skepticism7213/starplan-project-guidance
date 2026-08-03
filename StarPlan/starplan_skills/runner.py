@@ -196,6 +196,11 @@ def run_starplan(
             target_magnitude=resolved.visual_magnitude,
             target_angular_size_arcmin=resolved.angular_size_arcmin,
             target_type=resolved.target_type,
+            activity_preferences=(
+                starplan_input.activity_preferences.model_dump()
+                if starplan_input.activity_preferences
+                else None
+            ),
         )
     except Exception as e:
         # P0-C: persist RunOutcome with tool_error before propagating
@@ -244,6 +249,12 @@ def run_starplan(
         log_path=log_path,
         timing_sink=outreach_timings,
         timezone_name=location.get("timezone", "Asia/Shanghai"),
+        requested_views=(
+            list(starplan_input.audience_profile.requested_views)
+            if starplan_input.audience_profile
+            else ["organizer"]
+        ),
+        youth_policy=_audience_is_youth(starplan_input),
     )
     outcome.record_stage_timing(
         "outreach_pack_render",
@@ -335,6 +346,7 @@ def run_starplan(
         audience=outreach.audience,
         equipment=starplan_input.equipment or "binoculars",
         timezone_name=location.get("timezone", "Asia/Shanghai"),
+        youth_policy=_audience_is_youth(starplan_input),
     )
     _claims_builder.build()
 
@@ -462,6 +474,19 @@ def run_starplan(
         "validation_status": outcome.validation_status.value,
         "delivery_status": outcome.delivery_status.value,
     }
+
+
+def _audience_is_youth(starplan_input) -> bool:
+    """P1 Batch D: determine whether youth_activity_policy_v1 applies."""
+    if (
+        starplan_input.audience_profile
+        and starplan_input.audience_profile.age_band in ("kids", "middle_school")
+    ):
+        return True
+    return any(
+        keyword in starplan_input.audience
+        for keyword in ("小学生", "中学生", "儿童", "青少年")
+    )
 
 
 def _persist_outcome(outcome, run_dir: Path):

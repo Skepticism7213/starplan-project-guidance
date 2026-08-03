@@ -254,6 +254,33 @@ SENTENCE_VARIANTS: dict[str, dict] = {
         "note": "Twilight start triggers cleanup; display_value = twilight start time",
     },
 
+    # ── P1 Batch D: realistic activity slot schedule ──
+
+    "activity_slot_start_v1": {
+        "template": "活动将于 {display_value} 开始",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Realistic activity slot start (not the science window edge)",
+    },
+    "activity_slot_end_v1": {
+        "template": "活动观测部分预计于 {display_value} 结束",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Realistic activity slot end",
+    },
+    "activity_setup_v1": {
+        "template": "{display_value} 到达场地并完成设备准备",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Setup start from activity_slot_policy_v1",
+    },
+    "activity_cleanup_v1": {
+        "template": "{display_value} 完成收尾、点名与合影",
+        "audience": ["beginner", "general"],
+        "section": "schedule",
+        "note": "Cleanup end from activity_slot_policy_v1",
+    },
+
     # ── Equipment section ──
 
     "equipment_item_v1": {

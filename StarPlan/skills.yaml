@@ -1,11 +1,11 @@
 # StarPlan Loop Skills Definition
-# Version: 0.6.0
+# Version: 0.7.0
 # Date: 2026-08-03
 
 project:
   name: "StarPlan Loop"
-  version: "0.6.0"
-  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链架构 + 百炼兼容端点适配）"
+  version: "0.7.0"
+  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链 + 现实活动时段 + 三类分众视图 + 未成年人安全策略）"
 
 skills:
   - name: target_resolve
@@ -58,6 +58,14 @@ skills:
         - name: constraints
           type: ObservingConstraint
           required: false
+        - name: activity_preferences
+          type: ActivityPreferences
+          required: false
+          description: "现实活动时段偏好（时长 60-120 分钟、准备/收尾时间、偏好开始/最晚结束）"
+        - name: audience_profile
+          type: AudienceProfile
+          required: false
+          description: "结构化受众（年龄段、经验、所需视图：organizer/facilitator/learner）"
     output:
       schema: ObservabilityResult
     failure_handling:
@@ -92,6 +100,8 @@ skills:
         - claims.json (Claim Registry with registry_hash)
         - sentence_claim_map.json (every output sentence → claim_id mapping)
         - outreach_pack.md (final user-facing document)
+        - outreach_pack_facilitator.md / outreach_pack_learner.md (per-view docs from the same Claims)
+        - plan.json (含 activity_slot：由 activity_slot_policy_v1 从科学窗口确定性生成)
     failure_handling:
       - "Claim 缺失 → unconfirmed 标记，不静默补值"
       - "Qwen ExpressionPlan 验证失败 → fail-closed 确定性回退，原文不落地"
@@ -100,6 +110,7 @@ skills:
     human_confirmation:
       - "科普稿引用 unconfirmed Claim 时"
       - "系统准备替换主目标时"
+      - "未成年人活动：监护人许可、成人陪同与点名流程必须人工确认（youth_activity_policy_v1）"
 
   - name: observation_review
     description: "对比计划和实际日志，生成偏差分析和修订计划（归因基于 Evidence Claims）"

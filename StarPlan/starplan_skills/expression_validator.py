@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from .claims import AllowedClaimsBuilder
+from .rendering import RenderedDocument
 from .schemas import ClaimType, ExpressionPlan, SelectedClaim
 from .templates import SENTENCE_VARIANTS
 
@@ -487,9 +488,114 @@ def validate_delivery_contract(
                 message="sentence_claim_map.json is not valid JSON (non-blocking)",
             ))
 
+    # ── P1 Batch D: extra audience views ──
+    issues.extend(_validate_extra_views(run_dir, claims_builder))
+
     # ── Final verdict ──
     passed = len([i for i in issues if i.severity == "error"]) == 0
     return ValidationResult(passed=passed, issues=issues, warnings=warnings)
+
+
+def _validate_extra_views(run_dir, claims_builder) -> list[ValidationIssue]:
+    """Validate per-view RenderedDocuments written by outreach_pack.
+
+    Views only change which Claim-rendered sections appear, so the same
+    claim/variant/hash checks apply to each rendered_document_<view>.json.
+    """
+    import hashlib
+    import json
+    from pathlib import Path
+
+    run_dir = Path(run_dir)
+    issues: list[ValidationIssue] = []
+    for doc_path in sorted(run_dir.glob("rendered_document_*.json")):
+        view = doc_path.name[len("rendered_document_"):-len(".json")]
+        try:
+            doc = RenderedDocument.from_dict(
+                json.loads(doc_path.read_text(encoding="utf-8"))
+            )
+        except Exception as exc:
+            issues.append(ValidationIssue(
+                step=4, step_name="extra_view_invalid",
+                severity="error",
+                message=f"Extra view '{view}' rendered document invalid: {exc}",
+            ))
+            continue
+
+        for block in doc.all_blocks:
+            for cid in block.claim_ids:
+                claim = claims_builder.get_claim(cid)
+                if claim is None:
+                    issues.append(ValidationIssue(
+                        step=3, step_name="extra_view_claim_exists",
+                        severity="error",
+                        message=(
+                            f"View '{view}' block '{block.block_id}' references "
+                            f"unknown claim_id '{cid}'"
+                        ),
+                        claim_id=cid,
+                    ))
+                elif claim.claim_type == ClaimType.PROHIBITED:
+                    issues.append(ValidationIssue(
+                        step=3, step_name="extra_view_prohibited",
+                        severity="error",
+                        message=(
+                            f"View '{view}' block '{block.block_id}' references "
+                            f"PROHIBITED claim '{cid}'"
+                        ),
+                        claim_id=cid,
+                    ))
+                elif (
+                    block.variant_id
+                    and claim.allowed_variant_ids
+                    and block.variant_id not in claim.allowed_variant_ids
+                ):
+                    issues.append(ValidationIssue(
+                        step=3, step_name="extra_view_variant_allowed",
+                        severity="error",
+                        message=(
+                            f"View '{view}' block '{block.block_id}' uses variant "
+                            f"'{block.variant_id}' not allowed for claim '{cid}'"
+                        ),
+                        claim_id=cid,
+                        variant_id=block.variant_id,
+                    ))
+            expected_hash = hashlib.sha256(
+                block.final_text.encode("utf-8")
+            ).hexdigest()[:12]
+            if block.text_hash != expected_hash:
+                issues.append(ValidationIssue(
+                    step=4, step_name="extra_view_hash_integrity",
+                    severity="error",
+                    message=(
+                        f"View '{view}' block '{block.block_id}' hash mismatch"
+                    ),
+                ))
+
+        trace_path = run_dir / f"render_trace_{view}.json"
+        if trace_path.exists():
+            try:
+                trace = json.loads(trace_path.read_text(encoding="utf-8"))
+                trace_hashes = {
+                    entry.get("text_hash") for entry in trace.get("sentences", [])
+                }
+                missing = {b.text_hash for b in doc.all_blocks} - trace_hashes
+                if missing:
+                    issues.append(ValidationIssue(
+                        step=4, step_name="extra_view_trace_consistency",
+                        severity="error",
+                        message=(
+                            f"View '{view}' trace missing {len(missing)} "
+                            f"block hashes"
+                        ),
+                    ))
+            except Exception as exc:
+                issues.append(ValidationIssue(
+                    step=4, step_name="extra_view_trace_invalid",
+                    severity="error",
+                    message=f"View '{view}' trace invalid: {exc}",
+                ))
+    return issues
 
 
 def _extract_atomic_facts(markdown: str) -> set[str]:
