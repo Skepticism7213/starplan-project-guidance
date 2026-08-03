@@ -46,6 +46,9 @@ python scripts/run_case.py examples/case_02_unfavorable_window.json
 
 # 案例 3：实际活动复盘（M31 + 模拟观测日志）
 python scripts/run_case.py examples/case_03_observation_review.json
+
+# 完整闭环：计划 → 复盘 → 可执行下一轮输入 → 二次运行 → before/after 对比
+python scripts/run_loop.py examples/case_03_observation_review.json
 ```
 
 每个案例会在 `runs/` 目录下生成独立的输出文件夹，包含：
@@ -66,6 +69,8 @@ python scripts/run_case.py examples/case_03_observation_review.json
 | `run_outcome.json` | RunOutcome（业务/验证/交付三状态 + 文件哈希） |
 | `review_report.md` | 偏差复盘报告（仅案例 3） |
 | `revised_plan.json` | 修订后的下一次计划（仅案例 3） |
+| `next_activity_input.json` | 可再次进入 runner 的下一轮输入（仅案例 3，通过 StarPlanInput Schema） |
+| `loop_before_after.md` | 计划/复盘/二次运行的前后对比（仅 `run_loop.py`） |
 | `validation_report.md` | 验证报告 |
 | `model_call_log.jsonl` | Qwen 调用审计日志 |
 
@@ -81,7 +86,7 @@ python scripts/validate_examples.py
 StarPlan/
   README.md
   requirements.txt
-  skills.yaml                  # Skills 定义文件（v0.7.0 Claim 架构）
+  skills.yaml                  # Skills 定义文件（v0.8.0 Claim 架构）
   .env.example
   .gitignore
   starplan_skills/
@@ -121,7 +126,7 @@ StarPlan/
 | `target_resolve` | 解析目标名称为标准坐标 | 目标名称 | 标准名、坐标、类型、置信度 |
 | `observability_plan` | 计算可观测性并生成计划 | 坐标、地点、日期、设备 | 可见窗口、高度/方位、airmass、风险、blocking_reasons |
 | `outreach_pack` | 基于 Claim Registry 确定性渲染科普活动包 | Claim Registry、受众、设备 | 活动流程、讲解词、设备清单、sentence_claim_map |
-| `observation_review` | 复盘偏差并修订计划（Evidence Claim 归因） | 原计划、观测日志、log_path | 偏差分类、证据 Claims、修订计划 |
+| `observation_review` | 复盘偏差并修订计划（Evidence Claim 归因） | 原计划、观测日志、log_path、原始输入 | 偏差分类、证据 Claims、修订计划、可执行下一轮输入 |
 
 ## 技术依赖
 
@@ -201,7 +206,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线测试：205 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
+离线测试：211 passed, 9 skipped, 0 failed（跳过需要真实百炼 API 的在线测试；完整证据见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-p0-runtime-contract-closure-independent-recheck.md`）。
 
 **2026-08-03 在线修复（v0.6.0）：**
 
@@ -217,6 +222,13 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - 三类分众视图：同一 Claim Registry 生成组织者（`outreach_pack.md`）、讲解员（`outreach_pack_facilitator.md`）、学习者（`outreach_pack_learner.md`）三种视图，事实句与数字映射同一 claim_id；每视图独立 rendered_document/trace/map，并纳入交付合同校验。
 - 未成年人安全策略：`youth_activity_policy_v1` 在受众为中小学生/儿童时追加监护人许可、成人陪同、点名等安全项与人工确认清单，不采集隐私字段。
 - 新增 10 个 Batch D 回归测试；版本统一为 0.7.0。
+
+**P1 Batch E（v0.8.0，2026-08-03）：**
+
+- 复盘生成可执行下一轮输入：`observation_review` 接收原始 `StarPlanInput`，按白名单（`activity_preferences.*`）应用证据支持的修订（如迟到 → 推迟 `preferred_start`），移除 `observation_log` 后写出 `next_activity_input.json`；自由建议不进入 Schema 字段。
+- 二次运行与 before/after：`scripts/run_loop.py` 显式读取下一轮输入并重跑 runner，生成 `loop_before_after.md`（证据修订表 + 活动时段/流程前后对比，每项引用 cause_id）；`run_starplan` 不做隐式递归。
+- 证据边界：结构化时间差是唯一延迟证据来源；删除延迟证据后 `preferred_start` 补丁自动消失；无原始输入时不生成下一轮输入。
+- 新增 6 个 Batch E 回归测试；全量 211 passed, 9 skipped；版本统一为 0.8.0。
 
 **关键架构组件：**
 

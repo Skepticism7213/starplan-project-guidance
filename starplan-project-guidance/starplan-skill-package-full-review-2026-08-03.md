@@ -363,3 +363,30 @@ qwen3.7-plus 每轮只调用一个工具，4 个工具需要 4 轮 + 1 轮收尾
 - **P1 Batch E（立即）**：复盘输出可再次进入 runner 的 `next_activity_input.json` + before/after 活动包对比——这是闭环的最后一段，也是项目差异化卖点的最终证明。
 - P2 收尾：用团队最新有效 Key 录制真实演示（NL 已通、案例 1 已通、Chat 已通）；保存调用凭证截图。
 - P3：三案例完整运行记录入库 + 第二环境复跑 + 人工复核签名。
+
+---
+
+## 十二、P1 Batch E 实施结果（2026-08-03，已完成，v0.8.0）
+
+### 12.1 交付内容
+
+| 验收项（项目计划 P1 基线） | 实施结果 |
+|---|---|
+| 复盘生成可再次进入 runner 的下一轮输入 | `review_observation` 新增 `original_input` / `parent_run_id` 参数；按白名单（`activity_preferences.*`）应用证据支持的补丁（迟到 → 推迟 `preferred_start`），移除 `observation_log` 后写出 `next_activity_input.json`；无原始输入或证据不足时不生成 |
+| 自由建议不进入 Schema | 白名单外字段（设备预检、预期管理等自由建议）只保留在 `revised_plan.json`/建议列表，绝不写入 `next_activity_input.json` |
+| 二次运行与 before/after | 新增 `scripts/run_loop.py`：第一次运行 → 复盘 → 读取 `next_activity_input.json` → 二次调用 runner → 生成 `loop_before_after.md`（证据修订表 + 活动时段/流程前后对比，每项引用 cause_id）；`run_starplan` 不隐式递归 |
+| 证据边界可验证 | 结构化时间差是唯一延迟证据；删除延迟证据后 `preferred_start` 补丁消失；仅备注文字不构成证据（均有测试） |
+
+### 12.2 实测 before/after（案例 3，离线）
+
+复盘识别 `cause.team_late`（有证据）后，下一轮输入把 `activity_preferences.preferred_start` 从"未设置"改为 `2026-10-17T19:30:00`；第二次运行后活动时段从 19:13–20:43 变为 **19:30–21:00**（准备 19:15、收尾 21:15），`loop_before_after.md` 中每个修订均带来源 cause_id；第二次运行 validation=passed 且不再触发 Review。
+
+### 12.3 验证证据
+
+- 新增 `tests/test_next_activity_input.py` 6 项（Schema 校验、补丁生成/消失、原始输入缺失、二次运行、run_loop 脚本）；全量 **211 passed, 9 skipped, 0 failed**。
+- `scripts/run_loop.py examples/case_03_observation_review.json` 实跑成功：第一次运行 + 复盘 → 第二次运行（passed）→ before/after 报告生成。
+
+### 12.4 阶段状态
+
+- **P1 竞赛核心闭环（Batch D + E）已完成**：计划 → 确定性计算 → 现实活动时段 → 三视图活动包 → 日志复盘 → 可执行下一轮输入 → 二次运行 → before/after。
+- 剩余：P2 收尾（用团队最新有效 Key 录制真实演示并保存凭证）、P3（三案例运行记录入库 + 第二环境复跑 + 人工复核签名）、P4（20 页 PDF + 6–8 分钟视频）、P5（冻结提交，官方截止 2026-09-05）。

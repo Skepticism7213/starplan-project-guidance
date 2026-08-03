@@ -82,6 +82,18 @@
 
 **本批新增/修改**：`schemas.py`（ActivityPreferences/ActivitySlot/AudienceProfile + 输入输出字段）、`observability_plan.py`（select_activity_slot）、`claims.py`（活动时段 Claim + youth_activity_policy_v1）、`rendering.py`（slot 日程 + 视图板块过滤 + 未成年人安全/核对项）、`outreach_pack.py`（三视图写入）、`expression_validator.py`（额外视图门禁）、`runner.py`（偏好/分众/未成年人参数透传）、`examples/case_01`（演示输入）、版本统一 0.7.0。
 
+### P1 Batch E 实施结果（v0.8.0，2026-08-03 晚）
+
+| 验收项 | 状态 | 验证 |
+|---|---|---|
+| next_activity_input.json 通过 StarPlanInput Schema | **已完成** | `review_observation` 白名单补丁（activity_preferences.*）+ 移除 observation_log；6 项新测试含 Schema 断言 |
+| 二次运行不触发 Review | **已完成** | `run_loop.py` 实测：第一次运行 → 复盘 → 第二次运行 passed，review=None |
+| 至少一个时间/活动字段可见变化 | **已完成** | 案例 3：活动时段 19:13–20:43 → 19:30–21:00（preferred_start 由复盘补丁设置） |
+| 删除证据后补丁消失 | **已完成** | 结构化时间无延迟或仅备注文字时，不生成 preferred_start 补丁（测试覆盖） |
+| before/after 引用 cause_id | **已完成** | `loop_before_after.md` 修订表每项含 source_cause_ids |
+
+**本批新增/修改**：`schemas.py`（ObservationReview.next_input_path/parent_run_id/source_cause_ids）、`observation_review.py`（`_build_next_activity_input` + 报告新增"下一轮可执行输入"节）、`runner.py`（透传原始输入与 parent_run_id）、`scripts/run_loop.py`（显式闭环 CLI）、`tests/test_next_activity_input.py`、版本统一 0.8.0。全量 **211 passed, 9 skipped, 0 failed**。
+
 ## 二、完成状态
 
 | 项目计划阶段 | 状态 | 说明 |
@@ -100,7 +112,7 @@
 | 时间 | 工作 | 验收标准 | 阻塞项 | 风险 |
 |---|---|---|---|---|
 | 8/3–8/8 | P1 Batch D：活动时段 + 三视图 + 未成年人安全模板 | **已完成（v0.7.0）**：M31 科学窗口与 90 分钟 slot 并存；M42 无虚假 slot；三视图共享 claim_id；205 测试全绿 | 无 | 无 |
-| 8/5–8/13 | P1 Batch E：`next_activity_input.json` + 二次运行 + before/after | next input 过 Schema；二次运行成功；至少一个字段可见变化；删除证据后 patch 消失 | Batch D 验收 | 与现有 Claim 门禁冲突需逐行处理 |
+| 8/5–8/13 | P1 Batch E：`next_activity_input.json` + 二次运行 + before/after | **已完成（v0.8.0）**：next input 过 Schema；二次运行成功；活动时段可见变化；删除证据后 patch 消失 | 无 | 无 |
 | 8/10–8/17 | P2：① 新增 OpenAI 兼容端点适配层（base_url/model 可配、60s 超时、1 次重试）；② 修复 Chat 地点名归一化；③ max_tool_rounds≥6；④ 收紧变体白名单；⑤ 真实 canary + 加载演示 | 用团队实际 Key 完成一次真实 NL 触发与一次 Chat 工具链交付，validation 均 passed 且留有调用凭证/截图；无 Key 离线仍可交付 | 需要有效百炼 Key/账号 | 模型名不可用、限流、网络 |
 | 8/14–8/22 | P3：三案例固化、runs 入库、第二环境复跑、人工复核、实地/桌面演练 | 新环境零失败；每案例有人工确认签名；外部科学复核 1 名以上 | 第二环境可安装依赖 | Windows ACL、天气/场地 |
 | 8/18–8/27 | P4：20 页 PDF、6–8 分钟视频、提交包 | PDF ≤20 页；视频 ≤10 分钟；提交清单逐项打勾；隐私扫描通过 | 视频素材 | 剪辑耗时 |
@@ -117,5 +129,7 @@
 6. **P2 前置修复（本会话实测发现）**：新增兼容端点适配层与模型配置；修复 Chat 地点名不一致与轮次上限；建议用户立即轮换在对话中明文分享的三把 Key。
 
 7. **P1 Batch E（下一批）**：`observation_review` 接收原始 `StarPlanInput` 规范化副本，白名单修订字段，生成符合 Schema 的 `next_activity_input.json`，二次调用 runner 重跑并输出 before/after 对比（每项变化引用 cause_id）。
+
+8. **P2/P3 收尾（当前批次后）**：用团队最新有效 Key 录制真实演示（NL/案例/Chat 均已通）并保存调用凭证截图；三案例完整运行记录入库、第二环境复跑、人工复核签名；随后制作 20 页 PDF 与 6–8 分钟视频（P4）。
 
 提交纪律：本报告与审查报告一起提交推送；代码修复仍按"每个 Batch 独立 commit + 强制报告"执行，受保护架构文件（claims/rendering/expression_validator/runner/outreach_pack/run_outcome/templates/Layer3 测试）的修改须逐行处理并保持门禁全绿。
