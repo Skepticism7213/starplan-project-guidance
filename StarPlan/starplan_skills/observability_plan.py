@@ -144,6 +144,86 @@ def moon_target_apparent_separation(
     return float(target_altaz.separation(moon_altaz).deg)
 
 
+def _compute_moon_rise_set(
+    night_start: datetime,
+    night_end: datetime,
+    obs_loc: EarthLocation,
+    tz: timezone,
+) -> tuple:
+    """Compute moonrise/moonset times within the night window (I-3 fix).
+
+    Deterministic Astropy-only numeric search: sample the Moon altitude on
+    a 5-minute grid, detect sign changes around alt=0, then refine each
+    crossing with bisection (~7 second precision).
+
+    Semantics: events are reported only if they occur INSIDE the computed
+    night window. If the Moon is already up at night_start (or never sets
+    within the window), the corresponding value is None — this matches the
+    planning question "when does the Moon rise/set during our activity".
+
+    Args:
+        night_start: Window start (UTC datetime).
+        night_end: Window end (UTC datetime).
+        obs_loc: Observer location.
+        tz: Local timezone for output conversion.
+
+    Returns:
+        (moonrise, moonset) as naive local datetimes; each may be None.
+    """
+    if night_end <= night_start:
+        return None, None
+
+    # Coarse grid: 5-minute sampling. The Moon's altitude changes slowly
+    # enough that a rise/set crossing cannot be skipped at this resolution.
+    grid: list[datetime] = []
+    t = night_start
+    step = timedelta(minutes=5)
+    while t <= night_end:
+        grid.append(t)
+        t += step
+    if grid[-1] < night_end:
+        grid.append(night_end)
+
+    times = Time(grid, scale="utc")
+    frame = AltAz(obstime=times, location=obs_loc)
+    alts = np.asarray(
+        get_body("moon", times, obs_loc).transform_to(frame).alt.deg,
+        dtype=float,
+    )
+
+    def _refine_crossing(t_lo: datetime, a_lo: float, t_hi: datetime) -> datetime:
+        """Bisect the alt=0 crossing between two bracketing samples."""
+        lo, hi = t_lo, t_hi
+        for _ in range(12):  # 12 halvings of 5 min ~ 7 s precision
+            mid = lo + (hi - lo) / 2
+            t_mid = Time(mid, scale="utc")
+            a_mid = float(
+                get_body("moon", t_mid, obs_loc)
+                .transform_to(AltAz(obstime=t_mid, location=obs_loc))
+                .alt.deg
+            )
+            if (a_mid >= 0) == (a_lo >= 0):
+                lo = mid
+            else:
+                hi = mid
+        return lo + (hi - lo) / 2
+
+    moonrise = None
+    moonset = None
+    for i in range(1, len(grid)):
+        a_prev, a_cur = float(alts[i - 1]), float(alts[i])
+        if moonrise is None and a_prev < 0 <= a_cur:
+            cross = _refine_crossing(grid[i - 1], a_prev, grid[i])
+            moonrise = _to_local(cross, tz)
+        elif moonset is None and a_prev >= 0 > a_cur:
+            cross = _refine_crossing(grid[i - 1], a_prev, grid[i])
+            moonset = _to_local(cross, tz)
+        if moonrise is not None and moonset is not None:
+            break
+
+    return moonrise, moonset
+
+
 # ── Core computation ─────────────────────────────────
 
 def compute_observability(
@@ -330,10 +410,14 @@ def compute_observability(
     sun_moon_sep = float(sun_coord.separation(moon_coord).deg)
     moon_phase = (1 - np.cos(np.radians(sun_moon_sep))) / 2  # 0=new, 1=full
 
+    # I-3 fix: compute real moonrise/moonset within the night window
+    # instead of always returning None.
+    moonrise, moonset = _compute_moon_rise_set(night_start, night_end, obs_loc, tz)
+
     moon_info = MoonInfo(
         phase_fraction=round(moon_phase, 3),
-        moonrise=None,  # Computed separately if needed
-        moonset=None,
+        moonrise=moonrise,
+        moonset=moonset,
         peak_altitude_deg=round(max(moon_alts), 2) if moon_alts else None,
         min_separation_deg=round(min(moon_seps), 2) if moon_seps else None,
         impact_assessment=_assess_moon_impact(

@@ -125,10 +125,78 @@ class TestOfflineRuntimePolicy:
 
         # This assertion will fail before the fix is applied —
         # the marker is only emitted after configure_astronomy_runtime() is called.
-        assert result.returncode == 0, f"Case failed: {result.stderr[-500:]}"
+        assert result.returncode == 0, f"Case fails: {result.stderr[-500:]}"
         assert "astronomy_runtime=offline_bundled_data" in result.stdout, (
             "Expected runtime policy marker 'astronomy_runtime=offline_bundled_data' "
             "in stdout. The runner must call configure_astronomy_runtime() and log "
             "the active policy.\n"
             f"stdout tail: {result.stdout[-500:]}"
+        )
+
+
+# Inline script for the R-06 leap-second check. Runs in a FRESH interpreter
+# because astropy's _LEAP_SECONDS_CHECK is process-wide one-shot state.
+_LEAP_CHECK_SCRIPT = r"""
+import sys, warnings
+sys.stdout.reconfigure(encoding="utf-8")
+sys.path.insert(0, {project_root!r})
+
+from starplan_skills.astro_runtime import configure_astronomy_runtime
+configure_astronomy_runtime()
+
+import astropy.time.core as tc
+assert tc._LEAP_SECONDS_CHECK == tc._LeapSecondsCheck.DONE, (
+    "leap-second check flag not pre-marked DONE: %r" % tc._LEAP_SECONDS_CHECK
+)
+
+# Instrument update_leap_seconds: any call means the path was NOT skipped.
+calls = []
+_orig = tc.update_leap_seconds
+def _spy(*a, **k):
+    calls.append(1)
+    return _orig(*a, **k)
+tc.update_leap_seconds = _spy
+
+with warnings.catch_warnings(record=True) as caught:
+    warnings.simplefilter("always")
+    from astropy.time import Time
+    t1 = Time("2026-10-17 12:00:00", scale="utc")
+    t2 = Time("2026-07-25 18:30:00", scale="utc")
+    _ = (t1.ut1, t2.ut1)  # force scales that consume leap seconds
+
+assert len(calls) == 0, "update_leap_seconds was called %d time(s)" % len(calls)
+leap_warns = [w for w in caught if "leap" in str(w.message).lower()]
+assert not leap_warns, "leap-second warning emitted: %s" % leap_warns[0].message
+print("LEAP_POLICY_OK")
+""".format(project_root=str(PROJECT_ROOT))
+
+
+class TestLeapSecondPolicyR06:
+    """R-06: the one-time leap-second auto-update path must be skipped."""
+
+    def test_leap_second_update_never_runs(self):
+        """After configure_astronomy_runtime(), Time creation must not
+        trigger update_leap_seconds() nor emit any leap-second warning."""
+        with tempfile.TemporaryDirectory(prefix="starplan_leap_") as tmp_cache:
+            env = _offline_env(tmp_cache)
+            try:
+                result = subprocess.run(
+                    [sys.executable, "-c", _LEAP_CHECK_SCRIPT],
+                    capture_output=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    timeout=60,
+                    env=env,
+                    cwd=str(PROJECT_ROOT),
+                )
+            except subprocess.TimeoutExpired:
+                pytest.fail("Leap-second policy check hung (possible network wait)")
+
+        assert result.returncode == 0, (
+            f"Leap policy script failed (rc={result.returncode}).\n"
+            f"stdout: {result.stdout[-500:]}\nstderr: {result.stderr[-500:]}"
+        )
+        assert "LEAP_POLICY_OK" in result.stdout, (
+            f"Leap policy marker missing.\n"
+            f"stdout: {result.stdout[-500:]}\nstderr: {result.stderr[-500:]}"
         )

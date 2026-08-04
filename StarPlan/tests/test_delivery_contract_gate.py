@@ -172,6 +172,78 @@ class TestDeliveryContractGate:
         assert any("not in trace" in e.message for e in result.errors)
 
 
+# ── W-04: stored text_hash field must be verified ──
+
+
+class TestHashFieldTamperW04:
+    """W-04: tampering with the saved text_hash field must fail reconstruction.
+
+    Before the fix, RenderedDocument.from_dict() ignored the stored
+    text_hash and recomputed it from final_text, so altering only the
+    hash field was undetectable. Now from_dict raises ValueError, and
+    every caller (runner, chat, extra-view validator) fails closed.
+    """
+
+    def test_tampered_hash_field_rejected(self):
+        """Altering only text_hash (final_text untouched) must raise."""
+        _build_valid_run()
+        rd_data = json.loads(
+            (_RUN_DIR / "rendered_document.json").read_text(encoding="utf-8")
+        )
+        original = rd_data["body_blocks"][0]["text_hash"]
+        rd_data["body_blocks"][0]["text_hash"] = "deadbeef0000"
+        with pytest.raises(ValueError, match="text_hash mismatch"):
+            RenderedDocument.from_dict(rd_data)
+        # Restore fixture data for other tests
+        rd_data["body_blocks"][0]["text_hash"] = original
+
+    def test_missing_hash_field_rejected(self):
+        """A serialized block without text_hash is incomplete evidence."""
+        _build_valid_run()
+        rd_data = json.loads(
+            (_RUN_DIR / "rendered_document.json").read_text(encoding="utf-8")
+        )
+        saved = rd_data["title_block"].pop("text_hash")
+        with pytest.raises(ValueError, match="missing the"):
+            RenderedDocument.from_dict(rd_data)
+        rd_data["title_block"]["text_hash"] = saved
+
+    def test_tampered_saved_file_blocks_runner_path(self):
+        """Simulate the runner's reload path on a tampered saved file.
+
+        runner.py loads rendered_document.json inside try/except and treats
+        reconstruction failure as 'no valid RenderedDocument' → BLOCKED.
+        This test reproduces that exact degradation contract.
+        """
+        run_dir = _fresh_run_dir()
+        rd_path = run_dir / "rendered_document.json"
+        rd_data = json.loads(rd_path.read_text(encoding="utf-8"))
+        rd_data["body_blocks"][0]["text_hash"] = "000000000000"
+        rd_path.write_text(json.dumps(rd_data, ensure_ascii=False), encoding="utf-8")
+
+        # Exact runner pattern: reconstruction fails → rendered_doc stays None
+        rendered_doc = None
+        try:
+            rendered_doc = RenderedDocument.from_dict(
+                json.loads(rd_path.read_text(encoding="utf-8"))
+            )
+        except Exception:
+            pass
+        assert rendered_doc is None, (
+            "Tampered rendered_document.json must not reconstruct; "
+            "runner would then produce a BLOCKED outcome"
+        )
+
+    def test_untampered_document_roundtrip(self):
+        """A legitimate serialized document must still reconstruct cleanly."""
+        _build_valid_run()
+        rd_data = json.loads(
+            (_RUN_DIR / "rendered_document.json").read_text(encoding="utf-8")
+        )
+        doc = RenderedDocument.from_dict(rd_data)
+        assert len(doc.all_blocks) == len(_RENDERED_DOC.all_blocks)
+
+
 # ── Bidirectional Coverage Tests ──
 
 

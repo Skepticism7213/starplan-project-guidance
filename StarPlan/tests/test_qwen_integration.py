@@ -38,9 +38,24 @@ def _qwen_available() -> bool:
     return bool(key) and not key.startswith("sk-在此") and key != "your_api_key_here"
 
 
+def _model_mode_offline() -> bool:
+    """R-01 fix: STARPLAN_MODEL_MODE=offline must take priority over .env Key.
+
+    qwen_client._assert_online() raises a tripwire for any network call in
+    offline mode, so these integration tests must skip (not fail) when the
+    offline gate is active — even on machines that have a valid Key.
+    """
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+    return os.getenv("STARPLAN_MODEL_MODE", "online") == "offline"
+
+
 requires_qwen = pytest.mark.skipif(
-    not _qwen_available(),
-    reason="DASHSCOPE_API_KEY not configured; skipping Qwen integration tests",
+    (not _qwen_available()) or _model_mode_offline(),
+    reason=(
+        "Qwen integration tests skipped: DASHSCOPE_API_KEY missing or "
+        "STARPLAN_MODEL_MODE=offline (offline gate must not touch network)"
+    ),
 )
 
 

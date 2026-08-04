@@ -427,8 +427,21 @@ class MoonInfo(BaseModel):
     """Moon-related information."""
 
     phase_fraction: float = Field(description="Illuminated fraction (0=new, 1=full)")
-    moonrise: Optional[datetime] = None
-    moonset: Optional[datetime] = None
+    moonrise: Optional[datetime] = Field(
+        default=None,
+        description=(
+            "Moonrise as naive local time, if it occurs inside the computed "
+            "night window; None when the Moon is already up at window start "
+            "or never rises within the window"
+        ),
+    )
+    moonset: Optional[datetime] = Field(
+        default=None,
+        description=(
+            "Moonset as naive local time, if it occurs inside the computed "
+            "night window; None when the Moon never sets within the window"
+        ),
+    )
     peak_altitude_deg: Optional[float] = Field(default=None, description="Moon peak altitude during the night")
     min_separation_deg: Optional[float] = Field(default=None, description="Minimum angular separation from target")
     impact_assessment: str = Field(
