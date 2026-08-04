@@ -11,7 +11,8 @@ Reference case:
   Date:     2026-07-25
   Expected: is_observable=False, pack_type="not_observable",
             talking points do NOT contain observation language,
-            alternative suggestions present (M13, M57).
+            verified alternative suggestions present (W-1: real computation,
+            not the old static seasonal table).
 
 No API key required.
 """
@@ -99,22 +100,59 @@ class TestNotObservablePack:
         assert "不满足观测条件" in all_text or "取消" in all_text or "改期" in all_text
 
     def test_has_alternative_suggestions(self, m42_result):
-        """The pack should include alternative target suggestions."""
+        """The pack should include VERIFIED alternative target suggestions.
+
+        W-1 contract: every alternative_target must be backed by real
+        computation — it carries the '已验证' marker with peak altitude and
+        window evidence, and an independent re-computation confirms the
+        suggested target is actually observable at the same location/date.
+        """
         outreach = m42_result.get("outreach_pack")
         assert outreach is not None
         assert len(outreach["alternative_suggestions"]) >= 1
-        # Should mention M13 or M57 as alternatives
-        all_alts = " ".join(outreach["alternative_suggestions"])
-        assert "M13" in all_alts or "M57" in all_alts
+
+        # Find structured alternative target suggestions from the plan
+        plan = m42_result.get("plan")
+        assert plan is not None
+        alt_targets = [
+            s for s in plan["alternative_suggestions"]
+            if s["suggestion_type"] == "alternative_target"
+        ]
+        assert len(alt_targets) >= 1, (
+            "Not-observable case must suggest at least one verified "
+            "alternative target (W-1)"
+        )
+        for s in alt_targets:
+            assert "已验证" in s["description"], (
+                f"Alternative target must be verified by computation: "
+                f"{s['description']}"
+            )
+            assert s["target_name"] and s["target_name"] != "M42"
+
+        # Independent verification: the first suggested target must truly
+        # be observable at the same location and date
+        from starplan_skills.target_resolve import resolve_target
+        from starplan_skills.observability_plan import compute_observability
+        first = alt_targets[0]
+        t = resolve_target(first["target_name"])
+        assert not t.requires_confirmation
+        obs = compute_observability(
+            t.ra_deg, t.dec_deg, t.standard_name,
+            BASE_INPUT["location_detail"], ["2026-07-25", "2026-07-25"],
+            equipment="binoculars", _allow_alternatives=False,
+        )
+        assert obs.is_observable, (
+            f"Suggested alternative {first['target_name']} is NOT actually "
+            f"observable — verified-alternatives contract violated"
+        )
 
     def test_alternatives_exclude_target_itself(self, m42_result):
-        """Alternative target names in talking points should not include M42."""
-        outreach = m42_result.get("outreach_pack")
-        assert outreach is not None
-        for tp in outreach["talking_points"]:
-            if "替代目标" in tp:
-                # M42 should not be listed as an alternative to itself
-                assert "M42" not in tp or "M13" in tp
+        """M42 must never be suggested as an alternative to itself."""
+        plan = m42_result.get("plan")
+        assert plan is not None
+        for s in plan["alternative_suggestions"]:
+            if s["suggestion_type"] == "alternative_target":
+                assert s["target_name"] != "M42"
 
     def test_markdown_file_is_cancellation_notice(self, m42_result):
         """The generated markdown should be a cancellation notice, not observation pack."""
