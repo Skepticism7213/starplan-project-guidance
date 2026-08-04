@@ -782,9 +782,16 @@ class RenderedDocument:
 
     @classmethod
     def from_dict(cls, data: dict) -> "RenderedDocument":
-        """Reconstruct from a serialized dict."""
+        """Reconstruct from a serialized dict.
+
+        W-04 fix: the stored text_hash field is verified, not ignored.
+        If the field is missing or does not match sha256(final_text)[:12],
+        reconstruction raises ValueError so callers fail closed (BLOCKED).
+        Tampering with final_text was already caught by bidirectional
+        trace coverage; this closes the hash-field-only tamper path.
+        """
         def _block_from_dict(d: dict) -> RenderedBlock:
-            return RenderedBlock(
+            block = RenderedBlock(
                 block_id=d["block_id"],
                 section=d["section"],
                 final_text=d["final_text"],
@@ -792,6 +799,19 @@ class RenderedDocument:
                 variant_id=d["variant_id"],
                 render_mode=d.get("render_mode", "claim_variant"),
             )
+            saved_hash = d.get("text_hash")
+            if saved_hash is None:
+                raise ValueError(
+                    f"RenderedBlock '{d.get('block_id')}' is missing the "
+                    f"required text_hash field (evidence chain incomplete)"
+                )
+            if saved_hash != block.text_hash:
+                raise ValueError(
+                    f"RenderedBlock '{d.get('block_id')}' text_hash mismatch: "
+                    f"saved={saved_hash}, recomputed={block.text_hash} "
+                    f"(serialized document was tampered with)"
+                )
+            return block
         return cls(
             title_block=_block_from_dict(data["title_block"]),
             metadata_blocks=[_block_from_dict(b) for b in data.get("metadata_blocks", [])],

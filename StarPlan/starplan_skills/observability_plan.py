@@ -144,6 +144,86 @@ def moon_target_apparent_separation(
     return float(target_altaz.separation(moon_altaz).deg)
 
 
+def _compute_moon_rise_set(
+    night_start: datetime,
+    night_end: datetime,
+    obs_loc: EarthLocation,
+    tz: timezone,
+) -> tuple:
+    """Compute moonrise/moonset times within the night window (I-3 fix).
+
+    Deterministic Astropy-only numeric search: sample the Moon altitude on
+    a 5-minute grid, detect sign changes around alt=0, then refine each
+    crossing with bisection (~7 second precision).
+
+    Semantics: events are reported only if they occur INSIDE the computed
+    night window. If the Moon is already up at night_start (or never sets
+    within the window), the corresponding value is None — this matches the
+    planning question "when does the Moon rise/set during our activity".
+
+    Args:
+        night_start: Window start (UTC datetime).
+        night_end: Window end (UTC datetime).
+        obs_loc: Observer location.
+        tz: Local timezone for output conversion.
+
+    Returns:
+        (moonrise, moonset) as naive local datetimes; each may be None.
+    """
+    if night_end <= night_start:
+        return None, None
+
+    # Coarse grid: 5-minute sampling. The Moon's altitude changes slowly
+    # enough that a rise/set crossing cannot be skipped at this resolution.
+    grid: list[datetime] = []
+    t = night_start
+    step = timedelta(minutes=5)
+    while t <= night_end:
+        grid.append(t)
+        t += step
+    if grid[-1] < night_end:
+        grid.append(night_end)
+
+    times = Time(grid, scale="utc")
+    frame = AltAz(obstime=times, location=obs_loc)
+    alts = np.asarray(
+        get_body("moon", times, obs_loc).transform_to(frame).alt.deg,
+        dtype=float,
+    )
+
+    def _refine_crossing(t_lo: datetime, a_lo: float, t_hi: datetime) -> datetime:
+        """Bisect the alt=0 crossing between two bracketing samples."""
+        lo, hi = t_lo, t_hi
+        for _ in range(12):  # 12 halvings of 5 min ~ 7 s precision
+            mid = lo + (hi - lo) / 2
+            t_mid = Time(mid, scale="utc")
+            a_mid = float(
+                get_body("moon", t_mid, obs_loc)
+                .transform_to(AltAz(obstime=t_mid, location=obs_loc))
+                .alt.deg
+            )
+            if (a_mid >= 0) == (a_lo >= 0):
+                lo = mid
+            else:
+                hi = mid
+        return lo + (hi - lo) / 2
+
+    moonrise = None
+    moonset = None
+    for i in range(1, len(grid)):
+        a_prev, a_cur = float(alts[i - 1]), float(alts[i])
+        if moonrise is None and a_prev < 0 <= a_cur:
+            cross = _refine_crossing(grid[i - 1], a_prev, grid[i])
+            moonrise = _to_local(cross, tz)
+        elif moonset is None and a_prev >= 0 > a_cur:
+            cross = _refine_crossing(grid[i - 1], a_prev, grid[i])
+            moonset = _to_local(cross, tz)
+        if moonrise is not None and moonset is not None:
+            break
+
+    return moonrise, moonset
+
+
 # ── Core computation ─────────────────────────────────
 
 def compute_observability(
@@ -159,6 +239,7 @@ def compute_observability(
     target_angular_size_arcmin: Optional[list[float]] = None,
     target_type: Optional[str] = None,
     activity_preferences: Optional[dict] = None,
+    _allow_alternatives: bool = True,
 ) -> ObservabilityResult:
     """
     Compute target observability and generate an observation plan.
@@ -330,10 +411,14 @@ def compute_observability(
     sun_moon_sep = float(sun_coord.separation(moon_coord).deg)
     moon_phase = (1 - np.cos(np.radians(sun_moon_sep))) / 2  # 0=new, 1=full
 
+    # I-3 fix: compute real moonrise/moonset within the night window
+    # instead of always returning None.
+    moonrise, moonset = _compute_moon_rise_set(night_start, night_end, obs_loc, tz)
+
     moon_info = MoonInfo(
         phase_fraction=round(moon_phase, 3),
-        moonrise=None,  # Computed separately if needed
-        moonset=None,
+        moonrise=moonrise,
+        moonset=moonset,
         peak_altitude_deg=round(max(moon_alts), 2) if moon_alts else None,
         min_separation_deg=round(min(moon_seps), 2) if moon_seps else None,
         impact_assessment=_assess_moon_impact(
@@ -547,13 +632,20 @@ def compute_observability(
                 ),
             ))
 
-    # Generate alternative suggestions if not observable
+    # Generate alternative suggestions if not observable.
+    # W-1 fix: alternative TARGETS are now verified by real computation
+    # (_generate_alternatives -> _select_verified_alternatives). Internal
+    # candidate verifications pass _allow_alternatives=False to prevent
+    # recursive catalog scans.
     alternative_suggestions: list[AlternativeSuggestion] = []
-    if not is_observable:
+    if not is_observable and _allow_alternatives:
         alternative_suggestions = _generate_alternatives(
             target_name, obs_date, hourly_data, min_alt,
             latitude_limited=latitude_limited, max_alt_theory=max_alt_theory,
             not_observable_reason=not_observable_reason,
+            night_start=night_start, night_end=night_end,
+            obs_loc=obs_loc, tz=tz, location=location,
+            constraints=constraints, equipment=equipment,
         )
 
     # Save CSV and curve if run_dir provided
@@ -909,6 +1001,188 @@ def _compute_risk_flags(
     return flags
 
 
+# ── W-1 fix: verified alternative target selection ──
+#
+# Alternative targets must be backed by the same deterministic computation
+# as the primary plan. Static seasonal tables are no longer acceptable
+# because they ignore location, exact date and the blocking reason
+# (e.g. recommending faint deep-sky targets into a moonlit night).
+#
+# Two-stage strategy keeps the not-observable branch fast:
+#   Stage 1: one batched coarse screen over the full built-in catalog
+#            (max altitude on a 30-min grid + moonlight brightness filter).
+#   Stage 2: full compute_observability only on the shortlist; only targets
+#            that truly pass all constraints are suggested.
+
+# Under moonlight blocking, only bright objects remain usable. Faint
+# deep-sky targets would be washed out just like the original target.
+_MOONLIGHT_DSO_MAG_LIMIT = 5.0
+
+
+def _coarse_screen_candidates(
+    original_name: str,
+    night_start: datetime,
+    night_end: datetime,
+    obs_loc: EarthLocation,
+    min_alt: float,
+    not_observable_reason: Optional[str],
+    max_candidates: int = 5,
+) -> list[dict]:
+    """Fast batched screen of the built-in catalog (stage 1).
+
+    Computes each catalog target's maximum altitude over a coarse 30-minute
+    grid of the night window in batched Astropy transforms, then filters:
+      - max altitude must reach the user's min_alt constraint;
+      - when the blocking reason is moonlight, faint deep-sky targets are
+        dropped (they would be washed out exactly like the original target);
+        bright stars and bright DSOs stay eligible.
+
+    Returns up to max_candidates catalog entries sorted by max altitude
+    (descending). Pure screening — final eligibility is decided by stage 2.
+    """
+    import json as _json
+    from .config import CATALOG_PATH
+
+    if night_end <= night_start:
+        return []
+    try:
+        with open(CATALOG_PATH, "r", encoding="utf-8") as f:
+            catalog = _json.load(f)
+    except (OSError, ValueError):
+        return []
+
+    # Exclude the original target (by standard name or alias match)
+    entries = [
+        e for e in catalog
+        if e.get("standard_name") != original_name
+        and original_name not in e.get("aliases", [])
+    ]
+    if not entries:
+        return []
+
+    # Coarse grid: 30-minute sampling is sufficient for a max-altitude screen
+    grid: list[datetime] = []
+    t = night_start
+    step = timedelta(minutes=30)
+    while t <= night_end:
+        grid.append(t)
+        t += step
+    if grid[-1] < night_end:
+        grid.append(night_end)
+
+    coords = SkyCoord(
+        ra=[e["ra_deg"] for e in entries] * u.deg,
+        dec=[e["dec_deg"] for e in entries] * u.deg,
+        frame="icrs",
+    )
+
+    # Batch per time step: (N targets,) transform, one frame per time
+    max_alts = np.full(len(entries), -90.0, dtype=float)
+    for sample in grid:
+        t_ast = Time(sample, scale="utc")
+        frame = AltAz(obstime=t_ast, location=obs_loc)
+        alts = np.asarray(coords.transform_to(frame).alt.deg, dtype=float)
+        max_alts = np.maximum(max_alts, alts)
+
+    scored: list[tuple[float, dict]] = []
+    for i, e in enumerate(entries):
+        ma = float(max_alts[i])
+        if ma < min_alt:
+            continue
+        if not_observable_reason == "moonlight":
+            # Moonlit night: keep stars and bright DSOs only
+            if e.get("target_type") != "star":
+                mag = e.get("visual_magnitude")
+                if mag is None or mag > _MOONLIGHT_DSO_MAG_LIMIT:
+                    continue
+        scored.append((ma, e))
+
+    scored.sort(key=lambda x: -x[0])
+    return [e for _, e in scored[:max_candidates]]
+
+
+def _pick_chinese_name(entry: dict) -> Optional[str]:
+    """Return the first CJK alias of a catalog entry, if any."""
+    for alias in entry.get("aliases", []):
+        if any("\u4e00" <= ch <= "\u9fff" for ch in alias):
+            return alias
+    return None
+
+
+def _select_verified_alternatives(
+    original_name: str,
+    obs_date: datetime,
+    night_start: datetime,
+    night_end: datetime,
+    obs_loc: EarthLocation,
+    tz: timezone,
+    location: dict,
+    min_alt: float,
+    constraints: Optional[dict],
+    equipment: Optional[str],
+    not_observable_reason: Optional[str],
+    max_full_checks: int = 5,
+    max_suggestions: int = 2,
+) -> list[AlternativeSuggestion]:
+    """Select alternative targets verified by full observability computation.
+
+    Stage 1 coarse-screens the catalog, then runs the complete
+    compute_observability pipeline on the shortlist (same location, date
+    and constraints as the original request). Only targets that genuinely
+    pass are suggested, and each suggestion carries the real computed
+    peak altitude and recommended window as evidence.
+    """
+    shortlist = _coarse_screen_candidates(
+        original_name, night_start, night_end, obs_loc, min_alt,
+        not_observable_reason, max_candidates=max_full_checks,
+    )
+
+    date_str = obs_date.strftime("%Y-%m-%d")
+    suggestions: list[AlternativeSuggestion] = []
+    for entry in shortlist:
+        try:
+            cand = compute_observability(
+                ra_deg=entry["ra_deg"],
+                dec_deg=entry["dec_deg"],
+                target_name=entry["standard_name"],
+                location=location,
+                date_range=[date_str, date_str],
+                equipment=equipment,
+                constraints=constraints,
+                run_dir=None,
+                target_magnitude=entry.get("visual_magnitude"),
+                target_angular_size_arcmin=entry.get("angular_size_arcmin"),
+                target_type=entry.get("target_type"),
+                _allow_alternatives=False,  # recursion guard
+            )
+        except Exception:
+            continue  # a candidate that errors out is simply not suggested
+        if not cand.is_observable or not cand.recommended_window:
+            continue
+
+        w = cand.recommended_window.window
+        peak = cand.recommended_window.peak_altitude_deg
+        cn = _pick_chinese_name(entry)
+        label = f"{entry['standard_name']}（{cn}）" if cn else entry["standard_name"]
+        description = (
+            f"已验证的替代目标：{label} 当晚可观测，"
+            f"最高高度 {peak:.1f}°，推荐窗口 "
+            f"{w.start.strftime('%H:%M')}–{w.end.strftime('%H:%M')}"
+        )
+        suggestions.append(
+            AlternativeSuggestion(
+                suggestion_type="alternative_target",
+                description=description,
+                target_name=entry["standard_name"],
+                suggested_date=obs_date.date(),
+            )
+        )
+        if len(suggestions) >= max_suggestions:
+            break
+
+    return suggestions
+
+
 def _generate_alternatives(
     target_name: str,
     obs_date: datetime,
@@ -917,12 +1191,24 @@ def _generate_alternatives(
     latitude_limited: bool = False,
     max_alt_theory: Optional[float] = None,
     not_observable_reason: Optional[str] = None,
+    night_start: Optional[datetime] = None,
+    night_end: Optional[datetime] = None,
+    obs_loc: Optional[EarthLocation] = None,
+    tz: Optional[timezone] = None,
+    location: Optional[dict] = None,
+    constraints: Optional[dict] = None,
+    equipment: Optional[str] = None,
 ) -> list[AlternativeSuggestion]:
     """Generate alternative suggestions when target is not observable.
 
     If latitude_limited, the target never reaches min_alt from this location
     regardless of date — suggest a lower-latitude location instead of the
     misleading "wait for a better season" (WARNING-2 fix, hfzr 8d93cf0).
+
+    W-1 fix: alternative TARGETS come from _select_verified_alternatives
+    (real computation over the built-in catalog) instead of a static
+    seasonal table. Every suggested target genuinely passes the same
+    constraints at the same location and date.
     """
     suggestions: list[AlternativeSuggestion] = []
     max_alt = max((h.altitude_deg for h in hourly_data), default=0)
@@ -962,27 +1248,26 @@ def _generate_alternatives(
             )
         )
 
-    # Suggest well-placed seasonal alternatives based on month
-    month = obs_date.month
-    seasonal_targets = {
-        (1, 2, 3): [("M42", "猎户座大星云"), ("M45", "昴星团")],
-        (4, 5, 6): [("M51", "涡状星系"), ("M101", "风车星系")],
-        (7, 8, 9): [("M13", "武仙座球状星团"), ("M57", "环状星云")],
-        (10, 11, 12): [("M31", "仙女座星系"), ("M33", "三角座星系")],
-    }
-    for months, targets in seasonal_targets.items():
-        if month in months:
-            for name, cn_name in targets:
-                if name != target_name:
-                    suggestions.append(
-                        AlternativeSuggestion(
-                            suggestion_type="alternative_target",
-                            description=f"当季更适合观测的目标：{name}（{cn_name}）",
-                            target_name=name,
-                            suggested_date=obs_date.date(),
-                        )
-                    )
-            break
+    # W-1: verified alternative targets (real computation, not static table).
+    # Requires the night window + location context from compute_observability;
+    # degrades gracefully to no target suggestions if context is missing.
+    if night_start is not None and night_end is not None and obs_loc is not None \
+            and tz is not None and location is not None:
+        suggestions.extend(
+            _select_verified_alternatives(
+                original_name=target_name,
+                obs_date=obs_date,
+                night_start=night_start,
+                night_end=night_end,
+                obs_loc=obs_loc,
+                tz=tz,
+                location=location,
+                min_alt=min_alt,
+                constraints=constraints,
+                equipment=equipment,
+                not_observable_reason=not_observable_reason,
+            )
+        )
 
     return suggestions
 

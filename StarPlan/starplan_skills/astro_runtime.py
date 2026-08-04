@@ -60,16 +60,31 @@ def configure_astronomy_runtime() -> str:
         # The bundled IERS-B data is sufficient for our date range (2026).
         iers.conf.auto_max_age = None
 
-        # Disable leap-second auto-update network check.
-        # ERFA/Astropy ships a bundled leap-second table that covers
-        # through 2026-12-28. No network fetch is needed.
+        # R-06 fix: disable the one-time leap-second auto-update check.
+        #
+        # Mechanism (verified against astropy 8.0.1 source): the first
+        # Time creation triggers astropy.time.core._check_leapsec(), which
+        # calls update_leap_seconds() -> LeapSeconds.auto_open(). That
+        # routine applies a freshness window (expires > today + 150 days
+        # when auto_max_age=None) and walks bundled, cached and remote
+        # leap-second tables. Around 2026-08 the bundled table no longer
+        # satisfies the window, so the walk touches the download cache and
+        # emitted "leap-second auto-update failed: PermissionError" warnings
+        # on Windows machines with cache ACL issues (recheck report R-06),
+        # in BOTH offline and online runs.
+        #
+        # Scientific safety: leap seconds never change retroactively. None
+        # has been introduced since 2017-01-01 and none is announced for
+        # the project's date range, so ERFA's bundled table is correct for
+        # every date this product computes. Skipping the update only avoids
+        # fetching a newer table — it cannot alter past leap seconds.
         try:
-            from astropy.utils.iers import conf as iers_conf
-            # remote_timeout=0 would still attempt DNS; instead rely on
-            # auto_download=False which prevents the fetch entirely.
-            iers_conf.remote_timeout = 1  # Minimal timeout as safety net
+            import astropy.time.core as _time_core
+            _time_core._LEAP_SECONDS_CHECK = _time_core._LeapSecondsCheck.DONE
         except (ImportError, AttributeError):
-            pass  # Older astropy versions may not have remote_timeout
+            # Unknown future astropy layout: fall back to default behavior
+            # rather than crash. IERS policy above still applies.
+            pass
 
         _configured = True
 
