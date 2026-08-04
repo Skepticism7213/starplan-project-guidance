@@ -176,6 +176,7 @@ StarPlan/
 4. **确定性渲染**：`render_document()` 从 Claim Registry 生成 `RenderedDocument`（唯一文档出口），每个原子文本为 `RenderedBlock`（claim_ids + variant_id + text_hash）。`serialize_document_md()` 只接受 RenderedDocument，禁止接触原始计算对象。
 5. **交付合同门禁**：`validate_delivery_contract()` 在 finalize 前做 7 步 post-render 验证（产物存在/JSON 合法/Claim 存在/variant allowlist/hash 一致/双向覆盖/泄漏检查）。任何失败 → `BLOCKED` + `NOT_DELIVERED`，删除已写 Markdown。
 6. **RunOutcome 落盘**：每次运行生成 `run_outcome.json`，包含业务状态、验证状态、交付状态（三者正交）、文件哈希和约束记录。Chat 与结构化入口共享相同合同。
+7. **BLOCKED 公共返回合同**：验证失败（`validation_status=blocked` / `delivery_status=not_delivered`）时，结构化入口与 Chat 的公共返回中 `outreach_pack` 为 `None`，即 **0 条交付事实**——没有活动包、事实句或被阻断的模型原文；磁盘上的 `outreach_pack.md` 同时删除。返回值中的 `target` 与 `plan` 保留，它们是确定性工具的**计算中间结果**（输入解析与业务状态判断的依据），不属于"交付给用户的事实内容"；调用方应读取 `validation_status` / `delivery_status` 字段判断本次运行是否实际交付。该口径由项目负责人确认（2026-08-04），对应审查项 W-7。
 
 派生规则（肉眼可见性、双筒可见性、新手友好度）显式标注适用范围和缺失输入。深空天体在角径不足或天空背景数据缺失时标记为 `UNCONFIRMED`，不做过度承诺。
 
