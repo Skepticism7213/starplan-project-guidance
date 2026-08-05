@@ -1,6 +1,6 @@
 # StarPlan Loop Skills Definition
 # Version: 0.8.0
-# Date: 2026-08-03
+# Date: 2026-08-05
 
 project:
   name: "StarPlan Loop"
@@ -167,3 +167,10 @@ orchestrator:
     - "当前 MVP 仅支持单晚观测（date_range 多天只计算第一晚）"
     - "不含行星、实时天气、Stellarium/Aladin 集成"
     - "折射策略：astropy_default (pressure=0, 无大气折射)"
+  host_guidance:
+    # 外部宿主模型（百炼应用 / 其它智能体环境）加载本 Skills 包时的转达合同。
+    # 防幻觉架构只保证"工具产出的事实可溯源"，宿主如何转达由本节约束。
+    - "宿主模型只负责编排与转达：面向用户的事实句必须原样引用 outreach_pack 渲染文档（outreach_pack*.md）或公共返回中的 Claim 渲染内容，不得改写、扩写或概括其中的数值"
+    - "禁止宿主模型自行生成或凭记忆填写任何天文数值（时间、高度角、方位、星等、角尺寸、窗口等）；一切数值只能来自 target_resolve / observability_plan 的返回"
+    - "验证失败（validation_status=blocked / delivery_status=not_delivered）时，公共返回中 outreach_pack 为 None（0 条交付事实）；宿主必须如实告知本次未交付，不得用自身知识补写事实内容"
+    - "宿主可以补充的仅限非事实性内容：礼貌用语、操作引导、对渲染文档的原文引用；引用时保持字面一致"
