@@ -40,8 +40,45 @@ StarPlan\scripts\run_offline_ci.bat
 | 案例二 | `run_case.py examples/case_02_unfavorable_window.json` | ____ | ____ | □ 一致 □ 不一致 |
 | 案例三 | `run_case.py examples/case_03_observation_review.json` | ____ | ____ | □ 一致 □ 不一致 |
 
-哈希对比方法：`Get-FileHash <file> -Algorithm SHA256`，取前 16 位与
-`evidence/evidence_manifest.json` 的 `sha256_prefix` 比对。
+每个案例复跑后会生成新的运行目录（如 `StarPlan/runs/m31_..._<新时间戳>`）。
+案例三还需要按 `evidence/README.md` 的“补跑第二轮”步骤生成第二轮目录。
+
+### 4.1 一键哈希对比（推荐）
+
+仓库提供跨平台对比脚本，会自动区分“必须字节一致的文件”与“允许字节差异
+但关键字段必须一致的文件”：
+
+```powershell
+# 案例一 / 案例二（把 <new_run_dir> 换成新环境实际生成的目录）
+StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hashes.py `
+  --case case_01_m31_normal --run-dir "StarPlan\runs\<new_run_dir>"
+
+StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hashes.py `
+  --case case_02_m42_unfavorable --run-dir "StarPlan\runs\<new_run_dir>"
+
+# 案例三（第一轮复盘目录 + 第二轮目录）
+StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hashes.py `
+  --case case_03_m31_review_loop `
+  --run-dir "StarPlan\runs\<new_review_run_dir>" `
+  --second-run-dir "StarPlan\runs\<new_second_run_dir>"
+```
+
+输出解读：
+
+- `[OK]`：该文件一致（或字节不同但关键字段一致）。
+- `[DIFF]`：字节不同，属于预期内差异（时间戳/绝对路径/图表渲染等），不需处理。
+- `[FAIL] STRICT 不一致`：必须排查（输入、星表、代码版本或克隆不完整）。
+- `[FAIL] 科学/状态字段不一致`：必须排查（窗口、活动时段、状态等数值不同）。
+
+退出码：`0` 全部通过；`1` STRICT 不一致；`2` 数值字段不一致。
+
+### 4.2 手动核对（可选）
+
+`Get-FileHash <file> -Algorithm SHA256` 取前 16 位，与
+`evidence/evidence_manifest.json` 的 `sha256_prefix` 比对；只对
+`input.json`、`resolved_target.json`、`observability.csv`、
+`outreach_pack*.md` 等确定性产物做字节比对，`plan.json`/`run_outcome.json`
+应比较科学字段而非字节。
 
 ## 5. 差异与问题记录
 

@@ -78,3 +78,19 @@
 2. 负责人填写并签名 `human_confirmation.md`（三份）。
 3. 安排第二环境复跑与外部复核。
 4. 提交本批代码与文档（`build_evidence_pack.py` + evidence 包）并推送。
+
+---
+
+## 五、2026-08-05 补充：第二环境哈希对比脚本
+
+新增 `StarPlan/scripts/compare_evidence_hashes.py`，把第二环境复跑的产物对比
+自动化并分层，避免“字节不同就误判失败”：
+
+- STRICT 文件（input/星表/Claims/渲染文档/活动包等）要求字节级一致；
+- TOLERANT 文件（时间戳、绝对路径、计时、图表渲染字节）允许差异；
+- VALUE 文件（plan.json 科学字段、run_outcome 状态、review_trace 归因）
+  做解析后字段对比。
+
+已用三类用例验证：案例一正例（退出码 0）、案例三正例（含第二轮，退出码 0）、
+故意错配的反例（退出码 1 且同时报出 STRICT 与数值差异）。
+同步更新 `evidence/README.md` 与 `evidence/second_environment_repro.md` 的使用说明。

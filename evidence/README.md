@@ -86,9 +86,17 @@ StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\build_evidence_pack.p
 
 1. 运行 `StarPlan\scripts\run_offline_ci.bat`（或等价离线命令）。
 2. 分别运行三个案例：`run_case.py examples/case_01_m31_jinan.json` 等。
-3. 用 `evidence/second_environment_repro.md` 模板记录环境、命令、测试数与产物哈希对比。
-4. 哈希对比方法：对比本包 `evidence_manifest.json` 中 `sha256_prefix` 与新产物
-   的 SHA-256 前 16 位（输入不变时计算产物应一致）。
+3. 用 `evidence/second_environment_repro.md` 模板记录环境、命令、测试数。
+4. 哈希对比使用 `StarPlan\scripts\compare_evidence_hashes.py`：
+
+```powershell
+StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hashes.py `
+  --case case_01_m31_normal --run-dir "StarPlan\runs\<new_run_dir>"
+```
+
+脚本区分三类文件：STRICT（必须字节一致）、TOLERANT（时间戳/绝对路径/图表字节
+允许不同）、VALUE（字节可不同但科学字段必须一致）。案例三加
+`--second-run-dir`。退出码 0/1/2 分别表示通过/STRICT 失败/数值失败。
 
 ## 外部科学复核
 
