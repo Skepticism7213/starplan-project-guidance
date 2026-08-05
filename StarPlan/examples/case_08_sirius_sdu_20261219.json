@@ -1,0 +1,33 @@
+{
+  "target": "天狼星",
+  "target_type": null,
+  "location": "济南_山东大学",
+  "location_detail": {
+    "name": "山东大学中心校区",
+    "city": "济南",
+    "latitude": 36.67,
+    "longitude": 117.06,
+    "elevation_m": 50,
+    "timezone": "Asia/Shanghai"
+  },
+  "date_range": ["2026-12-19", "2026-12-19"],
+  "audience": "天文社新成员",
+  "equipment": "binoculars",
+  "goal": "校园科普观测",
+  "constraints": {
+    "min_altitude_deg": 30,
+    "max_airmass": 2.0,
+    "prefer_early_night": false,
+    "max_moon_illumination": null
+  },
+  "activity_preferences": {
+    "duration_minutes": 90,
+    "setup_minutes": 15,
+    "cleanup_minutes": 15
+  },
+  "audience_profile": {
+    "age_band": "high_school",
+    "experience_level": "beginner",
+    "requested_views": ["organizer", "facilitator", "learner"]
+  }
+}
