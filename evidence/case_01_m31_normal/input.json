@@ -1,0 +1,40 @@
+{
+  "activity_preferences": {
+    "cleanup_minutes": 15,
+    "duration_minutes": 90,
+    "setup_minutes": 15
+  },
+  "audience": "天文社新成员",
+  "audience_profile": {
+    "age_band": "high_school",
+    "experience_level": "beginner",
+    "requested_views": [
+      "organizer",
+      "facilitator",
+      "learner"
+    ]
+  },
+  "constraints": {
+    "max_airmass": 2,
+    "max_moon_illumination": null,
+    "min_altitude_deg": 30,
+    "prefer_early_night": false
+  },
+  "date_range": [
+    "2026-10-17",
+    "2026-10-17"
+  ],
+  "equipment": "binoculars",
+  "goal": "校园科普观测",
+  "location": "济南_四门塔",
+  "location_detail": {
+    "city": "济南",
+    "elevation_m": 300,
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "name": "四门塔景区观星点",
+    "timezone": "Asia/Shanghai"
+  },
+  "target": "M31",
+  "target_type": null
+}

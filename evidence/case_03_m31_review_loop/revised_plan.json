@@ -1,0 +1,31 @@
+{
+  "target_name": "M31",
+  "location_name": "四门塔景区观星点",
+  "original_date_range": [
+    "2026-10-17",
+    "2026-10-17"
+  ],
+  "is_observable": true,
+  "revisions": [
+    {
+      "field": "preparation_step",
+      "from": "无提前到场要求",
+      "to": "提前到场进行设备调试和暗适应",
+      "reason": "本次迟到 31 分钟"
+    },
+    {
+      "field": "activity_preferences.preferred_start",
+      "from": "未设置",
+      "to": "2026-10-17T19:45:00",
+      "reason": "本次实际开始 19:45 晚于计划，将下次活动开始时间调整到实际可用时间"
+    }
+  ],
+  "suggestions": [
+    "下次活动增加到场准备步骤，确保在推荐窗口开始时已就位"
+  ],
+  "original_recommended_window": {
+    "start": "2026-10-17T19:13:49.687500",
+    "end": "2026-10-18T04:28:49.687500",
+    "peak_altitude_deg": 85.04
+  }
+}

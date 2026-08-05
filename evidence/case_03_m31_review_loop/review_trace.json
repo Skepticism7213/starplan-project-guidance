@@ -1,0 +1,57 @@
+{
+  "schema_version": "2.0",
+  "qwen_status": "disabled_pending_id_only",
+  "causes": [
+    {
+      "cause_id": "cause.team_late",
+      "cause": "团队迟到",
+      "classification": "evidence_based",
+      "evidence": "计划开始 19:13，实际开始 19:45，延迟 31 分钟（阈值: review.delay_significance@v1 = 10 分钟活动政策）",
+      "source": "rule_based",
+      "source_deviation_ids": [
+        "dev.time.delay"
+      ]
+    }
+  ],
+  "suggestions": [
+    {
+      "text": "下次活动增加到场准备步骤，确保在推荐窗口开始时已就位",
+      "index": 0
+    }
+  ],
+  "plan_diffs": [
+    {
+      "field": "preparation_step",
+      "reason": "本次迟到 31 分钟",
+      "source_cause_ids": [
+        "cause.team_late"
+      ]
+    },
+    {
+      "field": "activity_preferences.preferred_start",
+      "reason": "本次实际开始 19:45 晚于计划，将下次活动开始时间调整到实际可用时间",
+      "source_cause_ids": [
+        "cause.team_late"
+      ]
+    }
+  ],
+  "next_input_patches": [
+    {
+      "field": "activity_preferences.preferred_start",
+      "original_value": "未设置",
+      "revised_value": "2026-10-17T19:45:00",
+      "reason": "本次实际开始 19:45 晚于计划，将下次活动开始时间调整到实际可用时间",
+      "source_cause_ids": [
+        "cause.team_late"
+      ]
+    }
+  ],
+  "next_input_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_184517_review\\next_activity_input.json",
+  "deviations": [
+    {
+      "deviation_id": "dev.time.delay",
+      "deviation_type": "time",
+      "description": "实际开始时间比计划晚 31 分钟"
+    }
+  ]
+}

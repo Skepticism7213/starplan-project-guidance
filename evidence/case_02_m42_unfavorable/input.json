@@ -1,0 +1,26 @@
+{
+  "audience": "天文社新成员",
+  "constraints": {
+    "max_airmass": 2,
+    "max_moon_illumination": null,
+    "min_altitude_deg": 30,
+    "prefer_early_night": false
+  },
+  "date_range": [
+    "2026-07-25",
+    "2026-07-25"
+  ],
+  "equipment": "binoculars",
+  "goal": "校园科普观测",
+  "location": "济南_四门塔",
+  "location_detail": {
+    "city": "济南",
+    "elevation_m": 300,
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "name": "四门塔景区观星点",
+    "timezone": "Asia/Shanghai"
+  },
+  "target": "M42",
+  "target_type": null
+}

@@ -1,0 +1,22 @@
+{
+  "standard_name": "M31",
+  "aliases": [
+    "Andromeda Galaxy",
+    "仙女座星系",
+    "NGC 224",
+    "仙女座大星云"
+  ],
+  "target_type": "deep_sky",
+  "ra_deg": 10.6847,
+  "dec_deg": 41.2688,
+  "visual_magnitude": 3.4,
+  "angular_size_arcmin": [
+    178.0,
+    63.0
+  ],
+  "constellation": "Andromeda",
+  "source": "built_in_catalog_v1",
+  "confidence": 1.0,
+  "candidates": null,
+  "requires_confirmation": false
+}

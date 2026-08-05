@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "run_id": "m31_济南-四门塔_20261017_184517_review",
+  "timestamp": "2026-08-05 18:45:18.543935+08:00",
+  "input": {
+    "activity_preferences": {
+      "cleanup_minutes": 15,
+      "duration_minutes": 90,
+      "setup_minutes": 15
+    },
+    "audience": "天文社新成员",
+    "audience_profile": {
+      "age_band": "high_school",
+      "experience_level": "beginner",
+      "requested_views": [
+        "organizer",
+        "facilitator",
+        "learner"
+      ]
+    },
+    "constraints": {
+      "max_airmass": 2,
+      "max_moon_illumination": null,
+      "min_altitude_deg": 30,
+      "prefer_early_night": false
+    },
+    "date_range": [
+      "2026-10-17",
+      "2026-10-17"
+    ],
+    "equipment": "binoculars",
+    "goal": "校园科普观测",
+    "location": "济南_四门塔",
+    "location_detail": {
+      "city": "济南",
+      "elevation_m": 300,
+      "latitude": 36.49,
+      "longitude": 117.18,
+      "name": "四门塔景区观星点",
+      "timezone": "Asia/Shanghai"
+    },
+    "observation_log": {
+      "actual_end_time": "2026-10-17T22:00:00+08:00",
+      "actual_start_time": "2026-10-17T19:45:00+08:00",
+      "cloud_cover": "clear",
+      "equipment_used": "binoculars",
+      "observer_notes": null,
+      "seeing_conditions": null,
+      "success_rating": null,
+      "targets_missed": [],
+      "targets_observed": [
+        "M31"
+      ]
+    },
+    "target": "M31",
+    "target_type": null
+  },
+  "target": {
+    "standard_name": "M31",
+    "ra_deg": 10.6847,
+    "dec_deg": 41.2688,
+    "source": "built_in_catalog_v1"
+  },
+  "location": {
+    "name": "四门塔景区观星点",
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300.0,
+    "timezone": "Asia/Shanghai"
+  },
+  "tools": {
+    "astropy_version": "8.0.1",
+    "astroplan_version": "0.10.1",
+    "python_version": "3.13.5"
+  },
+  "model": {
+    "provider": "阿里云百炼",
+    "model_name": null,
+    "model_version": null,
+    "called": false
+  },
+  "constraints_applied": {
+    "astronomy_runtime_policy": "offline_bundled_data",
+    "refraction_policy": "astropy_default (pressure=0, no atmospheric refraction)"
+  },
+  "intermediate_files": [
+    "claims.json",
+    "expression_plan.json",
+    "input.json",
+    "model_call_log.jsonl",
+    "next_activity_input.json",
+    "observability.csv",
+    "observation_log.json",
+    "outreach_pack.md",
+    "outreach_pack_facilitator.md",
+    "outreach_pack_learner.md",
+    "plan.json",
+    "rendered_document.json",
+    "rendered_document_facilitator.json",
+    "rendered_document_learner.json",
+    "render_trace.json",
+    "render_trace_facilitator.json",
+    "render_trace_learner.json",
+    "resolved_target.json",
+    "review_report.md",
+    "review_trace.json",
+    "revised_plan.json",
+    "sentence_claim_map.json",
+    "sentence_claim_map_facilitator.json",
+    "sentence_claim_map_learner.json",
+    "state_log.json",
+    "visibility_curve.png"
+  ],
+  "manual_overrides": [],
+  "validation_status": "passed",
+  "validation_issues": [],
+  "qwen_used": false
+}

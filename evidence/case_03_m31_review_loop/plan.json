@@ -1,0 +1,412 @@
+{
+  "is_observable": true,
+  "target_name": "M31",
+  "location_name": "四门塔景区观星点",
+  "date_range": [
+    "2026-10-17",
+    "2026-10-17"
+  ],
+  "visibility_windows": [
+    {
+      "start": "2026-10-17T19:13:49.687500",
+      "end": "2026-10-18T04:28:49.687500",
+      "duration_minutes": 555.0
+    }
+  ],
+  "recommended_window": {
+    "window": {
+      "start": "2026-10-17T19:13:49.687500",
+      "end": "2026-10-18T04:28:49.687500",
+      "duration_minutes": 555.0
+    },
+    "peak_altitude_deg": 85.04,
+    "peak_airmass": 1.004,
+    "reason": "推荐时段内目标高度角峰值 85.0°，大气质量 1.00，持续约 555 分钟，满足高度角 ≥ 30.0° 且大气质量 ≤ 2.0 的约束"
+  },
+  "eliminated_windows": [],
+  "hourly_data": [
+    {
+      "time": "2026-10-17T19:13:49.687500",
+      "altitude_deg": 44.42,
+      "azimuth_deg": 64.71,
+      "airmass": 1.429,
+      "sun_altitude_deg": -21.02,
+      "moon_altitude_deg": 20.18,
+      "moon_separation_deg": 107.19
+    },
+    {
+      "time": "2026-10-17T19:28:49.687500",
+      "altitude_deg": 47.16,
+      "azimuth_deg": 65.64,
+      "airmass": 1.364,
+      "sun_altitude_deg": -24.03,
+      "moon_altitude_deg": 18.76,
+      "moon_separation_deg": 107.11
+    },
+    {
+      "time": "2026-10-17T19:43:49.687500",
+      "altitude_deg": 49.92,
+      "azimuth_deg": 66.48,
+      "airmass": 1.307,
+      "sun_altitude_deg": -27.02,
+      "moon_altitude_deg": 17.2,
+      "moon_separation_deg": 107.03
+    },
+    {
+      "time": "2026-10-17T19:58:49.687500",
+      "altitude_deg": 52.71,
+      "azimuth_deg": 67.24,
+      "airmass": 1.257,
+      "sun_altitude_deg": -29.99,
+      "moon_altitude_deg": 15.51,
+      "moon_separation_deg": 106.94
+    },
+    {
+      "time": "2026-10-17T20:13:49.687500",
+      "altitude_deg": 55.5,
+      "azimuth_deg": 67.88,
+      "airmass": 1.213,
+      "sun_altitude_deg": -32.94,
+      "moon_altitude_deg": 13.71,
+      "moon_separation_deg": 106.85
+    },
+    {
+      "time": "2026-10-17T20:28:49.687500",
+      "altitude_deg": 58.31,
+      "azimuth_deg": 68.39,
+      "airmass": 1.175,
+      "sun_altitude_deg": -35.85,
+      "moon_altitude_deg": 11.81,
+      "moon_separation_deg": 106.76
+    },
+    {
+      "time": "2026-10-17T20:43:49.687500",
+      "altitude_deg": 61.12,
+      "azimuth_deg": 68.73,
+      "airmass": 1.142,
+      "sun_altitude_deg": -38.72,
+      "moon_altitude_deg": 9.8,
+      "moon_separation_deg": 106.67
+    },
+    {
+      "time": "2026-10-17T20:58:49.687500",
+      "altitude_deg": 63.94,
+      "azimuth_deg": 68.87,
+      "airmass": 1.113,
+      "sun_altitude_deg": -41.54,
+      "moon_altitude_deg": 7.7,
+      "moon_separation_deg": 106.57
+    },
+    {
+      "time": "2026-10-17T21:13:49.687500",
+      "altitude_deg": 66.76,
+      "azimuth_deg": 68.72,
+      "airmass": 1.088,
+      "sun_altitude_deg": -44.29,
+      "moon_altitude_deg": 5.52,
+      "moon_separation_deg": 106.48
+    },
+    {
+      "time": "2026-10-17T21:28:49.687500",
+      "altitude_deg": 69.57,
+      "azimuth_deg": 68.19,
+      "airmass": 1.067,
+      "sun_altitude_deg": -46.96,
+      "moon_altitude_deg": 3.26,
+      "moon_separation_deg": 106.37
+    },
+    {
+      "time": "2026-10-17T21:43:49.687500",
+      "altitude_deg": 72.37,
+      "azimuth_deg": 67.09,
+      "airmass": 1.049,
+      "sun_altitude_deg": -49.53,
+      "moon_altitude_deg": 0.93,
+      "moon_separation_deg": 106.27
+    },
+    {
+      "time": "2026-10-17T21:58:49.687500",
+      "altitude_deg": 75.13,
+      "azimuth_deg": 65.12,
+      "airmass": 1.035,
+      "sun_altitude_deg": -51.98,
+      "moon_altitude_deg": -1.46,
+      "moon_separation_deg": 106.17
+    },
+    {
+      "time": "2026-10-17T22:13:49.687500",
+      "altitude_deg": 77.84,
+      "azimuth_deg": 61.73,
+      "airmass": 1.023,
+      "sun_altitude_deg": -54.27,
+      "moon_altitude_deg": -3.91,
+      "moon_separation_deg": 106.06
+    },
+    {
+      "time": "2026-10-17T22:28:49.687500",
+      "altitude_deg": 80.43,
+      "azimuth_deg": 55.78,
+      "airmass": 1.014,
+      "sun_altitude_deg": -56.39,
+      "moon_altitude_deg": -6.42,
+      "moon_separation_deg": 105.95
+    },
+    {
+      "time": "2026-10-17T22:43:49.687500",
+      "altitude_deg": 82.77,
+      "azimuth_deg": 44.92,
+      "airmass": 1.008,
+      "sun_altitude_deg": -58.28,
+      "moon_altitude_deg": -8.97,
+      "moon_separation_deg": 105.84
+    },
+    {
+      "time": "2026-10-17T22:58:49.687500",
+      "altitude_deg": 84.53,
+      "azimuth_deg": 24.7,
+      "airmass": 1.005,
+      "sun_altitude_deg": -59.91,
+      "moon_altitude_deg": -11.57,
+      "moon_separation_deg": 105.72
+    },
+    {
+      "time": "2026-10-17T23:13:49.687500",
+      "altitude_deg": 85.04,
+      "azimuth_deg": 353.77,
+      "airmass": 1.004,
+      "sun_altitude_deg": -61.23,
+      "moon_altitude_deg": -14.21,
+      "moon_separation_deg": 105.6
+    },
+    {
+      "time": "2026-10-17T23:28:49.687500",
+      "altitude_deg": 83.97,
+      "azimuth_deg": 326.15,
+      "airmass": 1.006,
+      "sun_altitude_deg": -62.2,
+      "moon_altitude_deg": -16.89,
+      "moon_separation_deg": 105.48
+    },
+    {
+      "time": "2026-10-17T23:43:49.687500",
+      "altitude_deg": 81.92,
+      "azimuth_deg": 310.11,
+      "airmass": 1.01,
+      "sun_altitude_deg": -62.77,
+      "moon_altitude_deg": -19.59,
+      "moon_separation_deg": 105.36
+    },
+    {
+      "time": "2026-10-17T23:58:49.687500",
+      "altitude_deg": 79.46,
+      "azimuth_deg": 301.54,
+      "airmass": 1.017,
+      "sun_altitude_deg": -62.93,
+      "moon_altitude_deg": -22.33,
+      "moon_separation_deg": 105.24
+    },
+    {
+      "time": "2026-10-18T00:13:49.687500",
+      "altitude_deg": 76.82,
+      "azimuth_deg": 296.76,
+      "airmass": 1.027,
+      "sun_altitude_deg": -62.66,
+      "moon_altitude_deg": -25.1,
+      "moon_separation_deg": 105.11
+    },
+    {
+      "time": "2026-10-18T00:28:49.687500",
+      "altitude_deg": 74.08,
+      "azimuth_deg": 294.0,
+      "airmass": 1.04,
+      "sun_altitude_deg": -61.97,
+      "moon_altitude_deg": -27.88,
+      "moon_separation_deg": 104.98
+    },
+    {
+      "time": "2026-10-18T00:43:49.687500",
+      "altitude_deg": 71.3,
+      "azimuth_deg": 292.41,
+      "airmass": 1.056,
+      "sun_altitude_deg": -60.9,
+      "moon_altitude_deg": -30.69,
+      "moon_separation_deg": 104.85
+    },
+    {
+      "time": "2026-10-18T00:58:49.687500",
+      "altitude_deg": 68.5,
+      "azimuth_deg": 291.56,
+      "airmass": 1.075,
+      "sun_altitude_deg": -59.49,
+      "moon_altitude_deg": -33.51,
+      "moon_separation_deg": 104.72
+    },
+    {
+      "time": "2026-10-18T01:13:49.687500",
+      "altitude_deg": 65.68,
+      "azimuth_deg": 291.19,
+      "airmass": 1.097,
+      "sun_altitude_deg": -57.78,
+      "moon_altitude_deg": -36.35,
+      "moon_separation_deg": 104.59
+    },
+    {
+      "time": "2026-10-18T01:28:49.687500",
+      "altitude_deg": 62.86,
+      "azimuth_deg": 291.16,
+      "airmass": 1.124,
+      "sun_altitude_deg": -55.82,
+      "moon_altitude_deg": -39.21,
+      "moon_separation_deg": 104.45
+    },
+    {
+      "time": "2026-10-18T01:43:49.687500",
+      "altitude_deg": 60.04,
+      "azimuth_deg": 291.38,
+      "airmass": 1.154,
+      "sun_altitude_deg": -53.65,
+      "moon_altitude_deg": -42.07,
+      "moon_separation_deg": 104.32
+    },
+    {
+      "time": "2026-10-18T01:58:49.687500",
+      "altitude_deg": 57.23,
+      "azimuth_deg": 291.79,
+      "airmass": 1.189,
+      "sun_altitude_deg": -51.31,
+      "moon_altitude_deg": -44.94,
+      "moon_separation_deg": 104.18
+    },
+    {
+      "time": "2026-10-18T02:13:49.687500",
+      "altitude_deg": 54.43,
+      "azimuth_deg": 292.35,
+      "airmass": 1.229,
+      "sun_altitude_deg": -48.83,
+      "moon_altitude_deg": -47.81,
+      "moon_separation_deg": 104.04
+    },
+    {
+      "time": "2026-10-18T02:28:49.687500",
+      "altitude_deg": 51.64,
+      "azimuth_deg": 293.04,
+      "airmass": 1.275,
+      "sun_altitude_deg": -46.23,
+      "moon_altitude_deg": -50.68,
+      "moon_separation_deg": 103.9
+    },
+    {
+      "time": "2026-10-18T02:43:49.687500",
+      "altitude_deg": 48.87,
+      "azimuth_deg": 293.83,
+      "airmass": 1.328,
+      "sun_altitude_deg": -43.54,
+      "moon_altitude_deg": -53.54,
+      "moon_separation_deg": 103.76
+    },
+    {
+      "time": "2026-10-18T02:58:49.687500",
+      "altitude_deg": 46.11,
+      "azimuth_deg": 294.71,
+      "airmass": 1.388,
+      "sun_altitude_deg": -40.77,
+      "moon_altitude_deg": -56.4,
+      "moon_separation_deg": 103.61
+    },
+    {
+      "time": "2026-10-18T03:13:49.687500",
+      "altitude_deg": 43.38,
+      "azimuth_deg": 295.67,
+      "airmass": 1.456,
+      "sun_altitude_deg": -37.94,
+      "moon_altitude_deg": -59.23,
+      "moon_separation_deg": 103.47
+    },
+    {
+      "time": "2026-10-18T03:28:49.687500",
+      "altitude_deg": 40.66,
+      "azimuth_deg": 296.7,
+      "airmass": 1.535,
+      "sun_altitude_deg": -35.06,
+      "moon_altitude_deg": -62.04,
+      "moon_separation_deg": 103.33
+    },
+    {
+      "time": "2026-10-18T03:43:49.687500",
+      "altitude_deg": 37.98,
+      "azimuth_deg": 297.81,
+      "airmass": 1.625,
+      "sun_altitude_deg": -32.14,
+      "moon_altitude_deg": -64.81,
+      "moon_separation_deg": 103.18
+    },
+    {
+      "time": "2026-10-18T03:58:49.687500",
+      "altitude_deg": 35.32,
+      "azimuth_deg": 298.97,
+      "airmass": 1.73,
+      "sun_altitude_deg": -29.19,
+      "moon_altitude_deg": -67.53,
+      "moon_separation_deg": 103.04
+    },
+    {
+      "time": "2026-10-18T04:13:49.687500",
+      "altitude_deg": 32.69,
+      "azimuth_deg": 300.2,
+      "airmass": 1.852,
+      "sun_altitude_deg": -26.21,
+      "moon_altitude_deg": -70.16,
+      "moon_separation_deg": 102.9
+    },
+    {
+      "time": "2026-10-18T04:28:49.687500",
+      "altitude_deg": 30.09,
+      "azimuth_deg": 301.49,
+      "airmass": 1.994,
+      "sun_altitude_deg": -23.22,
+      "moon_altitude_deg": -72.66,
+      "moon_separation_deg": 102.75
+    },
+    {
+      "time": "2026-10-18T04:43:49.687500",
+      "altitude_deg": 27.53,
+      "azimuth_deg": 302.85,
+      "airmass": 2.163,
+      "sun_altitude_deg": -20.22,
+      "moon_altitude_deg": -74.97,
+      "moon_separation_deg": 102.61
+    }
+  ],
+  "twilight": {
+    "sunset": "2026-10-17T17:28:49.687500",
+    "civil_twilight_end": "2026-10-17T17:59:03.750000",
+    "nautical_twilight_end": "2026-10-17T18:28:59.062500",
+    "astronomical_twilight_end": "2026-10-17T18:58:49.687500",
+    "sunrise": "2026-10-18T06:25:04.687500",
+    "astronomical_twilight_start": "2026-10-18T04:54:55.312500"
+  },
+  "moon_info": {
+    "phase_fraction": 0.399,
+    "moonrise": null,
+    "moonset": "2026-10-17T21:49:43.044434",
+    "peak_altitude_deg": 20.18,
+    "min_separation_deg": 102.61,
+    "impact_assessment": "low"
+  },
+  "alternative_suggestions": [],
+  "risk_flags": [],
+  "not_observable_reason": null,
+  "nights_computed": 1,
+  "activity_slot": {
+    "start": "2026-10-17T19:13:49.687500",
+    "end": "2026-10-17T20:43:49.687500",
+    "duration_minutes": 90.0,
+    "setup_start": "2026-10-17T18:58:49.687500",
+    "cleanup_end": "2026-10-17T20:58:49.687500",
+    "rule_version": "activity_slot_policy_v1",
+    "status": "proposed",
+    "reason": "在科学可见窗口 19:13~04:28 内，按 activity_slot_policy_v1 选择 90 分钟现实活动时段"
+  },
+  "observability_csv_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_184517_review\\observability.csv",
+  "visibility_curve_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_184517_review\\visibility_curve.png"
+}

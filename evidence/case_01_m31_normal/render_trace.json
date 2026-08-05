@@ -1,0 +1,501 @@
+{
+  "schema_version": "2.0",
+  "sentence_count": 44,
+  "sections": [
+    "metadata",
+    "recommended_window",
+    "schedule",
+    "talking_points",
+    "equipment",
+    "safety",
+    "manual_check"
+  ],
+  "sentences": [
+    {
+      "sentence_id": "s000",
+      "text_hash": "a55c0f1e13d6",
+      "text": "M31 观测活动包",
+      "claim_ids": [
+        "meta.title"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s001",
+      "text_hash": "a90facdfdc54",
+      "text": "受众: 天文社新成员",
+      "claim_ids": [
+        "meta.audience"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s002",
+      "text_hash": "0461a103032e",
+      "text": "日期: 2026-10-17",
+      "claim_ids": [
+        "meta.date"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s003",
+      "text_hash": "17d0a7d175b1",
+      "text": "地点: 四门塔景区观星点",
+      "claim_ids": [
+        "meta.location"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s004",
+      "text_hash": "0fadc97d4733",
+      "text": "可观测: 是",
+      "claim_ids": [
+        "meta.observable_status"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s005",
+      "text_hash": "ffe38b4410b7",
+      "text": "讲解生成: 确定性模板",
+      "claim_ids": [
+        "meta.generation_method.template"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s006",
+      "text_hash": "62639421ebb7",
+      "text": "时间: 19:13 ~ 04:28",
+      "claim_ids": [
+        "obs.recommended_window"
+      ],
+      "variant_id": "recommended_window_time_v1",
+      "section": "recommended_window",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s007",
+      "text_hash": "946c9a09bfd5",
+      "text": "峰值高度角: 85.0°",
+      "claim_ids": [
+        "obs.peak_altitude"
+      ],
+      "variant_id": "recommended_window_peak_v1",
+      "section": "recommended_window",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s008",
+      "text_hash": "a3daab1e94bb",
+      "text": "理由: 推荐时段内目标高度角峰值 85.0°，大气质量 1.00，持续约 555 分钟，满足高度角 ≥ 30.0° 且大气质量 ≤ 2.0 的约束",
+      "claim_ids": [
+        "obs.recommended_window"
+      ],
+      "variant_id": "recommended_window_reason_v1",
+      "section": "recommended_window",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s009",
+      "text_hash": "830f5a28c511",
+      "text": "18:58: 到达场地，设备调试与准备",
+      "claim_ids": [
+        "activity.setup_start"
+      ],
+      "variant_id": "activity_setup_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s010",
+      "text_hash": "84560f107c3a",
+      "text": "19:13: 开始观测 M31",
+      "claim_ids": [
+        "activity.slot_start",
+        "target.standard_name"
+      ],
+      "variant_id": "activity_slot_start_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s011",
+      "text_hash": "69a7cc3e1ff4",
+      "text": "19:13 ~ 20:43: 观测进行中",
+      "claim_ids": [
+        "activity.slot_start",
+        "activity.slot_end"
+      ],
+      "variant_id": "schedule_proc_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s012",
+      "text_hash": "07a600be33b3",
+      "text": "20:43: 活动观测部分结束",
+      "claim_ids": [
+        "activity.slot_end"
+      ],
+      "variant_id": "activity_slot_end_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s013",
+      "text_hash": "9bda1484ea0f",
+      "text": "20:58: 收拾设备、点名、合影",
+      "claim_ids": [
+        "activity.cleanup_end"
+      ],
+      "variant_id": "activity_cleanup_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s014",
+      "text_hash": "8df379b9d3d4",
+      "text": "本次活动我们要观测的是 M31",
+      "claim_ids": [
+        "target.standard_name"
+      ],
+      "variant_id": "target_name_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s015",
+      "text_hash": "8b320a6804a5",
+      "text": "它是一个星系",
+      "claim_ids": [
+        "target.type"
+      ],
+      "variant_id": "target_type_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s016",
+      "text_hash": "08b5e47194f3",
+      "text": "它位于 Andromeda 星座方向",
+      "claim_ids": [
+        "target.constellation"
+      ],
+      "variant_id": "constellation_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s017",
+      "text_hash": "8d7bb232d0f3",
+      "text": "它的视星等约为 3.4",
+      "claim_ids": [
+        "target.visual_magnitude"
+      ],
+      "variant_id": "magnitude_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s018",
+      "text_hash": "2b58200c0fae",
+      "text": "它在天空中的角大小约为 178.0' × 63.0'",
+      "claim_ids": [
+        "target.angular_size"
+      ],
+      "variant_id": "angular_size_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s019",
+      "text_hash": "76da3d9767bf",
+      "text": "经过计算，该目标在当晚可观测",
+      "claim_ids": [
+        "obs.is_observable"
+      ],
+      "variant_id": "observable_status_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s020",
+      "text_hash": "323d2c122951",
+      "text": "目标最高将升到 85.0° 的高度",
+      "claim_ids": [
+        "obs.peak_altitude"
+      ],
+      "variant_id": "peak_altitude_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s021",
+      "text_hash": "6d9f740f603b",
+      "text": "推荐观测时段为 19:13 ~ 04:28",
+      "claim_ids": [
+        "obs.recommended_window"
+      ],
+      "variant_id": "window_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s022",
+      "text_hash": "25ecde4c52fb",
+      "text": "天文暮光于 18:58 结束",
+      "claim_ids": [
+        "obs.twilight_end"
+      ],
+      "variant_id": "twilight_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s023",
+      "text_hash": "bc44ec7a7509",
+      "text": "这个目标肉眼可见（理想暗天条件下）",
+      "claim_ids": [
+        "derived.visibility.naked_eye"
+      ],
+      "variant_id": "naked_eye_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s024",
+      "text_hash": "51398485ab0d",
+      "text": "使用双筒望远镜，双筒望远镜可见（中等光污染以下）",
+      "claim_ids": [
+        "derived.visibility.binoculars"
+      ],
+      "variant_id": "binoculars_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s025",
+      "text_hash": "e3b40238cbc5",
+      "text": "这个目标适合新手观测，推荐作为入门观测对象",
+      "claim_ids": [
+        "derived.visibility.beginner_friendly"
+      ],
+      "variant_id": "beginner_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s026",
+      "text_hash": "89f107c38eb7",
+      "text": "当前设备（双筒望远镜）适合观测此目标",
+      "claim_ids": [
+        "derived.equipment.match"
+      ],
+      "variant_id": "equipment_match_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s027",
+      "text_hash": "b2ead672138e",
+      "text": "综合评估：月光影响较小",
+      "claim_ids": [
+        "moon.impact"
+      ],
+      "variant_id": "moon_impact_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s028",
+      "text_hash": "36dde35cf568",
+      "text": "月球与目标的最小角距离为 102.6°",
+      "claim_ids": [
+        "moon.separation"
+      ],
+      "variant_id": "moon_sep_v1",
+      "section": "talking_points",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s029",
+      "text_hash": "7151072587cf",
+      "text": "双筒望远镜（7×50 或 10×50 推荐） x 每组 1 台",
+      "claim_ids": [
+        "equipment.binoculars"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s030",
+      "text_hash": "d48c1c01cd34",
+      "text": "三脚架或望远镜支架 x 每组 1 个（双筒手持容易抖动）",
+      "claim_ids": [
+        "equipment.tripod"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s031",
+      "text_hash": "0abb496d5ba5",
+      "text": "活动星图或手机星图 App x 每组 1 个",
+      "claim_ids": [
+        "equipment.star_chart"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s032",
+      "text_hash": "ae71d4863cdc",
+      "text": "红色手电筒 x 每组 1 个（保护暗适应视力）",
+      "claim_ids": [
+        "equipment.red_flashlight"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s033",
+      "text_hash": "d12ecbc5a87c",
+      "text": "保暖衣物 x 每人（根据当地天气预报准备）",
+      "claim_ids": [
+        "equipment.warm_clothes"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s034",
+      "text_hash": "63bc0fdc137d",
+      "text": "记录本和笔 x 每组 1 套",
+      "claim_ids": [
+        "equipment.notebook"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s035",
+      "text_hash": "4d14d7405367",
+      "text": "防蚊液 x 适量（户外使用）",
+      "claim_ids": [
+        "equipment.repellent"
+      ],
+      "variant_id": "equipment_item_v1",
+      "section": "equipment",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s036",
+      "text_hash": "29236cee929a",
+      "text": "夜间活动请注意人身安全，避免单独行动",
+      "claim_ids": [
+        "safety.night_group"
+      ],
+      "variant_id": "safety_instruction_v1",
+      "section": "safety",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s037",
+      "text_hash": "d4c47fa5b088",
+      "text": "使用红色手电筒保护暗适应视力",
+      "claim_ids": [
+        "safety.red_flashlight"
+      ],
+      "variant_id": "safety_instruction_v1",
+      "section": "safety",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s038",
+      "text_hash": "04c5fdb6306a",
+      "text": "出发前查看当地天气预报，并按预报准备保暖/防雨物品",
+      "claim_ids": [
+        "safety.weather_clothing"
+      ],
+      "variant_id": "safety_instruction_v1",
+      "section": "safety",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s039",
+      "text_hash": "787d61543f6f",
+      "text": "请勿使用激光笔直接指向天空有人区域",
+      "claim_ids": [
+        "safety.laser_caution"
+      ],
+      "variant_id": "safety_instruction_v1",
+      "section": "safety",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s040",
+      "text_hash": "899998630943",
+      "text": "确认目标坐标来源: built_in_catalog_v1",
+      "claim_ids": [
+        "manual_check.coordinate_source"
+      ],
+      "variant_id": "manual_check_source_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s041",
+      "text_hash": "3b4656f2dd6f",
+      "text": "确认推荐时段的天文暮光时间是否准确",
+      "claim_ids": [
+        "manual_check.twilight_accuracy"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s042",
+      "text_hash": "c6249ea1af08",
+      "text": "确认活动地点夜间开放且安全",
+      "claim_ids": [
+        "manual_check.site_access"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s043",
+      "text_hash": "10cbc5f2f51f",
+      "text": "确认设备电池充足、三脚架稳固",
+      "claim_ids": [
+        "manual_check.equipment_battery"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    }
+  ]
+}

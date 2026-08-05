@@ -1,0 +1,136 @@
+{
+  "M31 观测活动包": [
+    "meta.title"
+  ],
+  "受众: 天文社新成员": [
+    "meta.audience"
+  ],
+  "日期: 2026-10-17": [
+    "meta.date"
+  ],
+  "地点: 四门塔景区观星点": [
+    "meta.location"
+  ],
+  "可观测: 是": [
+    "meta.observable_status"
+  ],
+  "讲解生成: 确定性模板": [
+    "meta.generation_method.template"
+  ],
+  "时间: 19:13 ~ 04:28": [
+    "obs.recommended_window"
+  ],
+  "峰值高度角: 85.0°": [
+    "obs.peak_altitude"
+  ],
+  "理由: 推荐时段内目标高度角峰值 85.0°，大气质量 1.00，持续约 555 分钟，满足高度角 ≥ 30.0° 且大气质量 ≤ 2.0 的约束": [
+    "obs.recommended_window"
+  ],
+  "18:58: 到达场地，设备调试与准备": [
+    "activity.setup_start"
+  ],
+  "19:13: 开始观测 M31": [
+    "activity.slot_start",
+    "target.standard_name"
+  ],
+  "19:13 ~ 20:43: 观测进行中": [
+    "activity.slot_start",
+    "activity.slot_end"
+  ],
+  "20:43: 活动观测部分结束": [
+    "activity.slot_end"
+  ],
+  "20:58: 收拾设备、点名、合影": [
+    "activity.cleanup_end"
+  ],
+  "本次活动我们要观测的是 M31": [
+    "target.standard_name"
+  ],
+  "它是一个星系": [
+    "target.type"
+  ],
+  "它位于 Andromeda 星座方向": [
+    "target.constellation"
+  ],
+  "它的视星等约为 3.4": [
+    "target.visual_magnitude"
+  ],
+  "它在天空中的角大小约为 178.0' × 63.0'": [
+    "target.angular_size"
+  ],
+  "经过计算，该目标在当晚可观测": [
+    "obs.is_observable"
+  ],
+  "目标最高将升到 85.0° 的高度": [
+    "obs.peak_altitude"
+  ],
+  "推荐观测时段为 19:13 ~ 04:28": [
+    "obs.recommended_window"
+  ],
+  "天文暮光于 18:58 结束": [
+    "obs.twilight_end"
+  ],
+  "这个目标肉眼可见（理想暗天条件下）": [
+    "derived.visibility.naked_eye"
+  ],
+  "使用双筒望远镜，双筒望远镜可见（中等光污染以下）": [
+    "derived.visibility.binoculars"
+  ],
+  "这个目标适合新手观测，推荐作为入门观测对象": [
+    "derived.visibility.beginner_friendly"
+  ],
+  "当前设备（双筒望远镜）适合观测此目标": [
+    "derived.equipment.match"
+  ],
+  "综合评估：月光影响较小": [
+    "moon.impact"
+  ],
+  "月球与目标的最小角距离为 102.6°": [
+    "moon.separation"
+  ],
+  "双筒望远镜（7×50 或 10×50 推荐） x 每组 1 台": [
+    "equipment.binoculars"
+  ],
+  "三脚架或望远镜支架 x 每组 1 个（双筒手持容易抖动）": [
+    "equipment.tripod"
+  ],
+  "活动星图或手机星图 App x 每组 1 个": [
+    "equipment.star_chart"
+  ],
+  "红色手电筒 x 每组 1 个（保护暗适应视力）": [
+    "equipment.red_flashlight"
+  ],
+  "保暖衣物 x 每人（根据当地天气预报准备）": [
+    "equipment.warm_clothes"
+  ],
+  "记录本和笔 x 每组 1 套": [
+    "equipment.notebook"
+  ],
+  "防蚊液 x 适量（户外使用）": [
+    "equipment.repellent"
+  ],
+  "夜间活动请注意人身安全，避免单独行动": [
+    "safety.night_group"
+  ],
+  "使用红色手电筒保护暗适应视力": [
+    "safety.red_flashlight"
+  ],
+  "出发前查看当地天气预报，并按预报准备保暖/防雨物品": [
+    "safety.weather_clothing"
+  ],
+  "请勿使用激光笔直接指向天空有人区域": [
+    "safety.laser_caution"
+  ],
+  "确认目标坐标来源: built_in_catalog_v1": [
+    "manual_check.coordinate_source"
+  ],
+  "确认推荐时段的天文暮光时间是否准确": [
+    "manual_check.twilight_accuracy"
+  ],
+  "确认活动地点夜间开放且安全": [
+    "manual_check.site_access"
+  ],
+  "确认设备电池充足、三脚架稳固": [
+    "manual_check.equipment_battery"
+  ]
+}

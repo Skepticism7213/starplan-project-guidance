@@ -1,0 +1,27 @@
+[
+  {
+    "state": "received",
+    "timestamp": "2026-08-05T17:23:20.286097+08:00",
+    "note": "input target=M42"
+  },
+  {
+    "state": "input_validated",
+    "timestamp": "2026-08-05T17:23:20.288799+08:00",
+    "note": "StarPlanInput schema validated"
+  },
+  {
+    "state": "ready_to_compute",
+    "timestamp": "2026-08-05T17:23:20.292449+08:00",
+    "note": "location=四门塔景区观星点"
+  },
+  {
+    "state": "computed_not_observable",
+    "timestamp": "2026-08-05T17:23:24.942190+08:00",
+    "note": "target below constraints"
+  },
+  {
+    "state": "rendered",
+    "timestamp": "2026-08-05T17:23:24.989590+08:00",
+    "note": "all outputs written"
+  }
+]

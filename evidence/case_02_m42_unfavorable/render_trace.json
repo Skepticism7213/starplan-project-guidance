@@ -1,0 +1,222 @@
+{
+  "schema_version": "2.0",
+  "sentence_count": 19,
+  "sections": [
+    "metadata",
+    "blocking",
+    "alternatives",
+    "schedule",
+    "manual_check"
+  ],
+  "sentences": [
+    {
+      "sentence_id": "s000",
+      "text_hash": "20b85d2869ed",
+      "text": "M42 观测取消/改期通知",
+      "claim_ids": [
+        "meta.title"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s001",
+      "text_hash": "a90facdfdc54",
+      "text": "受众: 天文社新成员",
+      "claim_ids": [
+        "meta.audience"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s002",
+      "text_hash": "bbdb74e47f3b",
+      "text": "日期: 2026-07-25",
+      "claim_ids": [
+        "meta.date"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s003",
+      "text_hash": "17d0a7d175b1",
+      "text": "地点: 四门塔景区观星点",
+      "claim_ids": [
+        "meta.location"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s004",
+      "text_hash": "752ee4318801",
+      "text": "可观测: 否",
+      "claim_ids": [
+        "meta.observable_status"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s005",
+      "text_hash": "ffe38b4410b7",
+      "text": "讲解生成: 确定性模板",
+      "claim_ids": [
+        "meta.generation_method.template"
+      ],
+      "variant_id": "meta_passthrough_v1",
+      "section": "metadata",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s006",
+      "text_hash": "28a7c425b869",
+      "text": "M42 在 2026-07-25 当晚不满足观测条件（目标高度角低于最低要求），本次观测活动取消或改期",
+      "claim_ids": [
+        "blocking.reason"
+      ],
+      "variant_id": "blocking_reason_v1",
+      "section": "blocking",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s007",
+      "text_hash": "4a2283ff1fa1",
+      "text": "具体约束: 目标高度角 -58.7° 低于最小要求 30.0°",
+      "claim_ids": [
+        "blocking.constraint_detail"
+      ],
+      "variant_id": "blocking_constraint_v1",
+      "section": "blocking",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s008",
+      "text_hash": "9700d90505aa",
+      "text": "它位于 Orion 星座方向",
+      "claim_ids": [
+        "target.constellation"
+      ],
+      "variant_id": "constellation_v1",
+      "section": "blocking",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s009",
+      "text_hash": "b2f83cedb8da",
+      "text": "它的视星等约为 4.0",
+      "claim_ids": [
+        "target.visual_magnitude"
+      ],
+      "variant_id": "magnitude_v1",
+      "section": "blocking",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s010",
+      "text_hash": "73e9f74a9926",
+      "text": "当季更适合观测的替代目标：M29、M57",
+      "claim_ids": [
+        "blocking.alternatives"
+      ],
+      "variant_id": "blocking_alt_v1",
+      "section": "alternatives",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s011",
+      "text_hash": "754f212ea095",
+      "text": "建议将活动改期到约束条件满足时再举行",
+      "claim_ids": [
+        "blocking.reschedule_action"
+      ],
+      "variant_id": "blocking_reschedule_v1",
+      "section": "alternatives",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s012",
+      "text_hash": "f07e7f3e49c8",
+      "text": "可以利用本次集会时间进行室内天文知识讲座或星图认读练习",
+      "claim_ids": [
+        "blocking.indoor_activity"
+      ],
+      "variant_id": "blocking_indoor_v1",
+      "section": "alternatives",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s013",
+      "text_hash": "5f99f21ab74a",
+      "text": "原定观测活动取消/改期",
+      "claim_ids": [
+        "schedule.cancel"
+      ],
+      "variant_id": "schedule_proc_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s014",
+      "text_hash": "aa01d58306b4",
+      "text": "考虑替代目标或改期",
+      "claim_ids": [
+        "schedule.alt_consider"
+      ],
+      "variant_id": "schedule_proc_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s015",
+      "text_hash": "71bec0baba63",
+      "text": "室内替代活动：天文讲座 / 星图认读 / 观测计划讨论",
+      "claim_ids": [
+        "schedule.indoor"
+      ],
+      "variant_id": "schedule_proc_v1",
+      "section": "schedule",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s016",
+      "text_hash": "9fab35649d14",
+      "text": "确认 M42 在改期日期是否可观测（重新运行 StarPlan）",
+      "claim_ids": [
+        "manual_check.reschedule_verify"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s017",
+      "text_hash": "ad5755547939",
+      "text": "确认替代目标的设备匹配度",
+      "claim_ids": [
+        "manual_check.alt_equipment"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    },
+    {
+      "sentence_id": "s018",
+      "text_hash": "56c07e158758",
+      "text": "通知参与成员活动调整安排",
+      "claim_ids": [
+        "manual_check.notify_members"
+      ],
+      "variant_id": "manual_check_v1",
+      "section": "manual_check",
+      "render_mode": "claim_variant"
+    }
+  ]
+}

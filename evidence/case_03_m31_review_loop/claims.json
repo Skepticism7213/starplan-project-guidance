@@ -1,0 +1,1486 @@
+{
+  "schema_version": "1.1",
+  "run_scope": {
+    "target": "M31",
+    "location_id": "四门塔景区观星点",
+    "date": "2026-10-17",
+    "timezone": "Asia/Shanghai",
+    "business_branch": "observable"
+  },
+  "claims": [
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.standard_name",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "standard_name",
+      "canonical_value": null,
+      "text_value": "M31",
+      "unit": null,
+      "display_value": "M31",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "target_name_v1",
+        "target_name_v2",
+        "schedule_obs_start_v1",
+        "activity_slot_start_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.type",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "target_type",
+      "canonical_value": null,
+      "text_value": "deep_sky",
+      "unit": null,
+      "display_value": "星系",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "target_type_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.coordinates",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "coordinates",
+      "canonical_value": 10.6847,
+      "text_value": "RA=10.6847°, Dec=41.2688°",
+      "unit": null,
+      "display_value": "RA=10.6847°, Dec=41.2688°",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "coordinates_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.constellation",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "constellation",
+      "canonical_value": null,
+      "text_value": "Andromeda",
+      "unit": null,
+      "display_value": "Andromeda",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "constellation_v1",
+        "constellation_v2"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.visual_magnitude",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "visual_magnitude",
+      "canonical_value": 3.4,
+      "text_value": null,
+      "unit": "mag",
+      "display_value": "3.4",
+      "display_tolerance": 0.1,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "magnitude_v1",
+        "magnitude_v2"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "target.angular_size",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "angular_size",
+      "canonical_value": 178.0,
+      "text_value": null,
+      "unit": "arcmin",
+      "display_value": "178.0' × 63.0'",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.built_in_catalog_v1"
+      ],
+      "derivation_rule": null,
+      "source_hash": "fa2981c03b0cb0ad",
+      "allowed_variant_ids": [
+        "angular_size_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.is_observable",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "is_observable",
+      "canonical_value": null,
+      "text_value": "yes",
+      "unit": null,
+      "display_value": "可观测",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "observable_status_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.peak_altitude",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "peak_altitude",
+      "canonical_value": 85.04,
+      "text_value": null,
+      "unit": "deg",
+      "display_value": "85.0°",
+      "display_tolerance": 0.1,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "peak_altitude_v1",
+        "peak_altitude_v2",
+        "schedule_obs_peak_v1",
+        "recommended_window_peak_v1",
+        "schedule_obs_start_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.peak_airmass",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "peak_airmass",
+      "canonical_value": 1.004,
+      "text_value": null,
+      "unit": null,
+      "display_value": "1.00",
+      "display_tolerance": 0.01,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "airmass_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.recommended_window",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "recommended_window",
+      "canonical_value": null,
+      "text_value": "19:13 ~ 04:28",
+      "unit": null,
+      "display_value": "19:13 ~ 04:28",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "window_v1",
+        "window_v2",
+        "recommended_window_time_v1",
+        "recommended_window_reason_v1",
+        "schedule_obs_start_v1",
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.twilight_end",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "astronomical_twilight_end",
+      "canonical_value": null,
+      "text_value": "18:58",
+      "unit": null,
+      "display_value": "18:58",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "twilight_v1",
+        "schedule_prep_v1",
+        "schedule_twilight_end_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "obs.twilight_start",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "astronomical_twilight_start",
+      "canonical_value": null,
+      "text_value": "04:54",
+      "unit": null,
+      "display_value": "04:54",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.astropy"
+      ],
+      "derivation_rule": null,
+      "source_hash": "46678004178e18c4",
+      "allowed_variant_ids": [
+        "schedule_twilight_end_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "derived.visibility.naked_eye",
+      "claim_type": "derived_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "naked_eye_visible",
+      "canonical_value": null,
+      "text_value": "yes",
+      "unit": null,
+      "display_value": "肉眼可见（理想暗天条件下）",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.visual_magnitude"
+      ],
+      "derivation_rule": "visibility.naked_eye@v1|scope:mag_threshold_6.0,caveat:assumes_dark_sky",
+      "source_hash": null,
+      "allowed_variant_ids": [
+        "naked_eye_v1",
+        "naked_eye_v2"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "derived.visibility.binoculars",
+      "claim_type": "derived_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "binoculars_visible",
+      "canonical_value": null,
+      "text_value": "yes",
+      "unit": null,
+      "display_value": "双筒望远镜可见（中等光污染以下）",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.visual_magnitude"
+      ],
+      "derivation_rule": "visibility.binoculars@v1|scope:mag_threshold_10.0,caveat:assumes_moderate_sky",
+      "source_hash": null,
+      "allowed_variant_ids": [
+        "binoculars_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "derived.visibility.beginner_friendly",
+      "claim_type": "derived_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "beginner_friendly",
+      "canonical_value": null,
+      "text_value": "yes",
+      "unit": null,
+      "display_value": "适合新手观测，推荐作为入门观测对象",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.visual_magnitude",
+        "target_resolve.angular_size"
+      ],
+      "derivation_rule": "visibility.beginner_friendly@v1|scope:mag<=8,size>10.0arcmin",
+      "source_hash": null,
+      "allowed_variant_ids": [
+        "beginner_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "derived.equipment.match",
+      "claim_type": "derived_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_match",
+      "canonical_value": null,
+      "text_value": "yes",
+      "unit": null,
+      "display_value": "当前设备（双筒望远镜）适合观测此目标",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "target_resolve.visual_magnitude",
+        "input.equipment"
+      ],
+      "derivation_rule": "equipment.match@v1",
+      "source_hash": null,
+      "allowed_variant_ids": [
+        "equipment_match_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "moon.phase",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "moon_phase",
+      "canonical_value": 0.399,
+      "text_value": null,
+      "unit": null,
+      "display_value": "0.399",
+      "display_tolerance": 0.001,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.moon"
+      ],
+      "derivation_rule": null,
+      "source_hash": "dc6dce185c4d27ee",
+      "allowed_variant_ids": [
+        "moon_phase_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "moon.separation",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "min_moon_separation",
+      "canonical_value": 102.61,
+      "text_value": null,
+      "unit": "deg",
+      "display_value": "102.6°",
+      "display_tolerance": 0.1,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.moon"
+      ],
+      "derivation_rule": null,
+      "source_hash": "dc6dce185c4d27ee",
+      "allowed_variant_ids": [
+        "moon_sep_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "moon.impact",
+      "claim_type": "derived_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "moon_impact",
+      "canonical_value": null,
+      "text_value": "low",
+      "unit": null,
+      "display_value": "月光影响较小",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.moon"
+      ],
+      "derivation_rule": "moon_impact.level@v1",
+      "source_hash": null,
+      "allowed_variant_ids": [
+        "moon_impact_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.title",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_title",
+      "canonical_value": null,
+      "text_value": "M31 观测活动包",
+      "unit": null,
+      "display_value": "M31 观测活动包",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.audience",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_audience",
+      "canonical_value": null,
+      "text_value": "天文社新成员",
+      "unit": null,
+      "display_value": "天文社新成员",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.date",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_date",
+      "canonical_value": null,
+      "text_value": "2026-10-17",
+      "unit": null,
+      "display_value": "2026-10-17",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.location",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_location",
+      "canonical_value": null,
+      "text_value": "四门塔景区观星点",
+      "unit": null,
+      "display_value": "四门塔景区观星点",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.observable_status",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_observable_status",
+      "canonical_value": null,
+      "text_value": "是",
+      "unit": null,
+      "display_value": "是",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.is_observable"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.generation_method.qwen",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_generation_method",
+      "canonical_value": null,
+      "text_value": "Qwen 模型（经 Claim 验证）",
+      "unit": null,
+      "display_value": "Qwen 模型（经 Claim 验证）",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "meta.generation_method.template",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "document_generation_method",
+      "canonical_value": null,
+      "text_value": "确定性模板",
+      "unit": null,
+      "display_value": "确定性模板",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "run_context"
+      ],
+      "derivation_rule": null,
+      "source_hash": "daf4673b0a4f64ab",
+      "allowed_variant_ids": [
+        "meta_passthrough_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "schedule.obs_progress",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "schedule_activity",
+      "canonical_value": null,
+      "text_value": "观测进行中",
+      "unit": null,
+      "display_value": "观测进行中",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "schedule.obs_guide",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "schedule_activity",
+      "canonical_value": null,
+      "text_value": "引导成员使用星桥法寻找目标",
+      "unit": null,
+      "display_value": "引导成员使用星桥法寻找目标",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "schedule.obs_end",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "schedule_activity",
+      "canonical_value": null,
+      "text_value": "推荐时段结束",
+      "unit": null,
+      "display_value": "推荐时段结束",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "schedule.obs_descend",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "schedule_activity",
+      "canonical_value": null,
+      "text_value": "目标高度角逐渐降低",
+      "unit": null,
+      "display_value": "目标高度角逐渐降低",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "schedule.cleanup",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "schedule_activity",
+      "canonical_value": null,
+      "text_value": "收拾设备，合影留念",
+      "unit": null,
+      "display_value": "收拾设备，合影留念",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "schedule_proc_v1",
+        "schedule_twilight_end_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "activity.setup_start",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "setup_start",
+      "canonical_value": null,
+      "text_value": "18:58",
+      "unit": null,
+      "display_value": "18:58",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.activity_slot"
+      ],
+      "derivation_rule": null,
+      "source_hash": "35878cd4bd1871c4",
+      "allowed_variant_ids": [
+        "activity_setup_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "activity.slot_start",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "activity_start",
+      "canonical_value": null,
+      "text_value": "19:13",
+      "unit": null,
+      "display_value": "19:13",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.activity_slot"
+      ],
+      "derivation_rule": null,
+      "source_hash": "35878cd4bd1871c4",
+      "allowed_variant_ids": [
+        "activity_slot_start_v1",
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "activity.slot_end",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "activity_end",
+      "canonical_value": null,
+      "text_value": "20:43",
+      "unit": null,
+      "display_value": "20:43",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.activity_slot"
+      ],
+      "derivation_rule": null,
+      "source_hash": "35878cd4bd1871c4",
+      "allowed_variant_ids": [
+        "activity_slot_end_v1",
+        "schedule_proc_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "activity.cleanup_end",
+      "claim_type": "observed_fact",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "cleanup_end",
+      "canonical_value": null,
+      "text_value": "20:58",
+      "unit": null,
+      "display_value": "20:58",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "observability_plan.activity_slot"
+      ],
+      "derivation_rule": null,
+      "source_hash": "35878cd4bd1871c4",
+      "allowed_variant_ids": [
+        "activity_cleanup_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.binoculars",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "双筒望远镜（7×50 或 10×50 推荐）",
+      "unit": null,
+      "display_value": "双筒望远镜（7×50 或 10×50 推荐）",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.tripod",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "三脚架或望远镜支架",
+      "unit": null,
+      "display_value": "三脚架或望远镜支架",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.star_chart",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "活动星图或手机星图 App",
+      "unit": null,
+      "display_value": "活动星图或手机星图 App",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.red_flashlight",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "红色手电筒",
+      "unit": null,
+      "display_value": "红色手电筒",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.warm_clothes",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "保暖衣物",
+      "unit": null,
+      "display_value": "保暖衣物",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.notebook",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "记录本和笔",
+      "unit": null,
+      "display_value": "记录本和笔",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "equipment.repellent",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "equipment_item",
+      "canonical_value": null,
+      "text_value": "防蚊液",
+      "unit": null,
+      "display_value": "防蚊液",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "8314ce634228183d",
+      "allowed_variant_ids": [
+        "equipment_item_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "safety.night_group",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "safety_instruction",
+      "canonical_value": null,
+      "text_value": "夜间活动请注意人身安全，避免单独行动",
+      "unit": null,
+      "display_value": "夜间活动请注意人身安全，避免单独行动",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "safety_instruction_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "safety.red_flashlight",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "safety_instruction",
+      "canonical_value": null,
+      "text_value": "使用红色手电筒保护暗适应视力",
+      "unit": null,
+      "display_value": "使用红色手电筒保护暗适应视力",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "safety_instruction_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "safety.weather_clothing",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "safety_instruction",
+      "canonical_value": null,
+      "text_value": "出发前查看当地天气预报，并按预报准备保暖/防雨物品",
+      "unit": null,
+      "display_value": "出发前查看当地天气预报，并按预报准备保暖/防雨物品",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "safety_instruction_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "safety.laser_caution",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "safety_instruction",
+      "canonical_value": null,
+      "text_value": "请勿使用激光笔直接指向天空有人区域",
+      "unit": null,
+      "display_value": "请勿使用激光笔直接指向天空有人区域",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "safety_instruction_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "manual_check.coordinate_source",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "manual_check",
+      "canonical_value": null,
+      "text_value": "built_in_catalog_v1",
+      "unit": null,
+      "display_value": "built_in_catalog_v1",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "manual_check_source_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "manual_check.twilight_accuracy",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "manual_check",
+      "canonical_value": null,
+      "text_value": "确认推荐时段的天文暮光时间是否准确",
+      "unit": null,
+      "display_value": "确认推荐时段的天文暮光时间是否准确",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "manual_check_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "manual_check.site_access",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "manual_check",
+      "canonical_value": null,
+      "text_value": "确认活动地点夜间开放且安全",
+      "unit": null,
+      "display_value": "确认活动地点夜间开放且安全",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "manual_check_v1"
+      ]
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "manual_check.equipment_battery",
+      "claim_type": "procedural",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "manual_check",
+      "canonical_value": null,
+      "text_value": "确认设备电池充足、三脚架稳固",
+      "unit": null,
+      "display_value": "确认设备电池充足、三脚架稳固",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [
+        "approved_template.v2"
+      ],
+      "derivation_rule": null,
+      "source_hash": "52c5b4a222ca2258",
+      "allowed_variant_ids": [
+        "manual_check_v1"
+      ]
+    }
+  ],
+  "prohibited": [
+    {
+      "schema_version": "1.0",
+      "claim_id": "prohibited.distance_lightyears",
+      "claim_type": "prohibited",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "distance_lightyears",
+      "canonical_value": null,
+      "text_value": "FORBIDDEN: distance in light-years not in catalog",
+      "unit": null,
+      "display_value": "[禁止] 距离（光年）不在数据源中",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [],
+      "derivation_rule": null,
+      "source_hash": null,
+      "allowed_variant_ids": []
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "prohibited.physical_nature",
+      "claim_type": "prohibited",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "physical_nature_detail",
+      "canonical_value": null,
+      "text_value": "FORBIDDEN: detailed physical nature not in catalog",
+      "unit": null,
+      "display_value": "[禁止] 详细物理性质不在数据源中",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [],
+      "derivation_rule": null,
+      "source_hash": null,
+      "allowed_variant_ids": []
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "prohibited.weather_prediction",
+      "claim_type": "prohibited",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "weather_prediction",
+      "canonical_value": null,
+      "text_value": "FORBIDDEN: weather/temperature predictions not from tools",
+      "unit": null,
+      "display_value": "[禁止] 天气/气温预测不来自工具",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [],
+      "derivation_rule": null,
+      "source_hash": null,
+      "allowed_variant_ids": []
+    },
+    {
+      "schema_version": "1.0",
+      "claim_id": "prohibited.dark_adaptation_minutes",
+      "claim_type": "prohibited",
+      "subject": "M31@四门塔景区观星点@2026-10-17",
+      "predicate": "dark_adaptation_minutes",
+      "canonical_value": null,
+      "text_value": "FORBIDDEN: specific dark adaptation time not from tools",
+      "unit": null,
+      "display_value": "[禁止] 具体暗适应时间不来自工具",
+      "display_tolerance": null,
+      "validity_scope": {
+        "target": "M31",
+        "location_id": "四门塔景区观星点",
+        "date": "2026-10-17",
+        "timezone": "Asia/Shanghai",
+        "business_branch": "observable"
+      },
+      "source_refs": [],
+      "derivation_rule": null,
+      "source_hash": null,
+      "allowed_variant_ids": []
+    }
+  ],
+  "registry_hash": "e4badd702dd1322e",
+  "source_artifact_hashes": {
+    "target": "fa2981c03b0cb0ad",
+    "observability": "46678004178e18c4",
+    "context": "2b968110722f000c"
+  },
+  "derivation_rules_hash": "d8ebeec2f5bd208c",
+  "template_set_hash": "4cafdfe507ceda1d"
+}

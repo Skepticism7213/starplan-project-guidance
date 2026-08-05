@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "mode": "deterministic_not_observable",
+  "selected_claims": [
+    {
+      "claim_id": "blocking.reason",
+      "sentence_variant_id": "blocking_reason_v1"
+    },
+    {
+      "claim_id": "blocking.constraint_detail",
+      "sentence_variant_id": "blocking_constraint_v1"
+    },
+    {
+      "claim_id": "target.constellation",
+      "sentence_variant_id": "constellation_v1"
+    },
+    {
+      "claim_id": "target.visual_magnitude",
+      "sentence_variant_id": "magnitude_v1"
+    },
+    {
+      "claim_id": "blocking.alternatives",
+      "sentence_variant_id": "blocking_alt_v1"
+    },
+    {
+      "claim_id": "blocking.reschedule_action",
+      "sentence_variant_id": "blocking_reschedule_v1"
+    },
+    {
+      "claim_id": "blocking.indoor_activity",
+      "sentence_variant_id": "blocking_indoor_v1"
+    }
+  ],
+  "section_order": [
+    "target",
+    "observability",
+    "actions"
+  ],
+  "tone": "general",
+  "connector_ids": []
+}

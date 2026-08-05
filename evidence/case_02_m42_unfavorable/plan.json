@@ -1,0 +1,520 @@
+{
+  "is_observable": false,
+  "target_name": "M42",
+  "location_name": "四门塔景区观星点",
+  "date_range": [
+    "2026-07-25",
+    "2026-07-25"
+  ],
+  "visibility_windows": [],
+  "recommended_window": null,
+  "eliminated_windows": [
+    {
+      "window": {
+        "start": "2026-07-25T21:21:24.375000",
+        "end": "2026-07-25T21:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -58.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T21:36:24.375000",
+        "end": "2026-07-25T21:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -58.9° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T21:51:24.375000",
+        "end": "2026-07-25T22:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -58.6° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T22:06:24.375000",
+        "end": "2026-07-25T22:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -58.0° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T22:21:24.375000",
+        "end": "2026-07-25T22:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -57.1° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T22:36:24.375000",
+        "end": "2026-07-25T22:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -55.8° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T22:51:24.375000",
+        "end": "2026-07-25T23:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -54.2° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T23:06:24.375000",
+        "end": "2026-07-25T23:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -52.4° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T23:21:24.375000",
+        "end": "2026-07-25T23:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -50.4° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T23:36:24.375000",
+        "end": "2026-07-25T23:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -48.2° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-25T23:51:24.375000",
+        "end": "2026-07-26T00:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -45.8° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T00:06:24.375000",
+        "end": "2026-07-26T00:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -43.3° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T00:21:24.375000",
+        "end": "2026-07-26T00:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -40.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T00:36:24.375000",
+        "end": "2026-07-26T00:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -38.0° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T00:51:24.375000",
+        "end": "2026-07-26T01:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -35.3° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T01:06:24.375000",
+        "end": "2026-07-26T01:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -32.5° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T01:21:24.375000",
+        "end": "2026-07-26T01:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -29.6° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T01:36:24.375000",
+        "end": "2026-07-26T01:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -26.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T01:51:24.375000",
+        "end": "2026-07-26T02:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -23.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T02:06:24.375000",
+        "end": "2026-07-26T02:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -20.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T02:21:24.375000",
+        "end": "2026-07-26T02:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -17.8° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T02:36:24.375000",
+        "end": "2026-07-26T02:51:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -14.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T02:51:24.375000",
+        "end": "2026-07-26T03:06:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -11.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T03:06:24.375000",
+        "end": "2026-07-26T03:21:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -8.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    },
+    {
+      "window": {
+        "start": "2026-07-26T03:21:24.375000",
+        "end": "2026-07-26T03:36:24.375000",
+        "duration_minutes": 15.0
+      },
+      "reason": "目标高度角 -5.7° 低于最小要求 30.0°",
+      "violated_constraint": "min_altitude"
+    }
+  ],
+  "hourly_data": [
+    {
+      "time": "2026-07-25T21:21:24.375000",
+      "altitude_deg": -58.73,
+      "azimuth_deg": 353.58,
+      "airmass": null,
+      "sun_altitude_deg": -20.17,
+      "moon_altitude_deg": 24.73,
+      "moon_separation_deg": 145.16
+    },
+    {
+      "time": "2026-07-25T21:36:24.375000",
+      "altitude_deg": -58.88,
+      "azimuth_deg": 0.8,
+      "airmass": null,
+      "sun_altitude_deg": -22.22,
+      "moon_altitude_deg": 24.41,
+      "moon_separation_deg": 145.17
+    },
+    {
+      "time": "2026-07-25T21:51:24.375000",
+      "altitude_deg": -58.64,
+      "azimuth_deg": 8.01,
+      "airmass": null,
+      "sun_altitude_deg": -24.14,
+      "moon_altitude_deg": 23.91,
+      "moon_separation_deg": 145.19
+    },
+    {
+      "time": "2026-07-25T22:06:24.375000",
+      "altitude_deg": -58.04,
+      "azimuth_deg": 15.05,
+      "airmass": null,
+      "sun_altitude_deg": -25.93,
+      "moon_altitude_deg": 23.24,
+      "moon_separation_deg": 145.2
+    },
+    {
+      "time": "2026-07-25T22:21:24.375000",
+      "altitude_deg": -57.08,
+      "azimuth_deg": 21.8,
+      "airmass": null,
+      "sun_altitude_deg": -27.57,
+      "moon_altitude_deg": 22.4,
+      "moon_separation_deg": 145.22
+    },
+    {
+      "time": "2026-07-25T22:36:24.375000",
+      "altitude_deg": -55.8,
+      "azimuth_deg": 28.17,
+      "airmass": null,
+      "sun_altitude_deg": -29.05,
+      "moon_altitude_deg": 21.4,
+      "moon_separation_deg": 145.24
+    },
+    {
+      "time": "2026-07-25T22:51:24.375000",
+      "altitude_deg": -54.24,
+      "azimuth_deg": 34.11,
+      "airmass": null,
+      "sun_altitude_deg": -30.35,
+      "moon_altitude_deg": 20.25,
+      "moon_separation_deg": 145.26
+    },
+    {
+      "time": "2026-07-25T23:06:24.375000",
+      "altitude_deg": -52.43,
+      "azimuth_deg": 39.6,
+      "airmass": null,
+      "sun_altitude_deg": -31.47,
+      "moon_altitude_deg": 18.95,
+      "moon_separation_deg": 145.28
+    },
+    {
+      "time": "2026-07-25T23:21:24.375000",
+      "altitude_deg": -50.4,
+      "azimuth_deg": 44.64,
+      "airmass": null,
+      "sun_altitude_deg": -32.39,
+      "moon_altitude_deg": 17.51,
+      "moon_separation_deg": 145.3
+    },
+    {
+      "time": "2026-07-25T23:36:24.375000",
+      "altitude_deg": -48.19,
+      "azimuth_deg": 49.28,
+      "airmass": null,
+      "sun_altitude_deg": -33.11,
+      "moon_altitude_deg": 15.94,
+      "moon_separation_deg": 145.32
+    },
+    {
+      "time": "2026-07-25T23:51:24.375000",
+      "altitude_deg": -45.82,
+      "azimuth_deg": 53.54,
+      "airmass": null,
+      "sun_altitude_deg": -33.62,
+      "moon_altitude_deg": 14.25,
+      "moon_separation_deg": 145.35
+    },
+    {
+      "time": "2026-07-26T00:06:24.375000",
+      "altitude_deg": -43.33,
+      "azimuth_deg": 57.46,
+      "airmass": null,
+      "sun_altitude_deg": -33.9,
+      "moon_altitude_deg": 12.45,
+      "moon_separation_deg": 145.38
+    },
+    {
+      "time": "2026-07-26T00:21:24.375000",
+      "altitude_deg": -40.73,
+      "azimuth_deg": 61.09,
+      "airmass": null,
+      "sun_altitude_deg": -33.96,
+      "moon_altitude_deg": 10.54,
+      "moon_separation_deg": 145.4
+    },
+    {
+      "time": "2026-07-26T00:36:24.375000",
+      "altitude_deg": -38.04,
+      "azimuth_deg": 64.47,
+      "airmass": null,
+      "sun_altitude_deg": -33.8,
+      "moon_altitude_deg": 8.54,
+      "moon_separation_deg": 145.43
+    },
+    {
+      "time": "2026-07-26T00:51:24.375000",
+      "altitude_deg": -35.28,
+      "azimuth_deg": 67.62,
+      "airmass": null,
+      "sun_altitude_deg": -33.41,
+      "moon_altitude_deg": 6.44,
+      "moon_separation_deg": 145.46
+    },
+    {
+      "time": "2026-07-26T01:06:24.375000",
+      "altitude_deg": -32.46,
+      "azimuth_deg": 70.58,
+      "airmass": null,
+      "sun_altitude_deg": -32.81,
+      "moon_altitude_deg": 4.27,
+      "moon_separation_deg": 145.5
+    },
+    {
+      "time": "2026-07-26T01:21:24.375000",
+      "altitude_deg": -29.58,
+      "azimuth_deg": 73.38,
+      "airmass": null,
+      "sun_altitude_deg": -32.0,
+      "moon_altitude_deg": 2.02,
+      "moon_separation_deg": 145.53
+    },
+    {
+      "time": "2026-07-26T01:36:24.375000",
+      "altitude_deg": -26.67,
+      "azimuth_deg": 76.04,
+      "airmass": null,
+      "sun_altitude_deg": -30.99,
+      "moon_altitude_deg": -0.3,
+      "moon_separation_deg": 145.56
+    },
+    {
+      "time": "2026-07-26T01:51:24.375000",
+      "altitude_deg": -23.72,
+      "azimuth_deg": 78.59,
+      "airmass": null,
+      "sun_altitude_deg": -29.78,
+      "moon_altitude_deg": -2.69,
+      "moon_separation_deg": 145.6
+    },
+    {
+      "time": "2026-07-26T02:06:24.375000",
+      "altitude_deg": -20.74,
+      "azimuth_deg": 81.04,
+      "airmass": null,
+      "sun_altitude_deg": -28.39,
+      "moon_altitude_deg": -5.13,
+      "moon_separation_deg": 145.63
+    },
+    {
+      "time": "2026-07-26T02:21:24.375000",
+      "altitude_deg": -17.75,
+      "azimuth_deg": 83.42,
+      "airmass": null,
+      "sun_altitude_deg": -26.84,
+      "moon_altitude_deg": -7.62,
+      "moon_separation_deg": 145.67
+    },
+    {
+      "time": "2026-07-26T02:36:24.375000",
+      "altitude_deg": -14.74,
+      "azimuth_deg": 85.74,
+      "airmass": null,
+      "sun_altitude_deg": -25.13,
+      "moon_altitude_deg": -10.17,
+      "moon_separation_deg": 145.7
+    },
+    {
+      "time": "2026-07-26T02:51:24.375000",
+      "altitude_deg": -11.72,
+      "azimuth_deg": 88.02,
+      "airmass": null,
+      "sun_altitude_deg": -23.28,
+      "moon_altitude_deg": -12.75,
+      "moon_separation_deg": 145.74
+    },
+    {
+      "time": "2026-07-26T03:06:24.375000",
+      "altitude_deg": -8.7,
+      "azimuth_deg": 90.26,
+      "airmass": null,
+      "sun_altitude_deg": -21.3,
+      "moon_altitude_deg": -15.38,
+      "moon_separation_deg": 145.77
+    },
+    {
+      "time": "2026-07-26T03:21:24.375000",
+      "altitude_deg": -5.67,
+      "azimuth_deg": 92.49,
+      "airmass": null,
+      "sun_altitude_deg": -19.2,
+      "moon_altitude_deg": -18.04,
+      "moon_separation_deg": 145.81
+    }
+  ],
+  "twilight": {
+    "sunset": "2026-07-25T19:18:54.375000",
+    "civil_twilight_end": "2026-07-25T19:52:30",
+    "nautical_twilight_end": "2026-07-25T20:27:58.125000",
+    "astronomical_twilight_end": "2026-07-25T21:06:24.375000",
+    "sunrise": "2026-07-26T05:17:11.250000",
+    "astronomical_twilight_start": "2026-07-26T03:29:36.562500"
+  },
+  "moon_info": {
+    "phase_fraction": 0.859,
+    "moonrise": null,
+    "moonset": "2026-07-26T01:34:27.956543",
+    "peak_altitude_deg": 24.73,
+    "min_separation_deg": 145.16,
+    "impact_assessment": "high"
+  },
+  "alternative_suggestions": [
+    {
+      "suggestion_type": "alternative_date",
+      "description": "M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。",
+      "target_name": "M42",
+      "suggested_date": null
+    },
+    {
+      "suggestion_type": "alternative_target",
+      "description": "已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21",
+      "target_name": "M29",
+      "suggested_date": "2026-07-25"
+    },
+    {
+      "suggestion_type": "alternative_target",
+      "description": "已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21",
+      "target_name": "M57",
+      "suggested_date": "2026-07-25"
+    }
+  ],
+  "risk_flags": [
+    {
+      "risk_type": "low_altitude",
+      "severity": "critical",
+      "description": "目标最低高度角 -58.9° 低于临界值 15.0°",
+      "affected_window": null
+    },
+    {
+      "risk_type": "moonlight",
+      "severity": "critical",
+      "description": "月光影响等级: high（月相 0.86，最近角距 145.2°）",
+      "affected_window": null
+    }
+  ],
+  "not_observable_reason": "altitude",
+  "nights_computed": 1,
+  "activity_slot": null,
+  "observability_csv_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m42_济南-四门塔_20260725_172320\\observability.csv",
+  "visibility_curve_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m42_济南-四门塔_20260725_172320\\visibility_curve.png"
+}

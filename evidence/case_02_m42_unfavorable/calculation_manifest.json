@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "run_id": "m42_济南-四门塔_20260725_172320",
+  "timestamp": "2026-08-05 17:23:24.977103+08:00",
+  "input": {
+    "audience": "天文社新成员",
+    "constraints": {
+      "max_airmass": 2,
+      "max_moon_illumination": null,
+      "min_altitude_deg": 30,
+      "prefer_early_night": false
+    },
+    "date_range": [
+      "2026-07-25",
+      "2026-07-25"
+    ],
+    "equipment": "binoculars",
+    "goal": "校园科普观测",
+    "location": "济南_四门塔",
+    "location_detail": {
+      "city": "济南",
+      "elevation_m": 300,
+      "latitude": 36.49,
+      "longitude": 117.18,
+      "name": "四门塔景区观星点",
+      "timezone": "Asia/Shanghai"
+    },
+    "target": "M42",
+    "target_type": null
+  },
+  "target": {
+    "standard_name": "M42",
+    "ra_deg": 83.8201,
+    "dec_deg": -5.3876,
+    "source": "built_in_catalog_v1"
+  },
+  "location": {
+    "name": "四门塔景区观星点",
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300.0,
+    "timezone": "Asia/Shanghai"
+  },
+  "tools": {
+    "astropy_version": "8.0.1",
+    "astroplan_version": "0.10.1",
+    "python_version": "3.13.5"
+  },
+  "model": {
+    "provider": "阿里云百炼",
+    "model_name": null,
+    "model_version": null,
+    "called": false
+  },
+  "constraints_applied": {
+    "astronomy_runtime_policy": "offline_bundled_data",
+    "refraction_policy": "astropy_default (pressure=0, no atmospheric refraction)"
+  },
+  "intermediate_files": [
+    "claims.json",
+    "expression_plan.json",
+    "input.json",
+    "model_call_log.jsonl",
+    "observability.csv",
+    "outreach_pack.md",
+    "plan.json",
+    "rendered_document.json",
+    "render_trace.json",
+    "resolved_target.json",
+    "sentence_claim_map.json",
+    "state_log.json",
+    "visibility_curve.png"
+  ],
+  "manual_overrides": [],
+  "validation_status": "passed",
+  "validation_issues": [],
+  "qwen_used": false
+}

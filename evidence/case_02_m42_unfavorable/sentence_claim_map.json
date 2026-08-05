@@ -1,0 +1,59 @@
+{
+  "M42 观测取消/改期通知": [
+    "meta.title"
+  ],
+  "受众: 天文社新成员": [
+    "meta.audience"
+  ],
+  "日期: 2026-07-25": [
+    "meta.date"
+  ],
+  "地点: 四门塔景区观星点": [
+    "meta.location"
+  ],
+  "可观测: 否": [
+    "meta.observable_status"
+  ],
+  "讲解生成: 确定性模板": [
+    "meta.generation_method.template"
+  ],
+  "M42 在 2026-07-25 当晚不满足观测条件（目标高度角低于最低要求），本次观测活动取消或改期": [
+    "blocking.reason"
+  ],
+  "具体约束: 目标高度角 -58.7° 低于最小要求 30.0°": [
+    "blocking.constraint_detail"
+  ],
+  "它位于 Orion 星座方向": [
+    "target.constellation"
+  ],
+  "它的视星等约为 4.0": [
+    "target.visual_magnitude"
+  ],
+  "当季更适合观测的替代目标：M29、M57": [
+    "blocking.alternatives"
+  ],
+  "建议将活动改期到约束条件满足时再举行": [
+    "blocking.reschedule_action"
+  ],
+  "可以利用本次集会时间进行室内天文知识讲座或星图认读练习": [
+    "blocking.indoor_activity"
+  ],
+  "原定观测活动取消/改期": [
+    "schedule.cancel"
+  ],
+  "考虑替代目标或改期": [
+    "schedule.alt_consider"
+  ],
+  "室内替代活动：天文讲座 / 星图认读 / 观测计划讨论": [
+    "schedule.indoor"
+  ],
+  "确认 M42 在改期日期是否可观测（重新运行 StarPlan）": [
+    "manual_check.reschedule_verify"
+  ],
+  "确认替代目标的设备匹配度": [
+    "manual_check.alt_equipment"
+  ],
+  "通知参与成员活动调整安排": [
+    "manual_check.notify_members"
+  ]
+}
