@@ -49,6 +49,22 @@
 | 密钥扫描 | 仓库全文检索 `sk-ws-` / `DASHSCOPE_API_KEY=` 赋值 | 无完整 Key 泄漏 |
 | diff 卫生 | `git diff --check` | 干净 |
 
+### 2026-08-05 补充：QoderWork 演示文档校正（无代码变更）
+
+按 QoderWork 官方文档核实并更新了两份交付文档：
+`StarPlan/qoderwork/QODERWORK_MCP.md` 与 `StarPlan/qoderwork-安装演示.md`。
+修正点：
+
+- MCP 添加入口统一为「扩展 → 连接器」或「设置 → MCP 服务」→ `+` 添加，
+  支持“粘贴 JSON 配置”与“手动填写（STDIO）”两种方式；旧文档中的
+  “设置 → MCP → 我的服务”为 Qoder IDE 路径，保留为兼容说明。
+- 补充绿色圆点连接验证、工具列表检查、Request Timeout 调整建议。
+- 补充 Skill 的三种安装方式（手动复制 / 界面上传 / 对话安装）、`/` 快捷调用、
+  工具调用确认（`Ctrl+Enter`）、参数失败时直接粘贴案例 JSON 的兜底方法。
+- 补充任务 3 复盘的结构化 observation_log 模板与录屏时 Task Monitor 展示建议。
+
+本轮仅文档改动，无代码与测试变更；`git diff --check` 干净。
+
 ---
 
 ## 二、当前完成度对照项目计划

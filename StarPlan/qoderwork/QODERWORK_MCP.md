@@ -27,12 +27,22 @@ StarPlan 提供纯标准库的 MCP stdio 适配层：
 - `env.STARPLAN_MODEL_MODE=offline`：MCP 工具层只做确定性计算，不调用外部模型；
   QoderWork 应用本体就是 Qwen 语言层，负责理解与转达。无需、也不应在此配置任何 API Key。
 
-在 QoderWork / Qoder 中：
+在 QoderWork 桌面端（以实际界面版本为准）：
 
-1. 打开设置（用户图标或 `Ctrl+Shift+,`）→ **MCP**。
-2. **我的服务** → `+` 添加，把 JSON 粘贴到配置编辑器并保存。
-3. 保存后服务应显示已连接；展开可看到上述 7 个工具。
-4. 在 **智能体模式** 的新对话中发起观测任务。
+1. 打开「扩展」→「连接器」，或「设置」→「MCP 服务」，点击右上角 **+ 添加**。
+2. **推荐：粘贴 JSON 配置**。选择“粘贴 JSON 配置”，把替换好路径的
+   `mcp.starplan.json` 内容粘贴进去并点击“导入”。
+   也可以选择“手动填写配置”：服务器类型选 **STDIO**，命令填
+   `"C:\path\to\python.exe" -X utf8 "C:\path\to\StarPlan\scripts\starplan_mcp_server.py"`，
+   环境变量添加 `STARPLAN_MODEL_MODE=offline` 与 `PYTHONIOENCODING=utf-8`。
+3. 添加成功后服务名称左侧显示**绿色圆点**（连接成功）；展开服务可看到
+   上述 7 个工具。若列表为空或为红色，检查 Python 路径、脚本路径与依赖。
+4. 若 QoderWork 用的是旧版 Qoder IDE 路径：设置（`Ctrl+Shift+,`）→ **MCP** →
+   **我的服务** → `+`，同样粘贴 JSON 保存。
+5. 首次调用 `starplan.run` 需要数秒（导入 Astropy + 确定性计算）；若界面有
+   “服务超时时长（Request Timeout）”，建议调到 120 秒以上，避免超时中断。
+6. 在**新任务（新对话）**中发起观测任务；任务侧边栏/Task Monitor 会显示
+   本任务使用了哪些 Skill 与 MCP 工具，可直接用于录屏凭证。
 
 ## 推荐的演示对话
 
