@@ -103,6 +103,25 @@ python scripts/run_loop.py examples/case_03_observation_review.json
 python scripts/validate_examples.py
 ```
 
+## QoderWork 加载（P2 方案 A）
+
+方案 A 不需要在仓库或配置中填写任何 API Key：QoderWork 应用本体就是 Qwen
+语言层，StarPlan 以“应用内 Skill + 本地 MCP 工具”两种方式挂载。
+
+1. **安装 Skill**：把 `qoderwork-skill/` 复制到 `~/.qoderwork/skills/starplan-loop/`，
+   QoderWork 根据 `SKILL.md` 的 `description` 关键词自动触发。
+2. **连接 MCP**：在 QoderWork 设置 → MCP → 我的服务 → `+` 中粘贴
+   `qoderwork/mcp.starplan.json`（替换为实际 Python 与脚本路径），保存后可见
+   `starplan.run`、`starplan.run_loop` 与 4 个核心 Skill 共 7 个工具。
+3. **演示**：新对话发起观测任务，QoderWork 调用 MCP 工具完成确定性计算；
+   录屏记录“Skill 触发链 + 工具调用链”作为赛题调用凭证。
+
+详细步骤见 `qoderwork-安装演示.md` 与 `qoderwork/QODERWORK_MCP.md`。
+
+MCP 适配层（`scripts/starplan_mcp_server.py`）只做协议转换，不重复实现任何
+天文计算；它把 runner 的进度日志重定向到 stderr，保证 stdout 只输出 JSON-RPC，
+并固定 `STARPLAN_MODEL_MODE=offline`，即工具层不调用外部模型。
+
 ## 项目结构
 
 ```text
@@ -141,6 +160,13 @@ StarPlan/
     run_utf8.ps1              # 使用项目环境和 UTF-8 执行 Python 脚本
     run_case.py
     validate_examples.py
+    starplan_mcp_server.py    # P2: MCP stdio 适配层（QoderWork/Qoder 可调用）
+  qoderwork-skill/
+    SKILL.md                  # P2: QoderWork 应用内 Skill 清单（name=starplan-loop）
+  qoderwork/
+    mcp.starplan.json         # P2: MCP 配置模板（STDIO，无需 API Key）
+    QODERWORK_MCP.md          # P2: MCP 接入说明与推荐对话
+  qoderwork-安装演示.md         # P2: 安装、三组任务演示与录屏凭证指南
   runs/                        # 运行输出（gitignore）
   docs/
 ```
@@ -256,6 +282,20 @@ P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Cha
 - 二次运行与 before/after：`scripts/run_loop.py` 显式读取下一轮输入并重跑 runner，生成 `loop_before_after.md`（证据修订表 + 活动时段/流程前后对比，每项引用 cause_id）；`run_starplan` 不做隐式递归。
 - 证据边界：结构化时间差是唯一延迟证据来源；删除延迟证据后 `preferred_start` 补丁自动消失；无原始输入时不生成下一轮输入。
 - 新增 6 个 Batch E 回归测试；离线回归 211 passed；在线测试与离线门禁分开执行；版本统一为 0.8.0。
+
+**P2 方案 A（v0.9.0，2026-08-05）：**
+
+- QoderWork 交付包：`qoderwork-skill/SKILL.md`（YAML frontmatter，name=starplan-loop）、
+  `qoderwork/mcp.starplan.json` 配置模板、`qoderwork/QODERWORK_MCP.md` 接入说明、
+  `qoderwork-安装演示.md`（安装 → 三组任务演示 → 录屏凭证）。
+- MCP stdio 适配层：`scripts/starplan_mcp_server.py`，暴露 `starplan.run`、
+  `starplan.run_loop` 与 4 个核心 Skill 共 7 个工具；纯标准库，无新增依赖。
+- 协议安全：适配层将 runner 进度日志重定向到 stderr，保证 MCP stdout 仅含
+  JSON-RPC；失败工具调用结构化返回（isError=true），服务进程永不因单次调用崩溃。
+- 无需 API Key：MCP 工具层固定 `STARPLAN_MODEL_MODE=offline`，QoderWork 本体
+  即 Qwen 语言层；调用凭证采用应用内录屏。
+- 新增 7 个 MCP 回归测试（握手、UTF-8 中文往返、stdout 纯净性、全链路
+  `starplan.run`、run_loop 摘要、未知工具 fail-closed、JSON 解析错误）；版本统一为 0.9.0。
 
 **关键架构组件：**
 

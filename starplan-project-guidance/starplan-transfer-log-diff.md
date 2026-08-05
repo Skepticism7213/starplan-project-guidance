@@ -97,3 +97,20 @@
 | Qwen 启动指令 | 仍要求先输出早期项目启动规划 | 改为基于最新 main、逐批执行 P0-P2、先写失败测试并强制报告/提交的操作 Prompt | 已同步 |
 
 当前 source of truth 是更新后的 `starplan-loop-project-plan.md`。历史完成报告只用于追溯曾做过的修复，不再用于证明当前阶段已验收。
+
+## 8. 2026-08-05 P2 交付方式决策（方案 A）
+
+本轮将 P2 的智能体交付方式从“接入至少一种 Qwen 智能体加载/调用方式”细化为
+**方案 A：QoderWork 应用内挂载**，并同步更新 project plan 与 transfer log。
+
+| 项目 | 旧基线 | 2026-08-05 当前基线 | 处理结果 |
+|---|---|---|---|
+| 交付方式 | 未指定具体智能体环境 | QoderWork 应用内 Skill（`qoderwork-skill/SKILL.md`）+ MCP stdio 适配层 | 已写入 P2 验收 |
+| API Key | 在线验证依赖百炼 Key | 不提供、不写入任何 Key；MCP 工具层固定 `STARPLAN_MODEL_MODE=offline` | 已写入 P2 验收 |
+| 语言层 | Qwen 通过百炼 API 调用 | QoderWork 应用本体即 Qwen 语言层，负责触发识别、编排与转达 | 已写入 P2 验收 |
+| 调用凭证 | 在线 model_call_log 日志 | 应用内录屏（Skill 触发链 + 工具调用链 + 产物核对） | 已写入 P2 验收 |
+| 宿主转达 | host_guidance 合同 | QoderWork 只原样引用工具渲染文档，禁止改写数值；BLOCKED 如实告知 | 与 2026-08-05 合同批次一致 |
+| 版本 | 0.8.0 | 0.9.0（MCP 适配层 + Skill 清单 + 7 个回归测试） | 已升版 |
+
+截止日期保持未决：内部硬截止 2026-09-01 00:00（北京时间）不变；官方 09-05 的
+差异待负责人重新核验后再统一修改，本轮不单方改动。

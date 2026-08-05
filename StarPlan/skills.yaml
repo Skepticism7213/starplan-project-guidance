@@ -1,11 +1,11 @@
 # StarPlan Loop Skills Definition
-# Version: 0.8.0
+# Version: 0.9.0
 # Date: 2026-08-05
 
 project:
   name: "StarPlan Loop"
-  version: "0.8.0"
-  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链 + 现实活动时段 + 三视图 + 未成年人安全 + 可执行下一轮输入）"
+  version: "0.9.0"
+  description: "面向 AI 的校园天文观测与科普实训闭环 Skills 包（Claim 证据链 + 现实活动时段 + 三视图 + 未成年人安全 + 可执行下一轮输入 + QoderWork MCP 交付）"
 
 skills:
   - name: target_resolve
@@ -174,3 +174,26 @@ orchestrator:
     - "禁止宿主模型自行生成或凭记忆填写任何天文数值（时间、高度角、方位、星等、角尺寸、窗口等）；一切数值只能来自 target_resolve / observability_plan 的返回"
     - "验证失败（validation_status=blocked / delivery_status=not_delivered）时，公共返回中 outreach_pack 为 None（0 条交付事实）；宿主必须如实告知本次未交付，不得用自身知识补写事实内容"
     - "宿主可以补充的仅限非事实性内容：礼貌用语、操作引导、对渲染文档的原文引用；引用时保持字面一致"
+
+delivery:
+  qoderwork:
+    version: "0.9.0"
+    skill_dir: "qoderwork-skill/"
+    description: "QoderWork 应用内挂载的 SKILL.md（name=starplan-loop），负责触发识别、编排与转达；QoderWork 本体即 Qwen 语言层，无需在仓库或 MCP 配置中填写 API Key"
+    mcp_adapter: "scripts/starplan_mcp_server.py"
+    mcp_config: "qoderwork/mcp.starplan.json"
+    mcp_guide: "qoderwork/QODERWORK_MCP.md"
+    install_demo_guide: "qoderwork-安装演示.md"
+    tools:
+      - starplan.run
+      - starplan.run_loop
+      - skill.target_resolve
+      - skill.resolve_location
+      - skill.observability_plan
+      - skill.outreach_pack
+      - skill.observation_review
+    constraints:
+      - "MCP 工具层固定 STARPLAN_MODEL_MODE=offline：只做确定性计算，不调用外部模型"
+      - "适配层把 runner 进度日志重定向到 stderr，保证 MCP stdio 的 stdout 仅承载 JSON-RPC"
+      - "宿主模型（QoderWork）只编排与转达，禁止改写工具返回的数值与渲染文档"
+      - "调用凭证采用应用内录屏（Skill 触发链 + 工具调用链），不以 API Key 作为交付凭证"

@@ -13,7 +13,7 @@ Week 3 additions:
     - runner: Three entry modes (structured / NL / chat orchestration)
 """
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 from .encoding import configure_utf8_stdio
 

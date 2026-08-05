@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "starplan": {
+      "command": "C:\\path\\to\\python.exe",
+      "args": [
+        "-X",
+        "utf8",
+        "C:\\path\\to\\starplan-project-guidance\\StarPlan\\scripts\\starplan_mcp_server.py"
+      ],
+      "env": {
+        "STARPLAN_MODEL_MODE": "offline",
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

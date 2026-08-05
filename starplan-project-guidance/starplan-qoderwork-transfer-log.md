@@ -2,11 +2,17 @@
 
 初始日期：2026-07-18
 
-最近更新：2026-08-02
+最近更新：2026-08-05
 
 用途：将当前对话与项目方案转移到 QoderWork，作为后续开发、分工和材料撰写的上下文。
 
 > 2026-08-02 执行基线更新：当前主计划已将项目定位扩展为面向学校、青少年科普活动和高校社团的可信 AI Ready Skills 包；主展示依托 Qwen 智能体加载与调用，独立前端不再是核心硬要求；团队按两名核心成员、合计三名稳定协作成员和 2026-09-01 截止时间倒排。本文若与主计划冲突，以 `starplan-loop-project-plan.md` 第 11 至 14 节为准。
+
+> 2026-08-05 P2 交付决策：采用**方案 A（QoderWork 应用内挂载）**。不提供 API Key；
+> 交付 `qoderwork-skill/SKILL.md`（name=starplan-loop）与 MCP stdio 适配层
+> `scripts/starplan_mcp_server.py`（7 个工具）；QoderWork 本体即 Qwen 语言层，
+> MCP 工具层固定离线确定性计算；调用凭证用应用内录屏。详情以
+> `starplan-loop-project-plan.md` 第 12 节“P2 交付方式决策（2026-08-05）”为准。
 
 ## 1. 赛项背景
 
