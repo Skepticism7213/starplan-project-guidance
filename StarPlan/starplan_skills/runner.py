@@ -820,6 +820,15 @@ def run_starplan_chat(
             location=location,
             date_range=date_range,
             equipment=equipment,
+            # Chat artifact parity fix (2026-08-05): the structured entry passes
+            # run_dir so compute_observability persists observability.csv and
+            # visibility_curve.png; the chat executor previously omitted it, so
+            # chat run dirs lacked both artifacts declared in skills.yaml's
+            # orchestrator list and privacy.py's export whitelist. run_dir is
+            # assigned later in run_starplan_chat but strictly before
+            # call_qwen_chat can invoke any executor (closure captures by
+            # reference), so this is safe.
+            run_dir=run_dir,
         )
         captured["observability_plan"] = obs.model_dump(mode="json")
         captured["_obs_location_used"] = {"latitude": latitude, "longitude": longitude}
