@@ -154,6 +154,49 @@ def _sha16(path: Path) -> str:
     return h.hexdigest()[:16]
 
 
+def _sanitize_text(text: str, replacements: dict[str, str]) -> str:
+    for source, replacement in replacements.items():
+        normalized = replacement.rstrip("/\\") + "/"
+        text = text.replace(source + "\\", normalized)
+        text = text.replace(source + "/", normalized)
+        text = text.replace(source, replacement)
+    return text
+
+
+def _sanitize_value(value, replacements):
+    """Replace local run paths before an artifact enters the submission pack."""
+    if isinstance(value, dict):
+        return {key: _sanitize_value(item, replacements) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_sanitize_value(item, replacements) for item in value]
+    if isinstance(value, str):
+        return _sanitize_text(value, replacements)
+    return value
+
+
+def _copy_artifact(src: Path, dst: Path, replacements: dict[str, str]) -> None:
+    """Copy an artifact while removing machine-specific absolute paths."""
+    if src.suffix.lower() == ".json":
+        raw = src.read_text(encoding="utf-8")
+        data = json.loads(raw)
+        sanitized = _sanitize_value(data, replacements)
+        if sanitized == data:
+            shutil.copy2(src, dst)
+            return
+        dst.write_text(json.dumps(sanitized, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return
+    if src.suffix.lower() in {".md", ".jsonl", ".txt"}:
+        text = src.read_text(encoding="utf-8")
+        text = _sanitize_text(text, replacements)
+        original = src.read_text(encoding="utf-8")
+        if text == original:
+            shutil.copy2(src, dst)
+            return
+        dst.write_text(text, encoding="utf-8")
+        return
+    shutil.copy2(src, dst)
+
+
 def _copy_case(case: dict, force: bool) -> dict:
     case_dir = EVIDENCE_DIR / case["case_id"]
     case_dir.mkdir(parents=True, exist_ok=True)
@@ -162,15 +205,22 @@ def _copy_case(case: dict, force: bool) -> dict:
         print(f"[WARN] missing run dir: {run_dir}")
         return {"case_id": case["case_id"], "status": "missing_run"}
 
+    replacements = {
+        str(run_dir): f"StarPlan/runs/{case['run_id']}",
+        run_dir.as_posix(): f"StarPlan/runs/{case['run_id']}",
+    }
+
     copied: list[str] = []
     hashes: dict[str, str] = {}
+    missing: list[str] = []
     for name in case["files"]:
         src = run_dir / name
         if not src.is_file():
             print(f"[WARN] missing artifact {name} in {run_dir}")
+            missing.append(name)
             continue
         dst = case_dir / name
-        shutil.copy2(src, dst)
+        _copy_artifact(src, dst, replacements)
         hashes[name] = _sha16(dst)
         copied.append(name)
 
@@ -179,6 +229,12 @@ def _copy_case(case: dict, force: bool) -> dict:
     if second:
         second_dir = RUNS_DIR / second
         if second_dir.is_dir():
+            replacements.update(
+                {
+                    str(second_dir): f"StarPlan/runs/{second}",
+                    second_dir.as_posix(): f"StarPlan/runs/{second}",
+                }
+            )
             for name, out_name in (
                 ("plan.json", "second_plan.json"),
                 ("run_outcome.json", "second_run_outcome.json"),
@@ -186,12 +242,16 @@ def _copy_case(case: dict, force: bool) -> dict:
                 src = second_dir / name
                 if src.is_file():
                     dst = case_dir / out_name
-                    shutil.copy2(src, dst)
+                    _copy_artifact(src, dst, replacements)
                     hashes[out_name] = _sha16(dst)
                     copied.append(out_name)
+                else:
+                    print(f"[WARN] missing artifact {name} in {second_dir}")
+                    missing.append(out_name)
             _write_loop_before_after(case, run_dir, second_dir, case_dir)
         else:
             print(f"[WARN] missing second run dir for {case['case_id']}: {second}")
+            missing.extend(("second_plan.json", "second_run_outcome.json"))
 
     # Keep an existing human confirmation; create the template once.
     confirm = case_dir / "human_confirmation.md"
@@ -202,16 +262,19 @@ def _copy_case(case: dict, force: bool) -> dict:
             ),
             encoding="utf-8",
         )
-    return {
+    result = {
         "case_id": case["case_id"],
         "title": case["title"],
         "run_id": case["run_id"],
         "second_run_id": second,
-        "status": "ok" if copied else "no_files",
+        "status": "ok" if copied and not missing else ("missing_artifact" if missing else "no_files"),
         "file_count": len(copied),
         "files": copied,
         "sha256_prefix": hashes,
     }
+    if missing:
+        result["missing"] = missing
+    return result
 
 
 def _write_loop_before_after(case: dict, first_dir: Path, second_dir: Path, case_dir: Path) -> None:
@@ -267,6 +330,8 @@ def main() -> int:
         print("[FAIL] cases with missing artifacts:")
         for r in failed:
             print(f"  - {r['case_id']}: {r.get('status')}")
+            for name in r.get("missing", []):
+                print(f"      missing: {name}")
         return 1
 
     manifest = {

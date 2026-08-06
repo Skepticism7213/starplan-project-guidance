@@ -8,27 +8,27 @@
   "model_output_accepted": false,
   "model_call_count": 0,
   "model_call_steps": [],
-  "claims_registry_hash": "0bf1de347d35827d",
+  "claims_registry_hash": "9e54a505c1a8e296",
   "file_hashes": {
-    "plan.json": "3c41104483ef3e4e",
-    "claims.json": "0bf1de347d35827d",
+    "plan.json": "4dda64845aa57241",
+    "claims.json": "9e54a505c1a8e296",
     "outreach_pack.md": "7eab61760a8adc72",
-    "calculation_manifest.json": "6c27c3a6a5bc3407",
+    "calculation_manifest.json": "e1ee41f99c012c41",
     "render_trace.json": "669b70ec53e7ded3"
   },
   "validation_issues_count": 0,
   "state_transitions": 4,
   "astronomy_runtime": "offline_bundled_data",
   "stage_timings_ms": {
-    "runtime_policy": 0.003,
-    "target_resolve": 1.334,
-    "observability_plan": 4645.779,
-    "outreach_pack_render": 11.631,
-    "outreach_pack_claim_build": 9.606,
+    "runtime_policy": 0.002,
+    "target_resolve": 1.134,
+    "observability_plan": 3182.25,
+    "outreach_pack_render": 4.012,
+    "outreach_pack_claim_build": 4.481,
     "outreach_pack_model_call": 0.0,
     "observation_review": 0.0,
-    "delivery_contract": 9.772,
-    "manifest_and_report": 10.903,
-    "total": 4701.939
+    "delivery_contract": 4.711,
+    "manifest_and_report": 3.937,
+    "total": 3208.319
   }
 }

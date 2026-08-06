@@ -2,8 +2,9 @@
 
 本目录是赛题要求的“三类典型任务完整运行记录”提交快照。所有文件从
 `StarPlan/runs/` 中三个标准运行复制而来（`runs/` 被 gitignore，不能直接提交，
-因此这里保留可提交版本），并通过 `evidence_manifest.json` 记录每个文件的
-SHA-256 前缀，用于完整性核验。
+因此这里保留可提交版本），并通过 `evidence_manifest.json` 记录每个生成运行产物的
+SHA-256 前缀，用于完整性核验。`loop_before_after.md` 是由两轮运行重新生成的派生摘要，
+`human_confirmation.md` 是允许负责人签名/补注的人工入口，两者不纳入运行产物 hash；重建脚本仍会检查其所依赖的源产物。
 
 ## 包结构
 
@@ -59,7 +60,7 @@ print(res["run_id"], res["validation_status"], res["plan"]["activity_slot"]["sta
 "@
 ```
 
-预期输出结尾：`m31_review_20261017_184517_next passed 2026-10-17T19:45:00`。
+预期输出结尾：`m31_review_20261017_184517_next passed 2026-10-17T19:30:00`。
 
 ### 重建证据包
 
@@ -95,8 +96,8 @@ StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hash
 ```
 
 脚本区分三类文件：STRICT（必须字节一致）、TOLERANT（时间戳/绝对路径/图表字节
-允许不同）、VALUE（字节可不同但科学字段必须一致）。案例三加
-`--second-run-dir`。退出码 0/1/2 分别表示通过/STRICT 失败/数值失败。
+允许不同）、VALUE（输入与观测日志按规范化 JSON 语义、Claim 按稳定内容、其它文件按科学字段比较）。案例三加
+`--second-run-dir`。退出码 0/1/2 分别表示通过/必需产物或 STRICT 失败/数值字段失败；未分类的 manifest 产物也会按失败处理。
 
 ## 外部科学复核
 
@@ -104,7 +105,7 @@ StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hash
 
 - 案例一：M31 坐标（RA 10.6847° / Dec 41.2688°）、科学窗口 19:13–04:28、峰值高度 85°。
 - 案例二：M42 当晚最高高度 -5.7°、备选 M29/M57 窗口。
-- 案例三：延迟 31 分钟、修订后的 preferred_start 19:45。
+- 案例三：延迟 16 分钟、修订后的 preferred_start 19:30；同时记录云量和设备偏差。
 
 复核意见记录在对应 `human_confirmation.md` 的备注区。
 

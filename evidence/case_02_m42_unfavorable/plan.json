@@ -515,6 +515,6 @@
   "not_observable_reason": "altitude",
   "nights_computed": 1,
   "activity_slot": null,
-  "observability_csv_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m42_济南-四门塔_20260725_172320\\observability.csv",
-  "visibility_curve_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m42_济南-四门塔_20260725_172320\\visibility_curve.png"
+  "observability_csv_path": "StarPlan/runs/m42_济南-四门塔_20260725_172320/observability.csv",
+  "visibility_curve_path": "StarPlan/runs/m42_济南-四门塔_20260725_172320/visibility_curve.png"
 }

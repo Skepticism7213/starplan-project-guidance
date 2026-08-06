@@ -20,6 +20,16 @@
     "prefer_early_night": false,
     "max_moon_illumination": null
   },
+  "activity_preferences": {
+    "duration_minutes": 90,
+    "setup_minutes": 15,
+    "cleanup_minutes": 15
+  },
+  "audience_profile": {
+    "age_band": "high_school",
+    "experience_level": "beginner",
+    "requested_views": ["organizer", "facilitator", "learner"]
+  },
   "observation_log": {
     "actual_start_time": "2026-10-17T19:30:00+08:00",
     "actual_end_time": "2026-10-17T22:30:00+08:00",

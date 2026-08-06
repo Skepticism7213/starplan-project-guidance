@@ -1,13 +1,13 @@
 {
-  "actual_start_time": "2026-10-17T19:45:00+08:00",
-  "actual_end_time": "2026-10-17T22:00:00+08:00",
+  "actual_start_time": "2026-10-17T19:30:00+08:00",
+  "actual_end_time": "2026-10-17T22:30:00+08:00",
   "targets_observed": [
     "M31"
   ],
   "targets_missed": [],
   "equipment_used": "binoculars",
-  "cloud_cover": "clear",
-  "seeing_conditions": null,
-  "observer_notes": null,
-  "success_rating": null
+  "cloud_cover": "partly_cloudy",
+  "seeing_conditions": "fair",
+  "observer_notes": "晚到；20:50-21:10有薄云；三脚架不稳；新成员反馈M31不如预期清晰",
+  "success_rating": 3
 }

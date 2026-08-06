@@ -258,7 +258,7 @@ python scripts/run_case.py examples/case_03_observation_review.json
 
 P0 Runtime Contract Closure（R1-R3）已在独立分支完成本地验收：Chat/结构化入口的模型证据损坏会 fail-closed，Claims 磁盘篡改经过交付合同门禁，Review 默认 deterministic-only，直接 `observability_plan` 记录离线运行策略。
 
-离线回归（即使本机存在 `.env` 也禁止联网）应先设置 `STARPLAN_MODEL_MODE=offline`，再执行 `python -m pytest tests --ignore=tests/test_qwen_integration.py -p no:cacheprovider -q`；本机当前结果为 **211 passed, 0 failed，71.61s**。需要真实百炼 API 的在线测试单独执行；无 Key 的环境可能显示 9 skipped，有 Key 但未隔离时会尝试联网。完整复现边界见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-local-reproducibility-recheck.md`。
+离线回归（即使本机存在 `.env` 也禁止联网）应先设置 `STARPLAN_MODEL_MODE=offline`，再执行 `python -X utf8 -m pytest tests -p no:capture --ignore=tests/test_qwen_integration.py -q`；最近一次本地结果为 **242 passed, 0 failed, 0 skipped**。需要真实百炼 API 的在线测试单独执行；无 Key 的环境可能显示 9 skipped，有 Key 但未隔离时会尝试联网。完整复现边界见 `../starplan-project-guidance/starplan-error-check-and-phase-plan-2026-08-03-local-reproducibility-recheck.md`。
 
 **2026-08-03 在线修复（v0.6.0）：**
 

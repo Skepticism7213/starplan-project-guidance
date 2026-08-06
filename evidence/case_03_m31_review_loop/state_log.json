@@ -1,27 +1,27 @@
 [
   {
     "state": "received",
-    "timestamp": "2026-08-05T18:45:17.132057+08:00",
+    "timestamp": "2026-08-06T13:10:42.421876+08:00",
     "note": "input target=M31"
   },
   {
     "state": "input_validated",
-    "timestamp": "2026-08-05T18:45:17.134411+08:00",
+    "timestamp": "2026-08-06T13:10:42.423235+08:00",
     "note": "StarPlanInput schema validated"
   },
   {
     "state": "ready_to_compute",
-    "timestamp": "2026-08-05T18:45:17.137854+08:00",
+    "timestamp": "2026-08-06T13:10:42.433800+08:00",
     "note": "location=四门塔景区观星点"
   },
   {
     "state": "computed_observable",
-    "timestamp": "2026-08-05T18:45:18.479335+08:00",
+    "timestamp": "2026-08-06T13:10:45.193039+08:00",
     "note": "peak_alt=85.0"
   },
   {
     "state": "rendered",
-    "timestamp": "2026-08-05T18:45:18.554880+08:00",
+    "timestamp": "2026-08-06T13:10:45.271473+08:00",
     "note": "all outputs written"
   }
 ]

@@ -197,7 +197,7 @@
         "observability_plan.astropy"
       ],
       "derivation_rule": null,
-      "source_hash": "cbde97ee329f2aa9",
+      "source_hash": "3a0ed3fd0ce5c62d",
       "allowed_variant_ids": [
         "observable_status_v1"
       ]
@@ -1300,10 +1300,10 @@
       "allowed_variant_ids": []
     }
   ],
-  "registry_hash": "005b02875f937d30",
+  "registry_hash": "cbca65f1eac29e98",
   "source_artifact_hashes": {
     "target": "11ca0f9904b7835a",
-    "observability": "cbde97ee329f2aa9",
+    "observability": "3a0ed3fd0ce5c62d",
     "context": "2b968110722f000c"
   },
   "derivation_rules_hash": "d8ebeec2f5bd208c",

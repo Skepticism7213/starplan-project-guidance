@@ -8,9 +8,9 @@ must be layered:
            timestamps / absolute paths / timing fields).
   TOLERANT files that legitimately differ across machines (timestamps,
            absolute run paths, stage timings, matplotlib rendering bytes).
-  VALUE    files whose scientific/status fields must match even when the
-           bytes differ (plan.json windows, run_outcome.json statuses,
-           review_trace.json causes/diffs).
+  VALUE    files whose semantic/scientific fields must match even when the
+           bytes differ (inputs, Claim payloads, plan windows, run statuses,
+           review causes/diffs).
 
 Usage:
     python scripts/compare_evidence_hashes.py --case case_01_m31_normal --run-dir <new_run_dir>
@@ -19,7 +19,7 @@ Usage:
 
 Exit codes:
     0  all checks passed
-    1  STRICT mismatch or missing STRICT file
+    1  required artifact missing or STRICT mismatch
     2  VALUE mismatch (science/status fields differ)
 """
 
@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -40,10 +41,7 @@ MANIFEST_PATH = EVIDENCE_DIR / "evidence_manifest.json"
 
 # Files that must be byte-identical across environments.
 STRICT_FILES = {
-    "input.json",
-    "observation_log.json",
     "resolved_target.json",
-    "claims.json",
     "expression_plan.json",
     "render_trace.json",
     "rendered_document.json",
@@ -51,15 +49,18 @@ STRICT_FILES = {
     "outreach_pack.md",
     "outreach_pack_facilitator.md",
     "outreach_pack_learner.md",
-    "revised_plan.json",
-    "next_activity_input.json",
 }
 
 # Files whose bytes may differ but whose key fields must match.
 VALUE_FILES = {
+    "input.json": "json",
+    "observation_log.json": "json",
+    "claims.json": "claims",
     "plan.json": "plan",
     "run_outcome.json": "run_outcome",
     "review_trace.json": "review_trace",
+    "revised_plan.json": "json",
+    "next_activity_input.json": "json",
     "second_plan.json": "plan",
     "second_run_outcome.json": "run_outcome",
 }
@@ -76,6 +77,8 @@ TOLERANT_FILES = {
     "review_report.md": "含本机绝对产物路径",
 }
 
+KNOWN_FILES = STRICT_FILES | set(VALUE_FILES) | set(TOLERANT_FILES)
+
 
 def _sha16(path: Path) -> str:
     h = hashlib.sha256()
@@ -89,8 +92,57 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _normalize_json(value: Any) -> Any:
+    """Normalize JSON semantics without comparing serialization details."""
+    if isinstance(value, dict):
+        return {key: _normalize_json(value[key]) for key in sorted(value)}
+    if isinstance(value, list):
+        return [_normalize_json(item) for item in value]
+    if isinstance(value, bool) or isinstance(value, int):
+        return value
+    if isinstance(value, float) and math.isfinite(value) and value.is_integer():
+        return int(value)
+    return value
+
+
+def _claims_snapshot(data: dict) -> dict:
+    """Return stable Claim content for cross-environment comparison.
+
+    Registry/source hashes include serialized intermediate artifacts. Small
+    Astropy/JSON formatting differences can legitimately change those hashes;
+    delivery-contract validation still checks them within each run. The
+    cross-environment check compares Claim payload and stable code/template
+    hashes, while leaving the volatile artifact hash chain out of equality.
+    """
+
+    def strip_artifact_hashes(value: Any) -> Any:
+        if isinstance(value, dict):
+            result = {}
+            for key, item in value.items():
+                if key in {"source_hash", "registry_hash"}:
+                    continue
+                if key == "source_artifact_hashes":
+                    result[key] = {
+                        stable_key: strip_artifact_hashes(value[stable_key])
+                        for stable_key in ("target", "context")
+                        if stable_key in value
+                    }
+                    continue
+                result[key] = strip_artifact_hashes(item)
+            return result
+        if isinstance(value, list):
+            return [strip_artifact_hashes(item) for item in value]
+        return value
+
+    return _normalize_json(strip_artifact_hashes(data))
+
+
 def _value_snapshot(path: Path, kind: str) -> Any:
     data = _load_json(path)
+    if kind == "json":
+        return _normalize_json(data)
+    if kind == "claims":
+        return _claims_snapshot(data)
     if kind == "plan":
         return {
             key: data.get(key)
@@ -138,7 +190,10 @@ def _local_path(run_dir: Path, entry_name: str, second_dir: Path | None) -> Path
     return run_dir / entry_name
 
 
-def _check_case(case: dict, run_dir: Path, second_dir: Path | None) -> tuple[list[str], list[str], list[str]]:
+def _check_case(
+    case: dict, run_dir: Path, second_dir: Path | None
+) -> tuple[list[str], list[str], list[str], list[str]]:
+    missing_fail: list[str] = []
     strict_fail: list[str] = []
     value_fail: list[str] = []
     notes: list[str] = []
@@ -147,13 +202,18 @@ def _check_case(case: dict, run_dir: Path, second_dir: Path | None) -> tuple[lis
     for name, expected in hashes.items():
         local = _local_path(run_dir, name, second_dir)
         if local is None:
-            notes.append(f"  [WARN] {name}: 缺少 second-run 目录，未对比")
+            if name in KNOWN_FILES:
+                missing_fail.append(f"{name} (missing required second-run artifact)")
+            else:
+                missing_fail.append(f"{name} (unclassified manifest artifact; missing second-run artifact)")
             continue
         if not local.is_file():
-            if name in STRICT_FILES:
-                strict_fail.append(f"{name} (missing)")
+            if name in KNOWN_FILES:
+                missing_fail.append(f"{name} (missing: {local})")
             else:
-                notes.append(f"  [WARN] {name}: 新环境缺少文件 {local}")
+                missing_fail.append(
+                    f"{name} (unclassified manifest artifact; missing: {local})"
+                )
             continue
 
         actual = _sha16(local)
@@ -169,13 +229,21 @@ def _check_case(case: dict, run_dir: Path, second_dir: Path | None) -> tuple[lis
                 if _value_snapshot(local, kind) != _value_snapshot(EVIDENCE_DIR / case["case_id"] / name, kind):
                     value_fail.append(f"{name} (关键字段不一致，见 value diff)")
                 else:
-                    notes.append(f"  [OK]   {name}: 字节不同但关键字段一致 ({actual})")
+                    label = "语义一致" if kind in {"json", "claims"} else "关键字段一致"
+                    notes.append(f"  [OK]   {name}: 字节不同但{label} ({actual})")
             except Exception as exc:
                 value_fail.append(f"{name} (无法解析: {exc})")
         else:
-            reason = TOLERANT_FILES.get(name, "未知差异")
-            notes.append(f"  [DIFF] {name}: 字节不同（预期内：{reason}） expected={expected} actual={actual}")
-    return strict_fail, value_fail, notes
+            if name not in TOLERANT_FILES:
+                strict_fail.append(
+                    f"{name} (unclassified manifest artifact; add STRICT/VALUE/TOLERANT policy)"
+                )
+            else:
+                reason = TOLERANT_FILES[name]
+                notes.append(
+                    f"  [DIFF] {name}: 字节不同（预期内：{reason}） expected={expected} actual={actual}"
+                )
+    return missing_fail, strict_fail, value_fail, notes
 
 
 def main() -> int:
@@ -204,13 +272,17 @@ def main() -> int:
 
     print(f"对比案例：{case['case_id']}（{case['title']}）")
     print(f"新环境运行目录：{run_dir}")
-    strict_fail, value_fail, notes = _check_case(case, run_dir, second_dir)
+    missing_fail, strict_fail, value_fail, notes = _check_case(case, run_dir, second_dir)
 
     print("\n逐文件结果：")
     for line in notes:
         print(line)
 
     print("\n结论：")
+    if missing_fail:
+        print(f"  [FAIL] 必需产物缺失（{len(missing_fail)}）：")
+        for item in missing_fail:
+            print(f"    - {item}")
     if strict_fail:
         print(f"  [FAIL] STRICT 不一致（{len(strict_fail)}）：")
         for item in strict_fail:
@@ -219,10 +291,10 @@ def main() -> int:
         print(f"  [FAIL] 科学/状态字段不一致（{len(value_fail)}）：")
         for item in value_fail:
             print(f"    - {item}")
-    if not strict_fail and not value_fail:
+    if not missing_fail and not strict_fail and not value_fail:
         print("  [OK] STRICT 文件一致；VALUE 文件关键字段一致；TOLERANT 差异均为预期内。")
 
-    if strict_fail:
+    if missing_fail or strict_fail:
         return 1
     if value_fail:
         return 2

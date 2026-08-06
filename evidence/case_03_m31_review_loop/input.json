@@ -1,10 +1,33 @@
 {
-  "activity_preferences": {
-    "cleanup_minutes": 15,
-    "duration_minutes": 90,
-    "setup_minutes": 15
+  "target": "M31",
+  "target_type": null,
+  "location": "济南_四门塔",
+  "location_detail": {
+    "name": "四门塔景区观星点",
+    "city": "济南",
+    "latitude": 36.49,
+    "longitude": 117.18,
+    "elevation_m": 300,
+    "timezone": "Asia/Shanghai"
   },
+  "date_range": [
+    "2026-10-17",
+    "2026-10-17"
+  ],
   "audience": "天文社新成员",
+  "equipment": "binoculars",
+  "goal": "校园科普观测",
+  "constraints": {
+    "min_altitude_deg": 30,
+    "max_airmass": 2.0,
+    "prefer_early_night": false,
+    "max_moon_illumination": null
+  },
+  "activity_preferences": {
+    "duration_minutes": 90,
+    "setup_minutes": 15,
+    "cleanup_minutes": 15
+  },
   "audience_profile": {
     "age_band": "high_school",
     "experience_level": "beginner",
@@ -14,40 +37,17 @@
       "learner"
     ]
   },
-  "constraints": {
-    "max_airmass": 2,
-    "max_moon_illumination": null,
-    "min_altitude_deg": 30,
-    "prefer_early_night": false
-  },
-  "date_range": [
-    "2026-10-17",
-    "2026-10-17"
-  ],
-  "equipment": "binoculars",
-  "goal": "校园科普观测",
-  "location": "济南_四门塔",
-  "location_detail": {
-    "city": "济南",
-    "elevation_m": 300,
-    "latitude": 36.49,
-    "longitude": 117.18,
-    "name": "四门塔景区观星点",
-    "timezone": "Asia/Shanghai"
-  },
   "observation_log": {
-    "actual_end_time": "2026-10-17T22:00:00+08:00",
-    "actual_start_time": "2026-10-17T19:45:00+08:00",
-    "cloud_cover": "clear",
-    "equipment_used": "binoculars",
-    "observer_notes": null,
-    "seeing_conditions": null,
-    "success_rating": null,
-    "targets_missed": [],
+    "actual_start_time": "2026-10-17T19:30:00+08:00",
+    "actual_end_time": "2026-10-17T22:30:00+08:00",
     "targets_observed": [
       "M31"
-    ]
-  },
-  "target": "M31",
-  "target_type": null
+    ],
+    "targets_missed": [],
+    "equipment_used": "binoculars",
+    "cloud_cover": "partly_cloudy",
+    "seeing_conditions": "fair",
+    "observer_notes": "晚到；20:50-21:10有薄云；三脚架不稳；新成员反馈M31不如预期清晰",
+    "success_rating": 3
+  }
 }

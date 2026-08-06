@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "built_at": "2026-08-05T13:24:50.511012+00:00",
+  "built_at": "2026-08-06T05:59:10.545998+00:00",
   "repository": "https://github.com/Skepticism7213/starplan-project-guidance",
   "model_mode": "offline_deterministic",
   "cases": [
@@ -32,12 +32,12 @@
         "run_outcome.json"
       ],
       "sha256_prefix": {
-        "input.json": "103d9bf7cbb07fd2",
+        "input.json": "9446eb7e0338ac44",
         "resolved_target.json": "7a2f11d14c8f046b",
-        "plan.json": "2631eeb74c168ffa",
-        "observability.csv": "ff8abbce64d5a55b",
-        "visibility_curve.png": "a3b6c9f023343fe1",
-        "claims.json": "972297c7fdffa4b3",
+        "plan.json": "6babc4616ce332c5",
+        "observability.csv": "38513ce9473cab90",
+        "visibility_curve.png": "be9970c2dab102b1",
+        "claims.json": "226cea2c3d2ca1e5",
         "expression_plan.json": "e3a2ce2029c55d9e",
         "render_trace.json": "eecc01fd38d5e511",
         "rendered_document.json": "e93101f8708cb83f",
@@ -45,11 +45,11 @@
         "outreach_pack.md": "debae85ad8006b3c",
         "outreach_pack_facilitator.md": "debae85ad8006b3c",
         "outreach_pack_learner.md": "6e10ef551c015488",
-        "validation_report.md": "8b6a9aaf27d5a46c",
-        "calculation_manifest.json": "5f468f9bdb187581",
-        "model_call_log.jsonl": "493a505d0d0da02b",
-        "state_log.json": "0900852660bd0916",
-        "run_outcome.json": "692e63e6287b7ad4"
+        "validation_report.md": "91c9ce9ff86eaa09",
+        "calculation_manifest.json": "a4b8ac3077af7e1a",
+        "model_call_log.jsonl": "c53de666e031004e",
+        "state_log.json": "1831c0deefe4daf9",
+        "run_outcome.json": "53a3181a3b3e8101"
       }
     },
     {
@@ -78,22 +78,22 @@
         "run_outcome.json"
       ],
       "sha256_prefix": {
-        "input.json": "88fdaa18cd8c62d0",
+        "input.json": "bb0a0a9a4842caf4",
         "resolved_target.json": "51cfc2ddab8c41e1",
-        "plan.json": "3c41104483ef3e4e",
+        "plan.json": "b9776f17634cdf3c",
         "observability.csv": "3aa149c3766bec6e",
         "visibility_curve.png": "ae08ad0c21b25bef",
-        "claims.json": "0bf1de347d35827d",
+        "claims.json": "9e54a505c1a8e296",
         "expression_plan.json": "359c1184cecd58ff",
         "render_trace.json": "669b70ec53e7ded3",
         "rendered_document.json": "9ea54fd8e8eb4424",
         "sentence_claim_map.json": "45e44c8de476cc3a",
         "outreach_pack.md": "7eab61760a8adc72",
-        "validation_report.md": "c6654903980e9686",
-        "calculation_manifest.json": "6c27c3a6a5bc3407",
-        "model_call_log.jsonl": "b5476a862f673aa5",
-        "state_log.json": "633f2e584913c7eb",
-        "run_outcome.json": "38ee98900fddc582"
+        "validation_report.md": "da9fb432bb868d73",
+        "calculation_manifest.json": "e1ee41f99c012c41",
+        "model_call_log.jsonl": "c4da7eee7e25f001",
+        "state_log.json": "7410f877acfb9ed8",
+        "run_outcome.json": "286a7c2b0876a6e2"
       }
     },
     {
@@ -131,13 +131,13 @@
         "second_run_outcome.json"
       ],
       "sha256_prefix": {
-        "input.json": "bc7a87cbc410edd5",
-        "observation_log.json": "f6cd8823521d0ff5",
+        "input.json": "3485538c2e0f1318",
+        "observation_log.json": "4b761eb7f470ad30",
         "resolved_target.json": "7a2f11d14c8f046b",
-        "plan.json": "efa99764c2daf4e3",
-        "observability.csv": "ff8abbce64d5a55b",
-        "visibility_curve.png": "a3b6c9f023343fe1",
-        "claims.json": "08ac81559496dd66",
+        "plan.json": "77f6d1767c484787",
+        "observability.csv": "38513ce9473cab90",
+        "visibility_curve.png": "be9970c2dab102b1",
+        "claims.json": "149b796c7e81cbf7",
         "expression_plan.json": "e3a2ce2029c55d9e",
         "render_trace.json": "eecc01fd38d5e511",
         "rendered_document.json": "e93101f8708cb83f",
@@ -145,17 +145,17 @@
         "outreach_pack.md": "debae85ad8006b3c",
         "outreach_pack_facilitator.md": "debae85ad8006b3c",
         "outreach_pack_learner.md": "6e10ef551c015488",
-        "review_report.md": "e439d64103f3815d",
-        "review_trace.json": "a8d347fbeab1cab2",
-        "revised_plan.json": "e605ed881ca9db35",
-        "next_activity_input.json": "2b54840e16e6c30a",
-        "validation_report.md": "2b090f4c3c84a588",
-        "calculation_manifest.json": "42a1774c1f6bf8d0",
-        "model_call_log.jsonl": "8ae6a32586038fb8",
-        "state_log.json": "92fbbed0bfc32f83",
-        "run_outcome.json": "d35775f2224f9c9d",
-        "second_plan.json": "7ded15dfb228bd4b",
-        "second_run_outcome.json": "1d15f62f1336b956"
+        "review_report.md": "f63d2b59ac0158a0",
+        "review_trace.json": "0b5e2dec8e979196",
+        "revised_plan.json": "bddb50c0571f9490",
+        "next_activity_input.json": "7fd5a9d4922a606a",
+        "validation_report.md": "2a8f08e29d94f5f1",
+        "calculation_manifest.json": "61d4d3864809fedb",
+        "model_call_log.jsonl": "51036d40ead1a81c",
+        "state_log.json": "0589ad9de04f11e8",
+        "run_outcome.json": "73d028d8d57f9c9a",
+        "second_plan.json": "eab254510050c541",
+        "second_run_outcome.json": "3790b68aac68e497"
       }
     }
   ]

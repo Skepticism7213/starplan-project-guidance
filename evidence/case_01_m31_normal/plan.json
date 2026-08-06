@@ -45,7 +45,7 @@
     },
     {
       "time": "2026-10-17T19:43:49.687500",
-      "altitude_deg": 49.92,
+      "altitude_deg": 49.93,
       "azimuth_deg": 66.48,
       "airmass": 1.307,
       "sun_altitude_deg": -27.02,
@@ -172,7 +172,7 @@
     {
       "time": "2026-10-17T23:13:49.687500",
       "altitude_deg": 85.04,
-      "azimuth_deg": 353.77,
+      "azimuth_deg": 353.76,
       "airmass": 1.004,
       "sun_altitude_deg": -61.23,
       "moon_altitude_deg": -14.21,
@@ -388,7 +388,7 @@
   "moon_info": {
     "phase_fraction": 0.399,
     "moonrise": null,
-    "moonset": "2026-10-17T21:49:43.044434",
+    "moonset": "2026-10-17T21:49:42.971192",
     "peak_altitude_deg": 20.18,
     "min_separation_deg": 102.61,
     "impact_assessment": "low"
@@ -407,6 +407,6 @@
     "status": "proposed",
     "reason": "在科学可见窗口 19:13~04:28 内，按 activity_slot_policy_v1 选择 90 分钟现实活动时段"
   },
-  "observability_csv_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_170745\\observability.csv",
-  "visibility_curve_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_170745\\visibility_curve.png"
+  "observability_csv_path": "StarPlan/runs/m31_济南-四门塔_20261017_170745/observability.csv",
+  "visibility_curve_path": "StarPlan/runs/m31_济南-四门塔_20261017_170745/visibility_curve.png"
 }

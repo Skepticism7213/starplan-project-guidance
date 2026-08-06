@@ -6,30 +6,96 @@
       "cause_id": "cause.team_late",
       "cause": "团队迟到",
       "classification": "evidence_based",
-      "evidence": "计划开始 19:13，实际开始 19:45，延迟 31 分钟（阈值: review.delay_significance@v1 = 10 分钟活动政策）",
+      "evidence": "计划开始 19:13，实际开始 19:30，延迟 16 分钟（阈值: review.delay_significance@v1 = 10 分钟活动政策）",
       "source": "rule_based",
       "source_deviation_ids": [
         "dev.time.delay"
       ]
+    },
+    {
+      "cause_id": "cause.cloud",
+      "cause": "云层干扰",
+      "classification": "evidence_based",
+      "evidence": "观测日志记录云量为 partly_cloudy，备注: 晚到；20:50-21:10有薄云；三脚架不稳；新成员反馈M31不如预期清晰",
+      "source": "rule_based",
+      "source_deviation_ids": [
+        "dev.env.cloud"
+      ]
+    },
+    {
+      "cause_id": "cause.equipment_prep",
+      "cause": "设备准备不足",
+      "classification": "possible",
+      "evidence": "观测者备注提及: 晚到；20:50-21:10有薄云；三脚架不稳；新成员反馈M31不如预期清晰（人工报告，未经独立验证）",
+      "source": "human_report",
+      "source_deviation_ids": [
+        "dev.equip.tripod"
+      ]
+    },
+    {
+      "cause_id": "cause.expectation",
+      "cause": "成员期望管理",
+      "classification": "undetermined",
+      "evidence": "备注提到'不如预期清晰'，但无法确定是设备、目标还是期望问题",
+      "source": "human_report",
+      "source_deviation_ids": []
+    },
+    {
+      "cause_id": "cause.seeing",
+      "cause": "视宁度",
+      "classification": "possible",
+      "evidence": "视宁度记录为 fair，但无法确定是否为主要影响因素",
+      "source": "rule_based",
+      "source_deviation_ids": []
     }
   ],
   "suggestions": [
     {
       "text": "下次活动增加到场准备步骤，确保在推荐窗口开始时已就位",
       "index": 0
+    },
+    {
+      "text": "活动前增加天气预报检查步骤，关注云量预报",
+      "index": 1
+    },
+    {
+      "text": "准备备选方案：若天气不适合观测，转为室内科普讲座",
+      "index": 2
+    },
+    {
+      "text": "增加设备检查步骤：活动前测试三脚架稳定性",
+      "index": 3
+    },
+    {
+      "text": "活动前增加预期管理说明（来源: 天文科普经验，非本次计算）",
+      "index": 4
     }
   ],
   "plan_diffs": [
     {
       "field": "preparation_step",
-      "reason": "本次迟到 31 分钟",
+      "reason": "本次迟到 16 分钟",
       "source_cause_ids": [
         "cause.team_late"
       ]
     },
     {
+      "field": "equipment_check_step",
+      "reason": "观测者报告三脚架不稳（possible，待验证）",
+      "source_cause_ids": [
+        "cause.equipment_prep"
+      ]
+    },
+    {
+      "field": "expectation_management",
+      "reason": "备注提及不如预期（undetermined，具体原因待确认）",
+      "source_cause_ids": [
+        "cause.expectation"
+      ]
+    },
+    {
       "field": "activity_preferences.preferred_start",
-      "reason": "本次实际开始 19:45 晚于计划，将下次活动开始时间调整到实际可用时间",
+      "reason": "本次实际开始 19:30 晚于计划，将下次活动开始时间调整到实际可用时间",
       "source_cause_ids": [
         "cause.team_late"
       ]
@@ -39,19 +105,29 @@
     {
       "field": "activity_preferences.preferred_start",
       "original_value": "未设置",
-      "revised_value": "2026-10-17T19:45:00",
-      "reason": "本次实际开始 19:45 晚于计划，将下次活动开始时间调整到实际可用时间",
+      "revised_value": "2026-10-17T19:30:00",
+      "reason": "本次实际开始 19:30 晚于计划，将下次活动开始时间调整到实际可用时间",
       "source_cause_ids": [
         "cause.team_late"
       ]
     }
   ],
-  "next_input_path": "E:\\learning\\阿里云揭榜挂帅\\starplan-project-guidance\\StarPlan\\runs\\m31_济南-四门塔_20261017_184517_review\\next_activity_input.json",
+  "next_input_path": "StarPlan/runs/m31_济南-四门塔_20261017_184517_review/next_activity_input.json",
   "deviations": [
     {
       "deviation_id": "dev.time.delay",
       "deviation_type": "time",
-      "description": "实际开始时间比计划晚 31 分钟"
+      "description": "实际开始时间比计划晚 16 分钟"
+    },
+    {
+      "deviation_id": "dev.env.cloud",
+      "deviation_type": "environment",
+      "description": "云量: partly_cloudy"
+    },
+    {
+      "deviation_id": "dev.equip.tripod",
+      "deviation_type": "equipment",
+      "description": "三脚架不稳定，影响观测效果"
     }
   ]
 }
