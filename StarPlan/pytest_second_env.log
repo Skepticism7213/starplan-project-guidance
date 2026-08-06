@@ -1,0 +1,590 @@
+.....  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_case1_gets_realistic_slot0\run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_case1_gets_realistic_slot0\run
+  Files: 24 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_case1_gets_realistic_slot0\run
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_views_share_numeric_claim0\run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_views_share_numeric_claim0\run
+  Files: 20 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_views_share_numeric_claim0\run
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_youth_policy_applies_and_0\run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_youth_policy_applies_and_0\run
+  Files: 16 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_youth_policy_applies_and_0\run
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_m42_has_no_fake_activity_0\run_m42\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_m42_has_no_fake_activity_0\run_m42
+  Files: 16 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_m42_has_no_fake_activity_0\run_m42
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_adult_audience_without_pr0\run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_adult_audience_without_pr0\run
+  Files: 16 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_adult_audience_without_pr0\run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 帮我规划10月17号在济南四门塔观测M31
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 6 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 4
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_run_persists_csv_and0\chat_artifacts
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 帮我规划10月17号在济南四门塔观测M31
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 6 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 4
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_delivery_unaffected_0\chat_artifacts
+....................[CHAT] Qwen tool-calling orchestration mode
+  Input: 帮我规划10月17号在济南四门塔观测M31
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 6 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 4
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_normalizes_location_0\chat_location
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 帮我规划10月17号在济南四门塔观测M31
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 6 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 4
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_round_limit_is_six_o0\chat_rounds
+..........................................  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_blocked_return\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+  [BLOCKED] Delivery contract failed: 1 errors
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_blocked_return
+  Files: 15 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_blocked_return
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_passed_return\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_passed_return
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_passed_return
+............  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M31 在 2026-10-26 高度角合适（最高 85.0°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 89.3°，推荐窗口 19:03–04:03
+    Suggestion: 已验证的替代目标：Algol（大陵五） 当晚可观测，最高高度 85.4°，推荐窗口 19:48–04:48
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_moonlight\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Algol
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_moonlight
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_moonlight
+....  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+..  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_qwen_down\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_qwen_down
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_qwen_down
+...  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_mapping\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_mapping
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_mapping
+...  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_privacy\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_privacy
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_privacy
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_export\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_export
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_p2_export
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-12-20 高度角合适（最高 48.1°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 88.7°，推荐窗口 18:46–00:31
+    Suggestion: 已验证的替代目标：Castor（北河二） 当晚可观测，最高高度 85.3°，推荐窗口 21:01–05:46
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_gate\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Castor
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_gate
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_gate
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-12-20 高度角合适（最高 48.1°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 88.7°，推荐窗口 18:46–00:31
+    Suggestion: 已验证的替代目标：Castor（北河二） 当晚可观测，最高高度 85.3°，推荐窗口 21:01–05:46
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_claims\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Castor
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_claims
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_claims
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-12-20 高度角合适（最高 48.1°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 88.7°，推荐窗口 18:46–00:31
+    Suggestion: 已验证的替代目标：Castor（北河二） 当晚可观测，最高高度 85.3°，推荐窗口 21:01–05:46
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_consistency\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Castor
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_consistency
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_consistency
+..  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-12-20 高度角合适（最高 48.1°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 88.7°，推荐窗口 18:46–00:31
+    Suggestion: 已验证的替代目标：Castor（北河二） 当晚可观测，最高高度 85.3°，推荐窗口 21:01–05:46
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_failclosed\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Castor
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_failclosed
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_trace_failclosed
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: 星云
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_observable\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_observable
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_observable
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-12-20 高度角合适（最高 48.1°），但当晚月光影响严重，遮挡了观测窗口。建议改到月光较弱的日期（如新月前后）。
+    Suggestion: 已验证的替代目标：Mirach（奎宿九） 当晚可观测，最高高度 88.7°，推荐窗口 18:46–00:31
+    Suggestion: 已验证的替代目标：Castor（北河二） 当晚可观测，最高高度 85.3°，推荐窗口 21:01–05:46
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_notobs\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：Mirach、Castor
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_notobs
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_contract_notobs
+.......  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_starplan_run_via_handle_m0\m31_济南-四门塔_20261017_093234\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_starplan_run_via_handle_m0\m31_济南-四门塔_20261017_093234
+  Files: 24 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_starplan_run_via_handle_m0\m31_济南-四门塔_20261017_093234
+................................  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run1\outreach_pack.md
+[4/4] Reviewing observation log
+  [OK] Deviations found: 1
+  [OK] Review report: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run1\review_report.md
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run1
+  Files: 21 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run1
+  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run2\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run2
+  Files: 16 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_second_run_uses_next_inpu0\run2
+..  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m42_fixture\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m42_fixture
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m42_fixture
+.......  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m31_fixture\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m31_fixture
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c3_m31_fixture
+........[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [!] Phase B forced outreach_pack failed: injected pack exception
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_faults_are_blocked_w0\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_faults_are_blocked_w1\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_faults_are_blocked_w2\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_faults_are_blocked_w3\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_faults_are_blocked_w4\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_contract_exception_i0\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_normal_path_delivers0\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测并复盘
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (337 chars, blocked=True)
+  [OK] Tool calls: 4
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_review_tool_explicit0\chat_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 1 (chat_orchestration_round0)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_round_limit_is_fail_0\chat_run
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid0\structured_run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+  [BLOCKED] Delivery contract failed: 1 errors
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid0\structured_run
+  Files: 14 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid0\structured_run
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid1\structured_run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+  [BLOCKED] Delivery contract failed: 1 errors
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid1\structured_run
+  Files: 15 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_structured_model_log_evid1\structured_run
+.[CHAT] Qwen tool-calling orchestration mode
+  Input: 规划一次 M31 观测
+  [Phase B] Forced outreach_pack build (Claims + RenderedDocument)
+  [!] 幻觉核查：Qwen 文本含 1 个不可溯源数值（已阻断）
+  [OK] 最终输出使用 Claim 渲染（Qwen 原文 26 chars 仅供审计）
+  [OK] Final response (68 chars, blocked=True)
+  [OK] Tool calls: 3
+  [OK] Model calls: 0 (none)
+  [OK] Run dir: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_chat_without_model_event_0\chat_run
+..........  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at New York Test Site
+  [OK] Observable! Recommended: 19:58 ~ 05:13
+    Peak altitude: 88.8 deg
+[3/4] Generating outreach pack for audience: astronomy club
+  [OK] Outreach pack [template]: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_non_default_timezone_keep0\new_york_run\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_non_default_timezone_keep0\new_york_run
+  Files: 16 in C:\Users\ASUS\AppData\Local\Temp\pytest-of-ASUS\pytest-1\test_non_default_timezone_keep0\new_york_run
+................  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: 星云
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: 星云
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: 星云
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: 不存在的天体XYZ123
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving confirmed target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_confirmed\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_confirmed
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_confirmed
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving confirmed target: 星云
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M31
+  [OK] M31: RA=10.6847 deg, Dec=41.2688 deg
+[2/4] Computing observability for M31 at 四门塔景区观星点
+  [OK] Observable! Recommended: 19:13 ~ 04:28
+    Peak altitude: 85.0 deg
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Outreach pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_normal\outreach_pack.md
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_normal
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\test_c2_normal
+....  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+.  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+  astronomy_runtime=offline_bundled_data
+[1/4] Resolving target: M42
+  [OK] M42: RA=83.8201 deg, Dec=-5.3876 deg
+[2/4] Computing observability for M42 at 四门塔景区观星点
+  [FAIL] Target not observable on this date.
+    Suggestion: M42 在 2026-07-25 夜间最高高度仅 -5.7°，低于 30° 要求。建议等待目标进入更好观测季节。
+    Suggestion: 已验证的替代目标：M29（天鹅座疏散星团） 当晚可观测，最高高度 75.2°，推荐窗口 01:36–03:21
+    Suggestion: 已验证的替代目标：M57（环状星云） 当晚可观测，最高高度 56.3°，推荐窗口 01:36–03:21
+[3/4] Generating outreach pack for audience: 天文社新成员
+  [OK] Cancellation/alternative pack [template]: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test\outreach_pack.md
+    Alt: 当季更适合观测的替代目标：M29、M57
+    Alt: 建议将活动改期到约束条件满足时再举行
+    Alt: 可以利用本次集会时间进行室内天文知识讲座或星图认读练习
+[4/4] No observation log provided -- skipping review
+
+[OK] Run complete: E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+  Files: 16 in E:\星际\starplan-project-guidance-second\StarPlan\runs\w1_contract_test
+...............  [!] date_range spans 3 days; MVP computes single-night analysis for the first date (2026-10-17) only.
+........
+237 passed in 78.19s (0:01:18)
