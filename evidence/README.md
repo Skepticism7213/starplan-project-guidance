@@ -99,6 +99,9 @@ StarPlan\.venv\Scripts\python.exe -X utf8 StarPlan\scripts\compare_evidence_hash
 允许不同）、VALUE（输入与观测日志按规范化 JSON 语义、Claim 按稳定内容、其它文件按科学字段比较）。案例三加
 `--second-run-dir`。退出码 0/1/2 分别表示通过/必需产物或 STRICT 失败/数值字段失败；未分类的 manifest 产物也会按失败处理。
 
+第二环境负责人请直接按 **`evidence/second_environment_rerun_guide.md`** 执行：
+包含最新 main 上的完整重跑步骤、验收标准和提交流程。
+
 ## 外部科学复核
 
 请一位非团队成员（老师、学长、天文爱好者）独立核对以下数值：
